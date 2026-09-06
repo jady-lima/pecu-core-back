@@ -1,4 +1,4 @@
-package modelos;
+package com.pecucore.system.model;
 
 import jakarta.persistence.*;
 
@@ -15,7 +15,6 @@ public class Animal implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
 
     //ANIMAL
 
@@ -37,8 +36,6 @@ public class Animal implements Serializable {
     public String getSexo() {
         return sexo;
     }
-
-    ;
 
     public LocalDate getDataNascimento() {
         return dataNascimento;

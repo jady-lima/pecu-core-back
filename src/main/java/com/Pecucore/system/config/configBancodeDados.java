@@ -1,4 +1,4 @@
-package com.Pecucore.system;
+package com.pecucore.system.config;
 
 import javax.sql.DataSource;
 

@@ -1,4 +1,4 @@
-package modelos;
+package com.pecucore.system.model;
 
 public class Cadastro {
 

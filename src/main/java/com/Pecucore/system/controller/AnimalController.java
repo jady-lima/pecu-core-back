@@ -1,5 +1,7 @@
-package controller;
-import modelos.Animal;
+package com.pecucore.system.controller;
+
+import com.pecucore.system.model.Animal;
+import com.pecucore.system.repository.AnimalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -7,13 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
-import repositorios.AnimalRepositorio;
 
 @Controller
 public class AnimalController {
 
     @Autowired
-    private AnimalRepositorio animalRepositorio;
+    private AnimalRepository animalRepository;
 
     @GetMapping("/cadastroAnimal")
     public ModelAndView cadastrar(Animal animal){
@@ -27,7 +28,7 @@ public class AnimalController {
         if(result.hasErrors()){
             return cadastrar(animal);
         }
-        animalRepositorio.saveAndFlush(animal);
+        animalRepository.saveAndFlush(animal);
         return cadastrar(new Animal());
     }
 

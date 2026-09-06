@@ -1,4 +1,4 @@
-package com.Pecucore.system;
+package com.pecucore.system;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

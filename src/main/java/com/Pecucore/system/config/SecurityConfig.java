@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/usuarios").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/usuarios/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/usuarios/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/usuarios/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

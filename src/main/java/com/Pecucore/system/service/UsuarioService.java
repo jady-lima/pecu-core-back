@@ -1,5 +1,7 @@
 package com.pecucore.system.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,5 +54,29 @@ public class UsuarioService implements UserDetailsService {
         usuario.setPerfil(dados.perfil());
 
         return usuarioRepository.save(usuario);
+    }
+
+    public Usuario updateUsuario(Long id, UsuarioRequestDTO dados) {
+        Usuario usuarioExistente = usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        usuarioExistente.setNome(dados.nome());
+        usuarioExistente.setUsername(dados.username());
+        usuarioExistente.setPassword(passwordEncoder.encode(dados.senha()));
+        usuarioExistente.setPerfil(dados.perfil());
+
+        return usuarioRepository.save(usuarioExistente);
+    }
+
+    public List<Usuario> getAllUsuarios() {
+        return usuarioRepository.findAll();
+    }
+
+    public Usuario getUsuarioById(Long id) {
+        return usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+    }
+
+    public void deleteUsuario(Long id) {
+        Usuario usuarioExistente = usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+        usuarioRepository.delete(usuarioExistente);
     }
 }

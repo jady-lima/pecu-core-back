@@ -41,6 +41,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/login", "/").permitAll()
                 .requestMatchers(HttpMethod.POST, "/usuarios").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/usuarios/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/usuarios/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

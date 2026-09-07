@@ -2,7 +2,7 @@ package com.pecucore.system.controller;
 
 import com.pecucore.system.model.Cadastro;
 import com.pecucore.system.model.Animal;
-import com.pecucore.system.repository.animalRepository;
+import com.pecucore.system.repository.AnimalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -16,7 +16,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class CadastroController {
 
     @Autowired
-    private animalRepository animalRepository;
+    private AnimalRepository animalRepository;
 
     @PostMapping("/salvarCadastro")
     public void salvarCadastro(Cadastro cadastro){

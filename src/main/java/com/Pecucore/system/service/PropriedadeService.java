@@ -1,42 +1,68 @@
 package com.Pecucore.system.service;
 
-import com.Pecucore.system.repository.PropriedadeRepository;
-import com.Pecucore.system.model.Propriedade;
 import java.util.List;
-import org.springframework.stereotype.Service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.Pecucore.system.dto.PropriedadeRequestDTO;
+import com.Pecucore.system.model.Propriedade;
+import com.Pecucore.system.repository.PropriedadeRepository;
 
 @Service
 public class PropriedadeService {
 
-    private final PropriedadeRepository propriedadeRepository;
-    public PropriedadeService(PropriedadeRepository propriedadeRepository) {
-        this.propriedadeRepository = propriedadeRepository;
-    }
-    public Propriedade create(Propriedade propriedade) {
+    @Autowired
+    private PropriedadeRepository propriedadeRepository;
+
+    public Propriedade create(PropriedadeRequestDTO dados) {
+
+        Propriedade propriedade = new Propriedade();
+
+        propriedade.setNome(dados.nome());
+        propriedade.setLocalizacao(dados.localizacao());
+
         return propriedadeRepository.save(propriedade);
-}
-    public List<Propriedade> findAll() {
+    }
+
+    public Propriedade update(Long id, PropriedadeRequestDTO dados) {
+
+        Propriedade propriedadeExistente =
+                propriedadeRepository.findById(id)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Propriedade não encontrada"
+                        ));
+
+        propriedadeExistente.setNome(dados.nome());
+        propriedadeExistente.setLocalizacao(dados.localizacao());
+
+        return propriedadeRepository.save(propriedadeExistente);
+    }
+
+    public List<Propriedade> getAllPropriedades() {
         return propriedadeRepository.findAll();
     }
-    public Propriedade findById(Long id) {
-        return propriedadeRepository.findById(id).orElse(null);
-        }
-    public Propriedade update(Long id, Propriedade novaPropriedade) {
 
-        Propriedade propriedade = propriedadeRepository.findById(id).orElse(null);
-
-        if (propriedade == null) {
-            return null;
-        }
-
-        propriedade.setNome(novaPropriedade.getNome());
-        propriedade.setLocalizacao(novaPropriedade.getLocalizacao());
-
-        return propriedadeRepository.save(propriedade);
+    public Propriedade getPropriedadeById(Long id) {
+        return propriedadeRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Propriedade não encontrada"
+                ));
     }
-    public void delete(Long id) {
-        propriedadeRepository.deleteById(id);
+
+    public void deletePropriedade(Long id) {
+
+        Propriedade propriedadeExistente =
+                propriedadeRepository.findById(id)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Propriedade não encontrada"
+                        ));
+
+        propriedadeRepository.delete(propriedadeExistente);
     }
 }
-

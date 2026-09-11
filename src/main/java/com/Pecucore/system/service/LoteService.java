@@ -1,70 +1,89 @@
 package com.Pecucore.system.service;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.Pecucore.system.dto.LoteRequestDTO;
 import com.Pecucore.system.model.Lote;
 import com.Pecucore.system.model.Propriedade;
 import com.Pecucore.system.repository.LoteRepository;
-import java.util.List;
-
 import com.Pecucore.system.repository.PropriedadeRepository;
-import org.springframework.stereotype.Service;
 
 @Service
 public class LoteService {
 
-    private final LoteRepository loteRepository;
-    private final PropriedadeRepository propriedadeRepository;
+    @Autowired
+    private LoteRepository loteRepository;
 
-    public LoteService(LoteRepository loteRepository,
-    PropriedadeRepository propriedadeRepository) {
-        this.loteRepository = loteRepository;
-        this.propriedadeRepository = propriedadeRepository;
-    }
-//Exceção de so poder cadastrar com uma propriedade
-    public Lote create(Lote lote) {
-        Long propriedadeId = lote.getPropriedade().getId();
+    @Autowired
+    private PropriedadeRepository propriedadeRepository;
 
-        Propriedade propriedade =
-                propriedadeRepository.findById(propriedadeId).orElse(null);
+    public Lote create(LoteRequestDTO dados) {
 
-        if (propriedade == null) {
-            throw new RuntimeException(
-                    "Sem Propriedade Cadastrada!! Cadastre uma Propriedade."
-            );
-        }
-        if (lote.getCapacidade() <= 0) {
-            throw new RuntimeException(
-                    "A capacidade do lote deve ser maior que zero."
-            );
-        }
+        Propriedade propriedade = propriedadeRepository.findById(dados.propriedadeId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Propriedade não encontrada"
+                ));
+
+        Lote lote = new Lote();
+
+        lote.setNumero(dados.numero());
+        lote.setFinalidade(dados.finalidade());
+        lote.setCapacidade(dados.capacidade());
+        lote.setDataCriacao(dados.dataCriacao());
+        lote.setPropriedade(propriedade);
+
         return loteRepository.save(lote);
     }
 
-    public List<Lote> findAll() {
+    public Lote update(Long id, LoteRequestDTO dados) {
+
+        Lote loteExistente = loteRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Lote não encontrado"
+                ));
+
+        Propriedade propriedade = propriedadeRepository.findById(dados.propriedadeId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Propriedade não encontrada"
+                ));
+
+        loteExistente.setNumero(dados.numero());
+        loteExistente.setFinalidade(dados.finalidade());
+        loteExistente.setCapacidade(dados.capacidade());
+        loteExistente.setDataCriacao(dados.dataCriacao());
+        loteExistente.setPropriedade(propriedade);
+
+        return loteRepository.save(loteExistente);
+    }
+
+    public List<Lote> getAllLotes() {
         return loteRepository.findAll();
     }
 
-    public Lote findById(Long id) {
-        return loteRepository.findById(id).orElse(null);
+    public Lote getLoteById(Long id) {
+        return loteRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Lote não encontrado"
+                ));
     }
 
-    public Lote update(Long id, Lote novoLote) {
+    public void deleteLote(Long id) {
 
-        Lote lote = loteRepository.findById(id).orElse(null);
+        Lote loteExistente = loteRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Lote não encontrado"
+                ));
 
-        if (lote == null) {
-            return null;
-        }
-
-        lote.setNumero(novoLote.getNumero());
-        lote.setFinalidade(novoLote.getFinalidade());
-        lote.setCapacidade(novoLote.getCapacidade());
-        lote.setDataCriacao(novoLote.getDataCriacao());
-        lote.setPropriedade(novoLote.getPropriedade());
-
-        return loteRepository.save(lote);
-    }
-
-    public void delete(Long id) {
-        loteRepository.deleteById(id);
+        loteRepository.delete(loteExistente);
     }
 }

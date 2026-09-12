@@ -1,4 +1,6 @@
-package com.pecucore.system.dto;
+package com.Pecucore.system.dto;
 
-public record ErroResponseDTO(String mensagem) {
+import io.swagger.v3.oas.annotations.media.Schema;
+
+public record ErroResponseDTO(@Schema(description = "Mensagem que descreve o erro ocorrido", example = "Usuário ou senha inválidos") String mensagem) {
 }

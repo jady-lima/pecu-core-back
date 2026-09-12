@@ -1,6 +1,6 @@
-package com.pecucore.system.exception;
+package com.Pecucore.system.exception;
 
-import com.pecucore.system.dto.ErroResponseDTO;
+import com.Pecucore.system.dto.ErroResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;

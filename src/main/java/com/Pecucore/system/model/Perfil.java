@@ -1,4 +1,4 @@
-package com.pecucore.system.model;
+package com.Pecucore.system.model;
 
 public enum Perfil {
     ADMIN,

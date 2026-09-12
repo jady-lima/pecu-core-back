@@ -1,4 +1,4 @@
-package com.pecucore.system.model;
+package com.Pecucore.system.model;
 
 import jakarta.persistence.*;
 

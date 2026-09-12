@@ -1,6 +1,6 @@
-package com.pecucore.system.repository;
+package com.Pecucore.system.repository;
 
-import com.pecucore.system.model.Usuario;
+import com.Pecucore.system.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {

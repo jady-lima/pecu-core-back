@@ -1,37 +1,79 @@
-package com.pecucore.system.controller;
+package com.Pecucore.system.controller;
 
-import com.pecucore.system.model.Animal;
-import com.pecucore.system.repository.AnimalRepository;
+import com.Pecucore.system.dto.AnimalRequestDTO;
+import com.Pecucore.system.dto.AnimalResponseDTO;
+import com.Pecucore.system.model.Animal;
+import com.Pecucore.system.service.AnimalService;
+
+import jakarta.validation.Valid;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
+@RequestMapping("/animais")
 public class AnimalController {
 
     @Autowired
-    private AnimalRepository animalRepository;
+    private AnimalService animalService;
 
-    @GetMapping("/cadastroAnimal")
-    public ModelAndView cadastrar(Animal animal){
-        ModelAndView mv = new ModelAndView("/gerenciadorDeEntidades/animal");
-        mv.addObject("animal", animal);
-        return mv;
+    @PostMapping
+    public ResponseEntity<AnimalResponseDTO> create(
+            @RequestBody @Valid AnimalRequestDTO dados) {
+
+        Animal animalCriado = animalService.create(dados);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new AnimalResponseDTO(animalCriado));
     }
 
-    @PostMapping("/salvarAnimal")
-    public ModelAndView salvar(Animal animal, BindingResult result){
-        if(result.hasErrors()){
-            return cadastrar(animal);
-        }
-        animalRepository.saveAndFlush(animal);
-        return cadastrar(new Animal());
+    @PutMapping("/{id}")
+    public ResponseEntity<AnimalResponseDTO> updateAnimal(
+            @PathVariable Long id,
+            @RequestBody @Valid AnimalRequestDTO dados) {
+
+        Animal animalAtualizado = animalService.update(id, dados);
+
+        return ResponseEntity.ok(
+                new AnimalResponseDTO(animalAtualizado)
+        );
     }
 
+    @GetMapping
+    public ResponseEntity<List<AnimalResponseDTO>> getAllAnimais() {
 
+        List<Animal> animais = animalService.getAllAnimais();
 
+        List<AnimalResponseDTO> dtos = animais.stream()
+                .map(AnimalResponseDTO::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AnimalResponseDTO> getAnimalById(
+            @PathVariable Long id) {
+
+        Animal animal = animalService.getAnimalById(id);
+
+        return ResponseEntity.ok(
+                new AnimalResponseDTO(animal)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAnimal(
+            @PathVariable Long id) {
+
+        animalService.deleteAnimal(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }

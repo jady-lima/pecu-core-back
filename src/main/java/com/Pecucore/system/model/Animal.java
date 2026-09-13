@@ -1,4 +1,4 @@
-package com.pecucore.system.model;
+package com.Pecucore.system.model;
 
 import jakarta.persistence.*;
 
@@ -16,18 +16,21 @@ public class Animal implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    //ANIMAL
-
     private int brinco;
     private LocalDate dataNascimento;
     private double pesoInicial;
-    private int lote;
     private String sexo;
 
+    @ManyToOne
+    @JoinColumn(name = "lote_id")
+    private Lote lote;
 
-    public int getLote() {
-        return lote;
-    }
+    @Enumerated(EnumType.STRING)
+    private StatusAnimal status;
+
+
+
+    public Long getId(){return id;}
 
     public int getBrinco() {
         return brinco;
@@ -45,9 +48,17 @@ public class Animal implements Serializable {
         return pesoInicial;
     }
 
+    public StatusAnimal getStatus(){return status;}
+
+    public Lote getLote(){return lote;}
+
     public void setBrinco(int brinco) {
         this.brinco = brinco;
     }
+
+    public void setStatus(StatusAnimal status){this.status = status;}
+
+    public void setLote(Lote lote){this.lote = lote;}
 
     public void setDataNascimento(LocalDate dataNascimento) {
         this.dataNascimento = dataNascimento;
@@ -55,10 +66,6 @@ public class Animal implements Serializable {
 
     public void setPesoInicial(double pesoInicial) {
         this.pesoInicial = pesoInicial;
-    }
-
-    public void setLote(int lote) {
-        this.lote = lote;
     }
 
     public void setSexo(String sexo) {

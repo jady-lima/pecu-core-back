@@ -1,4 +1,4 @@
-package com.pecucore.system.repository;
+package com.Pecucore.system.repository;
 
 import com.pecucore.system.model.Animal;
 import org.springframework.data.jpa.repository.JpaRepository;

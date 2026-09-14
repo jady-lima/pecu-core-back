@@ -12,6 +12,8 @@ import com.Pecucore.system.model.Lote;
 import com.Pecucore.system.model.Propriedade;
 import com.Pecucore.system.repository.LoteRepository;
 import com.Pecucore.system.repository.PropriedadeRepository;
+import com.Pecucore.system.model.StatusAnimal;
+import com.Pecucore.system.repository.AnimalRepository;
 
 @Service
 public class LoteService {
@@ -21,6 +23,9 @@ public class LoteService {
 
     @Autowired
     private PropriedadeRepository propriedadeRepository;
+
+    @Autowired
+    private AnimalRepository animalRepository;
 
     public Lote create(LoteRequestDTO dados) {
 
@@ -83,6 +88,17 @@ public class LoteService {
                         HttpStatus.NOT_FOUND,
                         "Lote não encontrado"
                 ));
+
+        boolean possuiAnimaisAtivos = animalRepository.existsByLoteIdAndStatus(
+                id,
+                StatusAnimal.ATIVO
+        );
+        if (possuiAnimaisAtivos){
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Não é possivel excluir o lote porque existem animais ativos nesse lote"
+            );
+        }
 
         loteRepository.delete(loteExistente);
     }

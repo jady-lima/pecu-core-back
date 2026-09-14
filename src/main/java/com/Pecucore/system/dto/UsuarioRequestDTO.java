@@ -1,6 +1,6 @@
-package com.pecucore.system.dto;
+package com.Pecucore.system.dto;
 
-import com.pecucore.system.model.Perfil;
+import com.Pecucore.system.model.Perfil;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

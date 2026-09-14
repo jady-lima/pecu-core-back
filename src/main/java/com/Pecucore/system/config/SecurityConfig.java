@@ -1,4 +1,4 @@
-package com.pecucore.system.config;
+package com.Pecucore.system.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

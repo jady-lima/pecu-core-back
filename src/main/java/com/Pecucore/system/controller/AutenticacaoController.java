@@ -1,10 +1,10 @@
-package com.pecucore.system.controller;
+package com.Pecucore.system.controller;
 
-import com.pecucore.system.dto.LoginRequestDTO;
-import com.pecucore.system.dto.TokenResponseDTO;
-import com.pecucore.system.dto.UsuarioResponseDTO;
-import com.pecucore.system.model.Usuario;
-import com.pecucore.system.service.TokenService;
+import com.Pecucore.system.dto.LoginRequestDTO;
+import com.Pecucore.system.dto.TokenResponseDTO;
+import com.Pecucore.system.dto.UsuarioResponseDTO;
+import com.Pecucore.system.model.Usuario;
+import com.Pecucore.system.service.TokenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.pecucore.system.controller;
+package com.Pecucore.system.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

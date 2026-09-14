@@ -1,4 +1,4 @@
-package com.pecucore.system.dto;
+package com.Pecucore.system.dto;
 
 public record TokenResponseDTO(String token) {
 }

@@ -1,8 +1,8 @@
-package com.pecucore.system.config;
+package com.Pecucore.system.config;
 
-import com.pecucore.system.dto.UsuarioRequestDTO;
-import com.pecucore.system.model.Perfil;
-import com.pecucore.system.service.UsuarioService;
+import com.Pecucore.system.dto.UsuarioRequestDTO;
+import com.Pecucore.system.model.Perfil;
+import com.Pecucore.system.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

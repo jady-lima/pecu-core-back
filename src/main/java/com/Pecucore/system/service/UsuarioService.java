@@ -1,4 +1,4 @@
-package com.pecucore.system.service;
+package com.Pecucore.system.service;
 
 import java.util.List;
 
@@ -11,9 +11,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.pecucore.system.dto.UsuarioRequestDTO;
-import com.pecucore.system.model.Usuario;
-import com.pecucore.system.repository.UsuarioRepository;
+import com.Pecucore.system.dto.UsuarioRequestDTO;
+import com.Pecucore.system.dto.UsuarioUpdateRequestDTO;
+import com.Pecucore.system.model.Usuario;
+import com.Pecucore.system.repository.UsuarioRepository;
 
 @Service
 public class UsuarioService implements UserDetailsService {
@@ -56,13 +57,36 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.save(usuario);
     }
 
-    public Usuario updateUsuario(Long id, UsuarioRequestDTO dados) {
+    public Usuario updateUsuario(Long id, UsuarioUpdateRequestDTO dados) {
         Usuario usuarioExistente = usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
 
-        usuarioExistente.setNome(dados.nome());
-        usuarioExistente.setUsername(dados.username());
-        usuarioExistente.setPassword(passwordEncoder.encode(dados.senha()));
-        usuarioExistente.setPerfil(dados.perfil());
+        if (dados.nome() != null) {
+            if (dados.nome().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O campo nome não pode ser vazio");
+            }
+            usuarioExistente.setNome(dados.nome());
+        }
+
+        if (dados.username() != null) {
+            if (dados.username().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O campo email não pode ser vazio");
+            }
+            if (!dados.username().equals(usuarioExistente.getUsername()) && usuarioRepository.existsByUsername(dados.username())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
+            }
+            usuarioExistente.setUsername(dados.username());
+        }
+
+        if (dados.senha() != null) {
+            if (dados.senha().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O campo senha não pode ser vazio");
+            }
+            usuarioExistente.setPassword(passwordEncoder.encode(dados.senha()));
+        }
+
+        if (dados.perfil() != null) {
+            usuarioExistente.setPerfil(dados.perfil());
+        }
 
         return usuarioRepository.save(usuarioExistente);
     }

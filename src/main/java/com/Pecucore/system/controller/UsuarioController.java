@@ -1,9 +1,10 @@
-package com.pecucore.system.controller;
+package com.Pecucore.system.controller;
 
-import com.pecucore.system.dto.UsuarioRequestDTO;
-import com.pecucore.system.dto.UsuarioResponseDTO;
-import com.pecucore.system.model.Usuario;
-import com.pecucore.system.service.UsuarioService;
+import com.Pecucore.system.dto.UsuarioRequestDTO;
+import com.Pecucore.system.dto.UsuarioResponseDTO;
+import com.Pecucore.system.dto.UsuarioUpdateRequestDTO;
+import com.Pecucore.system.model.Usuario;
+import com.Pecucore.system.service.UsuarioService;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioResponseDTO> updateUsuario(@PathVariable Long id, @RequestBody @Valid UsuarioRequestDTO dados) {
+    public ResponseEntity<UsuarioResponseDTO> updateUsuario(@PathVariable Long id, @RequestBody @Valid UsuarioUpdateRequestDTO dados) {
         Usuario usuarioAtualizado = usuarioService.updateUsuario(id, dados);
         return ResponseEntity.ok(new UsuarioResponseDTO(usuarioAtualizado));
     }

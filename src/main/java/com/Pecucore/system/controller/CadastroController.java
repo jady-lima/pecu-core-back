@@ -1,8 +1,8 @@
-package com.pecucore.system.controller;
+package com.Pecucore.system.controller;
 
-import com.pecucore.system.model.Cadastro;
-import com.pecucore.system.model.Animal;
-import com.pecucore.system.repository.AnimalRepository;
+import com.Pecucore.system.model.Cadastro;
+import com.Pecucore.system.model.Animal;
+import com.Pecucore.system.repository.AnimalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;

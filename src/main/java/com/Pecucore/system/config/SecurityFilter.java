@@ -1,8 +1,8 @@
-package com.pecucore.system.config;
+package com.Pecucore.system.config;
 
-import com.pecucore.system.model.Usuario;
-import com.pecucore.system.repository.UsuarioRepository;
-import com.pecucore.system.service.TokenService;
+import com.Pecucore.system.model.Usuario;
+import com.Pecucore.system.repository.UsuarioRepository;
+import com.Pecucore.system.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

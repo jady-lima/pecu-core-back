@@ -1,4 +1,4 @@
-package com.pecucore.system;
+package com.Pecucore.system;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

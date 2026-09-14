@@ -1,4 +1,4 @@
-package com.pecucore.system.service;
+package com.Pecucore.system.service;
 
 import java.util.List;
 
@@ -11,9 +11,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.pecucore.system.dto.UsuarioRequestDTO;
-import com.pecucore.system.model.Usuario;
-import com.pecucore.system.repository.UsuarioRepository;
+import com.Pecucore.system.dto.UsuarioRequestDTO;
+import com.Pecucore.system.model.Usuario;
+import com.Pecucore.system.repository.UsuarioRepository;
 
 @Service
 public class UsuarioService implements UserDetailsService {

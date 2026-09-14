@@ -1,4 +1,4 @@
-package com.pecucore.system.config;
+package com.Pecucore.system.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.Pecucore.system.config.SecurityFilter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +39,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/").permitAll()
+                .requestMatchers("/auth/login", "/","/swagger-ui/**","/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/usuarios/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             )

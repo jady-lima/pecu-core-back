@@ -1,5 +1,6 @@
 package com.Pecucore.system.dto;
 
+import com.Pecucore.system.model.FinalidadeLote;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -9,8 +10,8 @@ public record LoteRequestDTO(
         @NotNull(message = "O lote precisa ter um número cadastrado!!")
         Integer numero,
 
-        @NotBlank(message = "A finalidade do lote precisa ser informada!!")
-        String finalidade,
+        @NotNull(message = "A finalidade do lote precisa ser informada!!")
+        FinalidadeLote finalidade,
 
         @NotNull(message = "A capacidade do lote precisa ser informada!!")
         @Positive(message = "A capacidade do lote precisa ser maior do que zero!!")

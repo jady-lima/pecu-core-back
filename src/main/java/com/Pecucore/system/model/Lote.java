@@ -11,7 +11,8 @@ public class Lote {
     private long id;
 
     private int numero;
-    private String finalidade;
+    @Enumerated(EnumType.STRING)
+    private FinalidadeLote finalidade;
     private int capacidade;
     private LocalDate dataCriacao;
 
@@ -20,7 +21,7 @@ public class Lote {
     private Propriedade propriedade;
 
     public int getNumero(){return numero;}
-    public String getFinalidade(){return finalidade;}
+    public FinalidadeLote getFinalidade(){return finalidade;}
     public LocalDate getDataCriacao(){return dataCriacao;}
     public int getCapacidade(){return capacidade;}
     public long getId(){return id;}
@@ -31,7 +32,7 @@ public class Lote {
         this.numero = numero;
     }
 
-    public void setFinalidade(String finalidade) {
+    public void setFinalidade(FinalidadeLote finalidade) {
         this.finalidade = finalidade;
     }
 

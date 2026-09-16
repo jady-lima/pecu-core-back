@@ -13,9 +13,9 @@ public record AnimalRequestDTO(
         @NotNull(message = "A data de nascimento do animal precisa ser informada!!")
         LocalDate dataNascimento,
 
-        @NotNull(message = "O peso inicial precisa ser informado!!")
-        @Positive(message = "O peso inicial deve ser maior que zero")
-        Double pesoInicial,
+        @NotNull(message = "O peso precisa ser informado!!")
+        @Positive(message = "O peso deve ser maior que zero")
+        Double pesoAtual,
 
         @NotNull(message = "O sexo precisa ser informado!!")
         String sexo,

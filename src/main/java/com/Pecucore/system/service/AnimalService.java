@@ -42,7 +42,7 @@ public class AnimalService {
 
         animal.setBrinco(dados.brinco());
         animal.setDataNascimento(dados.dataNascimento());
-        animal.setPesoInicial(dados.pesoInicial());
+        animal.setPesoInicial(dados.pesoAtual());
         animal.setSexo(dados.sexo());
         animal.setLote(lote);
         animal.setStatus(StatusAnimal.ATIVO);
@@ -74,7 +74,7 @@ public class AnimalService {
 
         animalExistente.setBrinco(dados.brinco());
         animalExistente.setDataNascimento(dados.dataNascimento());
-        animalExistente.setPesoInicial(dados.pesoInicial());
+        animalExistente.setPesoInicial(dados.pesoAtual());
         animalExistente.setSexo(dados.sexo());
         animalExistente.setLote(lote);
 

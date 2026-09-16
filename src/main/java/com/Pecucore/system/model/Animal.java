@@ -18,7 +18,7 @@ public class Animal implements Serializable {
 
     private int brinco;
     private LocalDate dataNascimento;
-    private double pesoInicial;
+    private double pesoAtual;
     private String sexo;
 
     @ManyToOne
@@ -44,8 +44,8 @@ public class Animal implements Serializable {
         return dataNascimento;
     }
 
-    public double getPesoInicial() {
-        return pesoInicial;
+    public double getPesoAtual() {
+        return pesoAtual;
     }
 
     public StatusAnimal getStatus(){return status;}
@@ -64,8 +64,8 @@ public class Animal implements Serializable {
         this.dataNascimento = dataNascimento;
     }
 
-    public void setPesoInicial(double pesoInicial) {
-        this.pesoInicial = pesoInicial;
+    public void setPesoAtual(double pesoInicial) {
+        this.pesoAtual = pesoInicial;
     }
 
     public void setSexo(String sexo) {

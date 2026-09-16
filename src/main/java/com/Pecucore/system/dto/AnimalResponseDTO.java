@@ -9,7 +9,7 @@ public record AnimalResponseDTO(
         Long id,
         int brinco,
         LocalDate dataNascimento,
-        double pesoInicial,
+        double pesoAtual,
         String sexo,
         Long loteId, StatusAnimal status
 ) {
@@ -20,7 +20,7 @@ public record AnimalResponseDTO(
                 animal.getId(),
                 animal.getBrinco(),
                 animal.getDataNascimento(),
-                animal.getPesoInicial(),
+                animal.getPesoAtual(),
                 animal.getSexo(),
                 animal.getLote().getId(),
                 animal.getStatus()

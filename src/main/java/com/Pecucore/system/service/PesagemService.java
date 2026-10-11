@@ -33,6 +33,9 @@ public class PesagemService {
     @Autowired
     private GmdService gmdService;
 
+    @Autowired
+    private AlertaService alertaService;
+
     @Value("${pesagem.intervalo-recomendado-dias}")
     private int intervaloRecomendadoDias;
 
@@ -88,6 +91,7 @@ public class PesagemService {
 
         pesagemRepository.save(pesagem);
         animalRepository.save(animal);
+        alertaService.verificarGmdAbaixoMeta(animal, gmd);
 
         return new ResultadoPesagem(pesagem, aviso);
     }

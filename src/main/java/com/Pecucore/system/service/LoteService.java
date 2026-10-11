@@ -1,3 +1,4 @@
+
 package com.Pecucore.system.service;
 
 import java.util.List;
@@ -9,11 +10,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.LoteRequestDTO;
 import com.Pecucore.system.model.Lote;
+import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.Propriedade;
+import com.Pecucore.system.model.StatusAnimal;
+import com.Pecucore.system.model.Usuario;
+import com.Pecucore.system.repository.AnimalRepository;
 import com.Pecucore.system.repository.LoteRepository;
 import com.Pecucore.system.repository.PropriedadeRepository;
-import com.Pecucore.system.model.StatusAnimal;
-import com.Pecucore.system.repository.AnimalRepository;
 
 @Service
 public class LoteService {
@@ -27,13 +30,28 @@ public class LoteService {
     @Autowired
     private AnimalRepository animalRepository;
 
-    public Lote create(LoteRequestDTO dados) {
+    public Lote create(
+            LoteRequestDTO dados,
+            Usuario usuarioLogado
+    ) {
 
-        Propriedade propriedade = propriedadeRepository.findById(dados.propriedadeId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Propriedade não encontrada"
-                ));
+        Propriedade propriedade =
+                propriedadeRepository.findById(dados.propriedadeId())
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Propriedade não encontrada"
+                        ));
+
+        validarAcessoPropriedade(
+                propriedade,
+                usuarioLogado
+        );
+
+        validarNumeroLote(
+                dados.numero(),
+                propriedade.getId(),
+                null
+        );
 
         Lote lote = new Lote();
 
@@ -46,19 +64,46 @@ public class LoteService {
         return loteRepository.save(lote);
     }
 
-    public Lote update(Long id, LoteRequestDTO dados) {
+    public Lote update(
+            Long id,
+            LoteRequestDTO dados,
+            Usuario usuarioLogado
+    ) {
 
-        Lote loteExistente = loteRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Lote não encontrado"
-                ));
+        Lote loteExistente =
+                loteRepository.findById(id)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Lote não encontrado"
+                        ));
 
-        Propriedade propriedade = propriedadeRepository.findById(dados.propriedadeId())
-                .orElseThrow(() -> new ResponseStatusException(
+        validarAcessoLote(
+                loteExistente,
+                usuarioLogado
+        );
+
+        Propriedade propriedade =
+                propriedadeRepository.findById(
+                        dados.propriedadeId()
+                ).orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Propriedade não encontrada"
                 ));
+
+        validarAcessoPropriedade(
+                propriedade,
+                usuarioLogado
+        );
+
+        if (loteExistente.getNumero() != dados.numero()
+                || !loteExistente.getPropriedade().getId().equals(propriedade.getId())) {
+
+            validarNumeroLote(
+                    dados.numero(),
+                    propriedade.getId(),
+                    id
+            );
+        }
 
         loteExistente.setNumero(dados.numero());
         loteExistente.setFinalidade(dados.finalidade());
@@ -69,37 +114,140 @@ public class LoteService {
         return loteRepository.save(loteExistente);
     }
 
-    public List<Lote> getAllLotes() {
+    public List<Lote> getAllLotes(
+            Usuario usuarioLogado
+    ) {
+
+        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
+            return loteRepository.findByPropriedadeUsuarioId(
+                    usuarioLogado.getId()
+            );
+        }
+
         return loteRepository.findAll();
     }
 
-    public Lote getLoteById(Long id) {
-        return loteRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Lote não encontrado"
-                ));
+    public Lote getLoteById(
+            Long id,
+            Usuario usuarioLogado
+    ) {
+
+        Lote lote =
+                loteRepository.findById(id)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Lote não encontrado"
+                        ));
+
+        validarAcessoLote(
+                lote,
+                usuarioLogado
+        );
+
+        return lote;
     }
 
-    public void deleteLote(Long id) {
+    public void deleteLote(
+            Long id,
+            Usuario usuarioLogado
+    ) {
 
-        Lote loteExistente = loteRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Lote não encontrado"
-                ));
+        Lote loteExistente =
+                loteRepository.findById(id)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Lote não encontrado"
+                        ));
 
-        boolean possuiAnimaisAtivos = animalRepository.existsByLoteIdAndStatus(
-                id,
-                StatusAnimal.ATIVO
+        validarAcessoLote(
+                loteExistente,
+                usuarioLogado
         );
-        if (possuiAnimaisAtivos){
+
+        boolean possuiAnimaisAtivos =
+                animalRepository.existsByLoteIdAndStatus(
+                        id,
+                        StatusAnimal.ATIVO
+                );
+
+        if (possuiAnimaisAtivos) {
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Não é possivel excluir o lote porque existem animais ativos nesse lote"
+                    "Não é possível excluir o lote porque existem animais ativos nesse lote"
             );
         }
 
         loteRepository.delete(loteExistente);
+    }
+
+    private void validarNumeroLote(
+            int numero,
+            Long propriedadeId,
+            Long loteIdAtual
+    ) {
+
+        boolean numeroJaExiste;
+
+        if (loteIdAtual == null) {
+            numeroJaExiste =
+                    loteRepository.existsByNumeroAndPropriedade_Id(
+                            numero,
+                            propriedadeId
+                    );
+        } else {
+            numeroJaExiste =
+                    loteRepository.existsByNumeroAndPropriedade_IdAndIdNot(
+                            numero,
+                            propriedadeId,
+                            loteIdAtual
+                    );
+        }
+
+        if (numeroJaExiste) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Já existe um lote com esse número nesta propriedade"
+            );
+        }
+    }
+
+    private void validarAcessoPropriedade(
+            Propriedade propriedade,
+            Usuario usuarioLogado
+    ) {
+
+        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
+
+            if (propriedade.getUsuario() == null
+                    || !propriedade.getUsuario().getId()
+                    .equals(usuarioLogado.getId())) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Você não tem acesso a esta propriedade"
+                );
+            }
+        }
+    }
+
+    private void validarAcessoLote(
+            Lote lote,
+            Usuario usuarioLogado
+    ) {
+
+        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
+
+            if (lote.getPropriedade() == null
+                    || lote.getPropriedade().getUsuario() == null
+                    || !lote.getPropriedade().getUsuario().getId()
+                    .equals(usuarioLogado.getId())) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Você não tem acesso a este lote"
+                );
+            }
+        }
     }
 }

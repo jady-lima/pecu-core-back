@@ -108,6 +108,20 @@ public class LoteService {
             );
         }
 
+        long animaisAtivos =
+                animalRepository.countByLoteIdAndStatus(
+                        id,
+                        StatusAnimal.ATIVO
+                );
+
+        if (dados.capacidade() < animaisAtivos) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "A capacidade não pode ser menor que a quantidade de animais ativos no lote (" + animaisAtivos + ")"
+            );
+        }
+
         loteExistente.setNumero(dados.numero());
         loteExistente.setFinalidade(dados.finalidade());
         loteExistente.setCapacidade(dados.capacidade());

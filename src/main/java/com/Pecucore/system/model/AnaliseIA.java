@@ -33,6 +33,9 @@ public class AnaliseIA {
     @Column(nullable = false, length = 100)
     private String modeloUtilizado;
 
+    @Column(nullable = false)
+    private boolean incluiDadosFinanceiros;
+
     @PrePersist
     protected void onCreate() {
         this.dataGeracao = LocalDateTime.now();
@@ -84,5 +87,13 @@ public class AnaliseIA {
 
     public void setModeloUtilizado(String modeloUtilizado) {
         this.modeloUtilizado = modeloUtilizado;
+    }
+
+    public boolean isIncluiDadosFinanceiros() {
+        return incluiDadosFinanceiros;
+    }
+
+    public void setIncluiDadosFinanceiros(boolean incluiDadosFinanceiros) {
+        this.incluiDadosFinanceiros = incluiDadosFinanceiros;
     }
 }

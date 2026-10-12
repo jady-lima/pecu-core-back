@@ -15,8 +15,10 @@ import com.Pecucore.system.dto.AnimalRequestDTO;
 import com.Pecucore.system.dto.AnimalStatusRequestDTO;
 import com.Pecucore.system.evento.PesoAnimalAlteradoEvento;
 import com.Pecucore.system.model.Animal;
-import com.Pecucore.system.model.StatusAnimal;
 import com.Pecucore.system.model.Lote;
+import com.Pecucore.system.model.Perfil;
+import com.Pecucore.system.model.StatusAnimal;
+import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.AnimalRepository;
 import com.Pecucore.system.repository.LoteRepository;
 
@@ -36,7 +38,10 @@ public class AnimalService {
     private CarenciaService carenciaService;
 
     @Transactional
-    public Animal create(AnimalRequestDTO dados) {
+    public Animal create(
+            AnimalRequestDTO dados,
+            Usuario usuarioLogado
+    ) {
 
         if (animalRepository.existsByBrinco(dados.brinco())) {
             throw new ResponseStatusException(
@@ -45,11 +50,17 @@ public class AnimalService {
             );
         }
 
-        Lote lote = loteRepository.findById(dados.loteId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Lote não encontrado"
-                ));
+        Lote lote =
+                loteRepository.findById(dados.loteId())
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Lote não encontrado"
+                        ));
+
+        validarAcessoAoLote(
+                lote,
+                usuarioLogado
+        );
 
         Animal animal = new Animal();
 
@@ -59,54 +70,85 @@ public class AnimalService {
         animal.setLote(lote);
         animal.setStatus(StatusAnimal.ATIVO);
 
-        Animal animalCriado = animalRepository.save(animal);
+        Animal animalCriado =
+                animalRepository.save(animal);
 
         eventPublisher.publishEvent(
-                new PesoAnimalAlteradoEvento(animalCriado.getId(), dados.pesoAtual(), LocalDate.now())
+                new PesoAnimalAlteradoEvento(
+                        animalCriado.getId(),
+                        dados.pesoAtual(),
+                        LocalDate.now()
+                )
         );
 
         return animalCriado;
     }
 
     @Transactional
-    public Animal update(Long id, AnimalRequestDTO dados) {
+    public Animal update(
+            Long id,
+            AnimalRequestDTO dados,
+            Usuario usuarioLogado
+    ) {
 
-        Animal animalExistente = animalRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Animal não encontrado"
-                ));
+        Animal animalExistente =
+                getAnimalById(
+                        id,
+                        usuarioLogado
+                );
 
+        if (!Objects.equals(
+                animalExistente.getDataNascimento(),
+                dados.dataNascimento()
+        )) {
 
-        if (!Objects.equals(animalExistente.getDataNascimento(), dados.dataNascimento())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "A data de nascimento do animal não pode ser alterada"
             );
         }
 
-        if (animalRepository.existsByBrincoAndIdNot(dados.brinco(), id)) {
+        if (animalRepository.existsByBrincoAndIdNot(
+                dados.brinco(),
+                id
+        )) {
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Já existe outro animal com este brinco"
             );
         }
 
-        Lote lote = loteRepository.findById(dados.loteId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Lote não encontrado"
-                ));
+        Lote lote =
+                loteRepository.findById(dados.loteId())
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Lote não encontrado"
+                        ));
+
+        validarAcessoAoLote(
+                lote,
+                usuarioLogado
+        );
 
         animalExistente.setBrinco(dados.brinco());
         animalExistente.setSexo(dados.sexo());
         animalExistente.setLote(lote);
 
-        Animal animalAtualizado = animalRepository.save(animalExistente);
+        Animal animalAtualizado =
+                animalRepository.save(animalExistente);
 
-        if (Double.compare(animalExistente.getPesoAtual(), dados.pesoAtual()) != 0) {
+        if (Double.compare(
+                animalExistente.getPesoAtual(),
+                dados.pesoAtual()
+        ) != 0) {
+
             eventPublisher.publishEvent(
-                new PesoAnimalAlteradoEvento(id, dados.pesoAtual(), LocalDate.now())
+                    new PesoAnimalAlteradoEvento(
+                            id,
+                            dados.pesoAtual(),
+                            LocalDate.now()
+                    )
             );
         }
 
@@ -114,11 +156,21 @@ public class AnimalService {
     }
 
     @Transactional
-    public Animal updateStatus(Long id, AnimalStatusRequestDTO dados) {
+    public Animal updateStatus(
+            Long id,
+            AnimalStatusRequestDTO dados,
+            Usuario usuarioLogado
+    ) {
 
-        Animal animal = getAnimalById(id);
+        Animal animal =
+                getAnimalById(
+                        id,
+                        usuarioLogado
+                );
 
-        if (dados.status() == StatusAnimal.ABATIDO && carenciaService.estaEmCarencia(id)) {
+        if (dados.status() == StatusAnimal.ABATIDO
+                && carenciaService.estaEmCarencia(id)) {
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "O animal está em período de carência e não pode ser abatido"
@@ -130,7 +182,18 @@ public class AnimalService {
         return animalRepository.save(animal);
     }
 
-    public List<Animal> getAllAnimais() {
+    public List<Animal> getAllAnimais(
+            Usuario usuarioLogado
+    ) {
+
+        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
+
+            return animalRepository
+                    .findByLotePropriedadeUsuarioId(
+                            usuarioLogado.getId()
+                    );
+        }
+
         return animalRepository.findAll();
     }
 
@@ -141,6 +204,22 @@ public class AnimalService {
                         HttpStatus.NOT_FOUND,
                         "Animal não encontrado"
                 ));
+    }
+
+    public Animal getAnimalById(
+            Long id,
+            Usuario usuarioLogado
+    ) {
+
+        Animal animal =
+                getAnimalById(id);
+
+        validarAcessoAoLote(
+                animal.getLote(),
+                usuarioLogado
+        );
+
+        return animal;
     }
 
     public Animal getAnimalByBrinco(int brinco) {
@@ -161,12 +240,20 @@ public class AnimalService {
     }
 
     public List<Animal> getAnimaisAtivosByLoteId(Long loteId) {
-        return animalRepository.findByLoteIdAndStatus(loteId, StatusAnimal.ATIVO);
+        return animalRepository.findByLoteIdAndStatus(
+                loteId,
+                StatusAnimal.ATIVO
+        );
     }
 
-    public void validarDataRegistro(Animal animal, LocalDate data) {
+    public void validarDataRegistro(
+            Animal animal,
+            LocalDate data
+    ) {
 
-        if (animal.getDataNascimento() != null && data.isBefore(animal.getDataNascimento())) {
+        if (animal.getDataNascimento() != null
+                && data.isBefore(animal.getDataNascimento())) {
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "A data do registro não pode ser anterior à data de nascimento do animal"
@@ -177,6 +264,7 @@ public class AnimalService {
     private Animal validarAtivo(Animal animal) {
 
         if (animal.getStatus() != StatusAnimal.ATIVO) {
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Não é possível registrar eventos para um animal que não está ativo"
@@ -186,9 +274,36 @@ public class AnimalService {
         return animal;
     }
 
-    public void deleteAnimal(Long id) {
+    private void validarAcessoAoLote(
+            Lote lote,
+            Usuario usuarioLogado
+    ) {
 
-        getAnimalById(id);
+        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
+
+            if (lote == null
+                    || lote.getPropriedade() == null
+                    || lote.getPropriedade().getUsuario() == null
+                    || !lote.getPropriedade().getUsuario().getId()
+                    .equals(usuarioLogado.getId())) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Você não tem acesso a este lote"
+                );
+            }
+        }
+    }
+
+    public void deleteAnimal(
+            Long id,
+            Usuario usuarioLogado
+    ) {
+
+        getAnimalById(
+                id,
+                usuarioLogado
+        );
 
         throw new ResponseStatusException(
                 HttpStatus.CONFLICT,

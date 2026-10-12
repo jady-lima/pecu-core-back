@@ -48,6 +48,7 @@ public class VacinacaoService {
         vacinacao.setObservacoes(dados.observacoes() == null || dados.observacoes().isBlank() ? null : dados.observacoes().trim());
         vacinacao.setUsuarioAplicador(aplicador);
         vacinacao.setUsuarioRegistro(registrador);
+        vacinacao.setValor(dados.valor());
         vacinacao.setDataFimCarencia(calculadoraCarencia.calculateDataFimCarencia(dados.data(), vacina.getCarenciaDias()));
 
         if (vacina.getIntervaloDoseDias() != null) {

@@ -2,6 +2,7 @@ package com.Pecucore.system.controller;
 
 import com.Pecucore.system.dto.PropriedadeRequestDTO;
 import com.Pecucore.system.dto.PropriedadeResponseDTO;
+import com.Pecucore.system.dto.UsuarioResponseDTO;
 import com.Pecucore.system.model.Propriedade;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.service.PropriedadeService;
@@ -88,6 +89,33 @@ public class PropriedadeController {
         return ResponseEntity.ok(
                 new PropriedadeResponseDTO(propriedade)
         );
+    }
+
+    @PostMapping("/{id}/veterinarios/{veterinarioId}")
+    public ResponseEntity<PropriedadeResponseDTO> vincularVeterinario(@PathVariable Long id, @PathVariable Long veterinarioId, @AuthenticationPrincipal Usuario usuarioLogado) {
+        
+        Propriedade propriedade = propriedadeService.vincularVeterinario(id, veterinarioId,usuarioLogado);
+
+        return ResponseEntity.ok(new PropriedadeResponseDTO(propriedade));
+    }
+
+    @DeleteMapping("/{id}/veterinarios/{veterinarioId}")
+    public ResponseEntity<Void> desvincularVeterinario(@PathVariable Long id, @PathVariable Long veterinarioId, @AuthenticationPrincipal Usuario usuarioLogado) {
+        
+        propriedadeService.desvincularVeterinario(id, veterinarioId, usuarioLogado);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/veterinarios")
+    public ResponseEntity<List<UsuarioResponseDTO>> getVeterinarios(@PathVariable Long id,@AuthenticationPrincipal Usuario usuarioLogado) {
+
+        List<UsuarioResponseDTO> veterinarios = propriedadeService.getVeterinarios(id, usuarioLogado)
+                .stream()
+                .map(UsuarioResponseDTO::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(veterinarios);
     }
 
     @DeleteMapping("/{id}")

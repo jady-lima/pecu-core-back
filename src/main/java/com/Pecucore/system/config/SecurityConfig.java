@@ -61,6 +61,8 @@ public class SecurityConfig {
 
                 .requestMatchers("/vacinas/**", "/vacinacoes/**").hasAnyAuthority(admin, produtor, veterinario)
 
+                .requestMatchers("/analises/**").hasAnyAuthority(admin, produtor, veterinario)
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

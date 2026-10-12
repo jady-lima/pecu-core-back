@@ -28,4 +28,6 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
     List<Animal> findByLotePropriedadeUsuarioId(
             Long usuarioId
     );
+
+    List<Animal> findByLotePropriedadeVeterinariosId(Long veterinarioId);
 }

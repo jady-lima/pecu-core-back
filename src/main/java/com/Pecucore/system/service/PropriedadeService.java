@@ -9,6 +9,7 @@ import com.Pecucore.system.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -21,6 +22,9 @@ public class PropriedadeService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private AcessoPropriedadeService acessoPropriedadeService;
 
     public Propriedade create(PropriedadeRequestDTO dados, Usuario usuarioLogado) {
 
@@ -107,6 +111,12 @@ public class PropriedadeService {
             );
         }
 
+        if (usuarioLogado.getPerfil() == Perfil.VETERINARIO) {
+            return propriedadeRepository.findByVeterinariosId(
+                    usuarioLogado.getId()
+            );
+        }
+
         return propriedadeRepository.findAll();
     }
 
@@ -141,19 +151,53 @@ public class PropriedadeService {
                                 "Propriedade não encontrada"
                         ));
 
-        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
-
-            if (propriedade.getUsuario() == null
-                    || !propriedade.getUsuario().getId()
-                    .equals(usuarioLogado.getId())) {
-
-                throw new ResponseStatusException(
-                        HttpStatus.FORBIDDEN,
-                        "Você não tem acesso a esta propriedade"
-                );
-            }
+        if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Você não tem acesso a esta propriedade"
+            );
         }
 
         return propriedade;
+    }
+
+    @Transactional
+    public Propriedade vincularVeterinario(Long id, Long veterinarioId, Usuario usuarioLogado) {
+
+        Propriedade propriedade = getPropriedadeComAcesso(id, usuarioLogado);
+        Usuario veterinario = getUsuarioById(veterinarioId);
+
+        if (veterinario.getPerfil() != Perfil.VETERINARIO) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Apenas usuários com perfil VETERINARIO podem ser vinculados à propriedade"
+            );
+        }
+        propriedade.getVeterinarios().add(veterinario);
+
+        return propriedadeRepository.save(propriedade);
+    }
+
+    @Transactional
+    public Propriedade desvincularVeterinario(Long id, Long veterinarioId, Usuario usuarioLogado) {
+
+        Propriedade propriedade = getPropriedadeComAcesso(id, usuarioLogado);
+
+        boolean removido = propriedade.getVeterinarios().removeIf(veterinario -> veterinario.getId().equals(veterinarioId));
+
+        if (!removido) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Veterinário não está vinculado a esta propriedade"
+            );
+        }
+
+        return propriedadeRepository.save(propriedade);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Usuario> getVeterinarios(Long id, Usuario usuarioLogado) {
+        Propriedade propriedade = getPropriedadeComAcesso(id, usuarioLogado);
+        return List.copyOf(propriedade.getVeterinarios());
     }
 }

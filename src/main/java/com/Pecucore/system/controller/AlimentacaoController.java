@@ -37,11 +37,12 @@ public class AlimentacaoController {
             @ApiResponse(responseCode = "409", description = "Animal não está ativo, ou a data é anterior ao nascimento do animal")
     })
     public ResponseEntity<AlimentacaoResponseDTO> create(
-            @RequestBody @Valid AlimentacaoRequestDTO dados
+            @RequestBody @Valid AlimentacaoRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
         Alimentacao alimentacaoCriada =
-                alimentacaoService.create(dados);
+                alimentacaoService.create(dados, usuarioLogado);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -85,11 +86,12 @@ public class AlimentacaoController {
     })
     public ResponseEntity<List<AlimentacaoResponseDTO>> getHistorico(
             @Parameter(description = "Brinco do animal", example = "1001")
-            @PathVariable Integer brinco
+            @PathVariable Integer brinco,
+            @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
         List<Alimentacao> alimentacoes =
-                alimentacaoService.getHistorico(brinco);
+                alimentacaoService.getHistorico(brinco, usuarioLogado);
 
         List<AlimentacaoResponseDTO> dtos =
                 alimentacoes.stream()

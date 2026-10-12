@@ -32,7 +32,7 @@ public class VacinacaoService {
 
     @Transactional
     public Vacinacao create(VacinacaoRequestDTO dados, Usuario usuarioLogado) {
-        Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco());
+        Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
         animalService.validarDataRegistro(animal, dados.data());
 
         Vacina vacina = vacinaService.getVacinaById(dados.vacinaId());
@@ -69,8 +69,8 @@ public class VacinacaoService {
         return vacinacaoSalva;
     }
 
-    public List<Vacinacao> getHistorico(int brinco) {
-        Animal animal = animalService.getAnimalByBrinco(brinco);
+    public List<Vacinacao> getHistorico(int brinco, Usuario usuarioLogado) {
+        Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
         return vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
     }
 }

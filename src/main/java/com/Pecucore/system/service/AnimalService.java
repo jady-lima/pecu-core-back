@@ -254,7 +254,7 @@ public class AnimalService {
         return animal;
     }
 
-    public Animal getAnimalByBrinco(int brinco) {
+    private Animal getAnimalByBrinco(int brinco) {
 
         return animalRepository.findByBrinco(brinco)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -267,8 +267,19 @@ public class AnimalService {
         return validarAtivo(getAnimalById(id));
     }
 
-    public Animal getAnimalAtivoByBrinco(int brinco) {
-        return validarAtivo(getAnimalByBrinco(brinco));
+    public Animal getAnimalByBrinco(int brinco,Usuario usuarioLogado) {
+        Animal animal = getAnimalByBrinco(brinco);
+
+        validarAcessoAoLote(animal.getLote(),usuarioLogado);
+
+        return animal;
+    }
+
+    public Animal getAnimalAtivoByBrinco(
+            int brinco,
+            Usuario usuarioLogado
+    ) {
+        return validarAtivo(getAnimalByBrinco(brinco, usuarioLogado));
     }
 
     public List<Animal> getAnimaisAtivosByLoteId(Long loteId) {

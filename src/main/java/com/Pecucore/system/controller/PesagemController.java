@@ -4,6 +4,7 @@ package com.Pecucore.system.controller;
 import com.Pecucore.system.dto.PesagemRequestDTO;
 import com.Pecucore.system.dto.PesagemResponseDTO;
 import com.Pecucore.system.model.Pesagem;
+import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.service.PesagemService;
 import com.Pecucore.system.service.ResultadoPesagem;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,8 +37,8 @@ public class PesagemController {
         @ApiResponse(responseCode = "404", description = "Animal não encontrado"),
         @ApiResponse(responseCode = "409", description = "Animal não está ativo, ou a data da pesagem é anterior ao nascimento do animal ou à última pesagem registrada")
     })
-    public ResponseEntity<PesagemResponseDTO> create(@RequestBody @Valid PesagemRequestDTO dados) {
-        ResultadoPesagem resultado = pesagemService.create(dados);
+    public ResponseEntity<PesagemResponseDTO> create(@RequestBody @Valid PesagemRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
+        ResultadoPesagem resultado = pesagemService.create(dados, usuarioLogado);
         return ResponseEntity.status(HttpStatus.CREATED).body(new PesagemResponseDTO(resultado.pesagem(), resultado.aviso()));
     }
 
@@ -46,8 +48,8 @@ public class PesagemController {
         @ApiResponse(responseCode = "200", description = "Histórico encontrado com sucesso"),
         @ApiResponse(responseCode = "404", description = "Animal não encontrado")
     })
-    public ResponseEntity<List<PesagemResponseDTO>> getHistorico( @Parameter(description = "Brinco do animal", example = "1001") @PathVariable Integer brinco) {
-        List<Pesagem> pesagens = pesagemService.getHistorico(brinco);
+    public ResponseEntity<List<PesagemResponseDTO>> getHistorico( @Parameter(description = "Brinco do animal", example = "1001") @PathVariable Integer brinco, @AuthenticationPrincipal Usuario usuarioLogado) {
+        List<Pesagem> pesagens = pesagemService.getHistorico(brinco, usuarioLogado);
         List<PesagemResponseDTO> dtos = pesagens.stream().map(PesagemResponseDTO::new).toList();
         return ResponseEntity.ok(dtos);
     }

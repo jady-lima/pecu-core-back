@@ -34,11 +34,12 @@ public class AlimentacaoService {
     private CustoService custoService;
 
     @Transactional
-    public Alimentacao create(AlimentacaoRequestDTO dados) {
+    public Alimentacao create(AlimentacaoRequestDTO dados, Usuario usuarioLogado) {
 
         Animal animal =
                 animalService.getAnimalAtivoByBrinco(
-                        dados.brinco()
+                        dados.brinco(),
+                        usuarioLogado
                 );
 
         return registrar(
@@ -86,10 +87,10 @@ public class AlimentacaoService {
                 .toList();
     }
 
-    public List<Alimentacao> getHistorico(int brinco) {
+    public List<Alimentacao> getHistorico(int brinco, Usuario usuarioLogado) {
 
         Animal animal =
-                animalService.getAnimalByBrinco(brinco);
+                animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
         return alimentacaoRepository
                 .findByAnimalIdOrderByDataAscIdAsc(

@@ -4,6 +4,7 @@ import com.Pecucore.system.dto.ComparacaoDesempenhoResponseDTO;
 import com.Pecucore.system.dto.CurvaCrescimentoResponseDTO;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Pesagem;
+import com.Pecucore.system.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
@@ -26,20 +27,20 @@ public class DesempenhoService {
     @Autowired
     private MetaDesempenhoService metaDesempenhoService;
 
-    public List<CurvaCrescimentoResponseDTO> getCurvaCrescimento(int brinco) {
+    public List<CurvaCrescimentoResponseDTO> getCurvaCrescimento(int brinco, Usuario usuarioLogado) {
 
-        List<Pesagem> pesagens = pesagemService.getHistorico(brinco);
+        List<Pesagem> pesagens = pesagemService.getHistorico(brinco, usuarioLogado);
 
         return pesagens.stream()
                 .map(CurvaCrescimentoResponseDTO::new)
                 .toList();
     }
 
-    public ComparacaoDesempenhoResponseDTO comparar(int brinco) {
+    public ComparacaoDesempenhoResponseDTO comparar(int brinco, Usuario usuarioLogado) {
 
-        Animal animal = animalService.getAnimalByBrinco(brinco);
+        Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
-        List<Pesagem> pesagens = pesagemService.getHistorico(brinco);
+        List<Pesagem> pesagens = pesagemService.getHistorico(brinco, usuarioLogado);
 
         if (pesagens.size() < 2) {
             throw new ResponseStatusException(

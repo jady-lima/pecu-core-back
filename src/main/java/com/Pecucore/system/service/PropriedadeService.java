@@ -1,18 +1,17 @@
 package com.Pecucore.system.service;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.Pecucore.system.dto.PropriedadeRequestDTO;
 import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.Propriedade;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.PropriedadeRepository;
 import com.Pecucore.system.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @Service
 public class PropriedadeService {
@@ -36,7 +35,10 @@ public class PropriedadeService {
         return propriedadeRepository.save(propriedade);
     }
 
-    private Usuario definirDono(PropriedadeRequestDTO dados, Usuario usuarioLogado) {
+    private Usuario definirDono(
+            PropriedadeRequestDTO dados,
+            Usuario usuarioLogado
+    ) {
 
         if (usuarioLogado.getPerfil() == Perfil.ADMIN) {
 
@@ -59,7 +61,9 @@ public class PropriedadeService {
             return dono;
         }
 
-        if (dados.usuarioId() != null && !dados.usuarioId().equals(usuarioLogado.getId())) {
+        if (dados.usuarioId() != null
+                && !dados.usuarioId().equals(usuarioLogado.getId())) {
+
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "Um produtor só pode cadastrar propriedades em seu próprio nome"
@@ -70,6 +74,7 @@ public class PropriedadeService {
     }
 
     private Usuario getUsuarioById(Long id) {
+
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -77,14 +82,14 @@ public class PropriedadeService {
                 ));
     }
 
-    public Propriedade update(Long id, PropriedadeRequestDTO dados) {
+    public Propriedade update(
+            Long id,
+            PropriedadeRequestDTO dados,
+            Usuario usuarioLogado
+    ) {
 
         Propriedade propriedadeExistente =
-                propriedadeRepository.findById(id)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Propriedade não encontrada"
-                        ));
+                getPropriedadeComAcesso(id, usuarioLogado);
 
         propriedadeExistente.setNome(dados.nome());
         propriedadeExistente.setLocalizacao(dados.localizacao());
@@ -92,27 +97,63 @@ public class PropriedadeService {
         return propriedadeRepository.save(propriedadeExistente);
     }
 
-    public List<Propriedade> getAllPropriedades() {
+    public List<Propriedade> getAllPropriedades(
+            Usuario usuarioLogado
+    ) {
+
+        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
+            return propriedadeRepository.findByUsuarioId(
+                    usuarioLogado.getId()
+            );
+        }
+
         return propriedadeRepository.findAll();
     }
 
-    public Propriedade getPropriedadeById(Long id) {
-        return propriedadeRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Propriedade não encontrada"
-                ));
+    public Propriedade getPropriedadeById(
+            Long id,
+            Usuario usuarioLogado
+    ) {
+
+        return getPropriedadeComAcesso(id, usuarioLogado);
     }
 
-    public void deletePropriedade(Long id) {
+    public void deletePropriedade(
+            Long id,
+            Usuario usuarioLogado
+    ) {
 
         Propriedade propriedadeExistente =
+                getPropriedadeComAcesso(id, usuarioLogado);
+
+        propriedadeRepository.delete(propriedadeExistente);
+    }
+
+    private Propriedade getPropriedadeComAcesso(
+            Long id,
+            Usuario usuarioLogado
+    ) {
+
+        Propriedade propriedade =
                 propriedadeRepository.findById(id)
                         .orElseThrow(() -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
                                 "Propriedade não encontrada"
                         ));
 
-        propriedadeRepository.delete(propriedadeExistente);
+        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
+
+            if (propriedade.getUsuario() == null
+                    || !propriedade.getUsuario().getId()
+                    .equals(usuarioLogado.getId())) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Você não tem acesso a esta propriedade"
+                );
+            }
+        }
+
+        return propriedade;
     }
 }

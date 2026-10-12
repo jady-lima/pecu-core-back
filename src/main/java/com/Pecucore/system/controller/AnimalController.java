@@ -3,7 +3,9 @@ package com.Pecucore.system.controller;
 import com.Pecucore.system.dto.AnimalRequestDTO;
 import com.Pecucore.system.dto.AnimalResponseDTO;
 import com.Pecucore.system.dto.AnimalStatusRequestDTO;
+import com.Pecucore.system.dto.FichaAnimalResponseDTO;
 import com.Pecucore.system.model.Animal;
+import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.service.AnimalService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -15,9 +17,10 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@SecurityRequirement (name = "bearerAuth")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/animais")
 public class AnimalController {
@@ -27,9 +30,12 @@ public class AnimalController {
 
     @PostMapping
     public ResponseEntity<AnimalResponseDTO> create(
-            @RequestBody @Valid AnimalRequestDTO dados) {
+            @RequestBody @Valid AnimalRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
 
-        Animal animalCriado = animalService.create(dados);
+        Animal animalCriado =
+                animalService.create(dados, usuarioLogado);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -39,9 +45,12 @@ public class AnimalController {
     @PutMapping("/{id}")
     public ResponseEntity<AnimalResponseDTO> updateAnimal(
             @PathVariable Long id,
-            @RequestBody @Valid AnimalRequestDTO dados) {
+            @RequestBody @Valid AnimalRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
 
-        Animal animalAtualizado = animalService.update(id, dados);
+        Animal animalAtualizado =
+                animalService.update(id, dados, usuarioLogado);
 
         return ResponseEntity.ok(
                 new AnimalResponseDTO(animalAtualizado)
@@ -51,9 +60,12 @@ public class AnimalController {
     @PutMapping("/{id}/status")
     public ResponseEntity<AnimalResponseDTO> updateStatusAnimal(
             @PathVariable Long id,
-            @RequestBody @Valid AnimalStatusRequestDTO dados) {
+            @RequestBody @Valid AnimalStatusRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
 
-        Animal animalAtualizado = animalService.updateStatus(id, dados);
+        Animal animalAtualizado =
+                animalService.updateStatus(id, dados, usuarioLogado);
 
         return ResponseEntity.ok(
                 new AnimalResponseDTO(animalAtualizado)
@@ -61,22 +73,45 @@ public class AnimalController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AnimalResponseDTO>> getAllAnimais() {
+    public ResponseEntity<List<AnimalResponseDTO>> getAllAnimais(
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
 
-        List<Animal> animais = animalService.getAllAnimais();
+        List<Animal> animais =
+                animalService.getAllAnimais(
+                        usuarioLogado
+                );
 
-        List<AnimalResponseDTO> dtos = animais.stream()
-                .map(AnimalResponseDTO::new)
-                .collect(Collectors.toList());
+        List<AnimalResponseDTO> dtos =
+                animais.stream()
+                        .map(AnimalResponseDTO::new)
+                        .collect(Collectors.toList());
 
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/{id}/ficha")
+    public ResponseEntity<FichaAnimalResponseDTO> getFichaAnimal(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+
+        Animal animal =
+                animalService.getAnimalById(id, usuarioLogado);
+
+        return ResponseEntity.ok(
+                new FichaAnimalResponseDTO(animal)
+        );
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<AnimalResponseDTO> getAnimalById(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
 
-        Animal animal = animalService.getAnimalById(id);
+        Animal animal =
+                animalService.getAnimalById(id, usuarioLogado);
 
         return ResponseEntity.ok(
                 new AnimalResponseDTO(animal)
@@ -85,9 +120,11 @@ public class AnimalController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAnimal(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
 
-        animalService.deleteAnimal(id);
+        animalService.deleteAnimal(id, usuarioLogado);
 
         return ResponseEntity.noContent().build();
     }

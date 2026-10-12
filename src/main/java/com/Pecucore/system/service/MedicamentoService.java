@@ -41,6 +41,7 @@ public class MedicamentoService {
         medicamento.setMotivo(dados.motivo().trim());
         medicamento.setDosagem(dados.dosagem());
         medicamento.setCarenciaDias(dados.carenciaDias());
+        medicamento.setValor(dados.valor());
 
         medicamento.setDataFimCarencia(
                 calculadoraCarencia.calculateDataFimCarencia(

@@ -15,13 +15,37 @@ public class GmdService {
             return null;
         }
 
-        long dias = ChronoUnit.DAYS.between(pesagemAnterior.getData(), dataAtual);
+        long dias = ChronoUnit.DAYS.between(
+                pesagemAnterior.getData(),
+                dataAtual
+        );
 
         if (dias <= 0) {
             return null;
         }
 
         double variacaoKg = pesoAtualKg - pesagemAnterior.getPesoKg();
+
+        return variacaoKg / dias;
+    }
+
+    public Double calculateGmdHistorico(Pesagem primeiraPesagem, Pesagem ultimaPesagem) {
+
+        if (primeiraPesagem == null || ultimaPesagem == null) {
+            return null;
+        }
+
+        long dias = ChronoUnit.DAYS.between(
+                primeiraPesagem.getData(),
+                ultimaPesagem.getData()
+        );
+
+        if (dias <= 0) {
+            return null;
+        }
+
+        double variacaoKg =
+                ultimaPesagem.getPesoKg() - primeiraPesagem.getPesoKg();
 
         return variacaoKg / dias;
     }

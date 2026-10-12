@@ -4,4 +4,6 @@ import com.Pecucore.system.model.Propriedade;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PropriedadeRepository extends JpaRepository<Propriedade, Long> {
+
+    boolean existsByIdAndVeterinariosId(Long propriedadeId, Long veterinarioId);
 }

@@ -11,7 +11,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.Pecucore.system.dto.AlterarSenhaRequestDTO;
 import com.Pecucore.system.dto.UsuarioRequestDTO;
+import com.Pecucore.system.dto.UsuarioUpdateRequestDTO;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.UsuarioRepository;
 
@@ -43,7 +45,7 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public Usuario createUsuario(UsuarioRequestDTO dados) {
-        if (usuarioRepository.existsByUsername(dados.username())) {
+        if (usuarioRepository.existsByUsernameIgnoreCase(dados.username())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
         }
 
@@ -56,15 +58,38 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.save(usuario);
     }
 
-    public Usuario updateUsuario(Long id, UsuarioRequestDTO dados) {
+    public Usuario updateUsuario(Long id, UsuarioUpdateRequestDTO dados) {
         Usuario usuarioExistente = usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        if (usuarioRepository.existsByUsernameIgnoreCaseAndIdNot(dados.username(), id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
+        }
 
         usuarioExistente.setNome(dados.nome());
         usuarioExistente.setUsername(dados.username());
-        usuarioExistente.setPassword(passwordEncoder.encode(dados.senha()));
         usuarioExistente.setPerfil(dados.perfil());
 
+        if (dados.senha() != null && !dados.senha().isBlank()) {
+            usuarioExistente.setPassword(passwordEncoder.encode(dados.senha()));
+        }
+
         return usuarioRepository.save(usuarioExistente);
+    }
+
+    public void alterarSenha(Usuario usuarioLogado, AlterarSenhaRequestDTO dados) {
+        Usuario usuario = getUsuarioById(usuarioLogado.getId());
+
+        if (!passwordEncoder.matches(dados.senhaAtual(), usuario.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha atual incorreta");
+        }
+
+        if (passwordEncoder.matches(dados.novaSenha(), usuario.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A nova senha deve ser diferente da senha atual");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(dados.novaSenha()));
+
+        usuarioRepository.save(usuario);
     }
 
     public List<Usuario> getAllUsuarios() {

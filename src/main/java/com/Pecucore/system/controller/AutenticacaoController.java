@@ -1,11 +1,13 @@
 package com.Pecucore.system.controller;
 
+import com.Pecucore.system.dto.AlterarSenhaRequestDTO;
 import com.Pecucore.system.dto.ErroResponseDTO;
 import com.Pecucore.system.dto.LoginRequestDTO;
 import com.Pecucore.system.dto.TokenResponseDTO;
 import com.Pecucore.system.dto.UsuarioResponseDTO;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.service.TokenService;
+import com.Pecucore.system.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,9 @@ public class AutenticacaoController {
     @Autowired
     private TokenService tokenService;
 
+    @Autowired
+    private UsuarioService usuarioService;
+
     @PostMapping("/login")
     @Operation(summary = "Realizar login")
     @ApiResponses({
@@ -56,5 +61,18 @@ public class AutenticacaoController {
     })
     public ResponseEntity<UsuarioResponseDTO> me(@AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(new UsuarioResponseDTO(usuario));
+    }
+
+    @PutMapping("/me/senha")
+    @Operation(summary = "Alterar a própria senha")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Senha alterada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos, senha atual incorreta ou nova senha igual à atual", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class))),
+        @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
+    })
+    public ResponseEntity<Void> alterarSenha(@RequestBody @Valid AlterarSenhaRequestDTO dados, @AuthenticationPrincipal Usuario usuario) {
+        usuarioService.alterarSenha(usuario, dados);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -2,6 +2,7 @@ package com.Pecucore.system.controller;
 
 import com.Pecucore.system.dto.UsuarioRequestDTO;
 import com.Pecucore.system.dto.UsuarioResponseDTO;
+import com.Pecucore.system.dto.UsuarioUpdateRequestDTO;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,9 +54,10 @@ public class UsuarioController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+            @ApiResponse(responseCode = "409", description = "E-mail já cadastrado")
     })
-    public ResponseEntity<UsuarioResponseDTO> updateUsuario(@Parameter(description = "ID do usuário que será atualizado", example = "1")@PathVariable Long id, @RequestBody @Valid UsuarioRequestDTO dados) {
+    public ResponseEntity<UsuarioResponseDTO> updateUsuario(@Parameter(description = "ID do usuário que será atualizado", example = "1")@PathVariable Long id, @RequestBody @Valid UsuarioUpdateRequestDTO dados) {
         Usuario usuarioAtualizado = usuarioService.updateUsuario(id, dados);
         return ResponseEntity.ok(new UsuarioResponseDTO(usuarioAtualizado));
     }

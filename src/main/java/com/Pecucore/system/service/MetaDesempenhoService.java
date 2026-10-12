@@ -1,6 +1,7 @@
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.MetaDesempenhoRequestDTO;
+import com.Pecucore.system.model.Lote;
 import com.Pecucore.system.model.MetaDesempenho;
 import com.Pecucore.system.repository.MetaDesempenhoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MetaDesempenhoService {
@@ -35,6 +37,24 @@ public class MetaDesempenhoService {
 
     public List<MetaDesempenho> getAll() {
         return metaDesempenhoRepository.findAll();
+    }
+
+    public Optional<Double> getGmdEsperado(Lote lote) {
+
+        if (lote == null) {
+            return Optional.empty();
+        }
+
+        if (lote.getGmdMeta() != null) {
+            return Optional.of(lote.getGmdMeta());
+        }
+
+        if (lote.getFinalidade() == null) {
+            return Optional.empty();
+        }
+
+        return metaDesempenhoRepository.findByFase(lote.getFinalidade())
+                .map(MetaDesempenho::getGmdEsperado);
     }
 
     public MetaDesempenho getByFase(com.Pecucore.system.model.FinalidadeLote fase) {

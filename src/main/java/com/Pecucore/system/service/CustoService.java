@@ -31,8 +31,11 @@ public class CustoService {
     @Autowired
     private PropriedadeRepository propriedadeRepository;
 
+    @Autowired
+    private AcessoPropriedadeService acessoPropriedadeService;
+
     @Transactional
-    public Custo create(CustoRequestDTO dados) {
+    public Custo create(CustoRequestDTO dados, Usuario usuarioLogado) {
 
         validarDestino(dados);
 
@@ -50,6 +53,8 @@ public class CustoService {
                             "Animal não encontrado"
                     ));
 
+            validarAcessoPropriedade(animal.getLote() != null ? animal.getLote().getPropriedade() : null, usuarioLogado);
+
             custo.setAnimal(animal);
         }
 
@@ -59,6 +64,8 @@ public class CustoService {
                             HttpStatus.NOT_FOUND,
                             "Lote não encontrado"
                     ));
+
+            validarAcessoPropriedade(lote.getPropriedade(), usuarioLogado);
 
             custo.setLote(lote);
         }
@@ -70,10 +77,22 @@ public class CustoService {
                             "Propriedade não encontrada"
                     ));
 
+            validarAcessoPropriedade(propriedade, usuarioLogado);
+
             custo.setPropriedade(propriedade);
         }
 
         return custoRepository.save(custo);
+    }
+
+    private void validarAcessoPropriedade(Propriedade propriedade, Usuario usuarioLogado) {
+
+        if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Você não tem acesso a esta propriedade"
+            );
+        }
     }
 
     @Transactional
@@ -118,7 +137,7 @@ public class CustoService {
         }
     }
 
-    public List<Custo> getAll() {
-        return custoRepository.findAll();
+    public List<Custo> getAll(Usuario usuarioLogado) {
+        return custoRepository.findByProdutor(usuarioLogado.getId());
     }
 }

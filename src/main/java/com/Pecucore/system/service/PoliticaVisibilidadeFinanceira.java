@@ -11,7 +11,7 @@ import java.util.Set;
 @Service
 public class PoliticaVisibilidadeFinanceira {
 
-    private static final Set<Perfil> PERFIS_COM_ACESSO_FINANCEIRO = EnumSet.of(Perfil.ADMIN, Perfil.PRODUTOR);
+    private static final Set<Perfil> PERFIS_COM_ACESSO_FINANCEIRO = EnumSet.of(Perfil.PRODUTOR);
 
     private static final Set<TipoAlerta> ALERTAS_FINANCEIROS = EnumSet.of(TipoAlerta.CUSTO_ACIMA);
 

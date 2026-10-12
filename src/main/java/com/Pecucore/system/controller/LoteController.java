@@ -1,5 +1,6 @@
 package com.Pecucore.system.controller;
 
+import com.Pecucore.system.dto.LoteMetaGmdRequestDTO;
 import com.Pecucore.system.dto.LoteResponseDTO;
 import com.Pecucore.system.dto.LoteRequestDTO;
 import com.Pecucore.system.model.Lote;
@@ -89,6 +90,29 @@ public class LoteController {
         return ResponseEntity.ok(
                 new LoteResponseDTO(lote)
         );
+    }
+
+    @PutMapping("/{id}/meta-gmd")
+    public ResponseEntity<LoteResponseDTO> atualizarMetaGmd(@PathVariable Long id, @RequestBody @Valid LoteMetaGmdRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        Lote loteAtualizado =loteService.atualizarMetaGmd(
+                id,
+                dados,
+                usuarioLogado
+        );
+
+        return ResponseEntity.ok(new LoteResponseDTO(loteAtualizado));
+    }
+
+    @DeleteMapping("/{id}/meta-gmd")
+    public ResponseEntity<Void> removerMetaGmd(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        loteService.removerMetaGmd(
+                id,
+                usuarioLogado
+        );
+
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

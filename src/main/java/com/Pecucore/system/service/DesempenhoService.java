@@ -3,7 +3,6 @@ package com.Pecucore.system.service;
 import com.Pecucore.system.dto.ComparacaoDesempenhoResponseDTO;
 import com.Pecucore.system.dto.CurvaCrescimentoResponseDTO;
 import com.Pecucore.system.model.Animal;
-import com.Pecucore.system.model.MetaDesempenho;
 import com.Pecucore.system.model.Pesagem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,26 +56,28 @@ public class DesempenhoService {
                 ultimaPesagem
         );
 
-        MetaDesempenho meta = metaDesempenhoService.getByFase(
-                animal.getLote().getFinalidade()
-        );
+        double gmdEsperado = metaDesempenhoService.getGmdEsperado(animal.getLote())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Meta de desempenho não encontrada para o lote nem para a fase."
+                ));
 
-        double diferenca = gmdAtual - meta.getGmdEsperado();
+        double diferenca = gmdAtual - gmdEsperado;
 
         double percentualDaMeta =
-                (gmdAtual / meta.getGmdEsperado()) * 100;
+                (gmdAtual / gmdEsperado) * 100;
 
         double percentualAbaixoDaMeta =
                 100 - percentualDaMeta;
 
         boolean abaixoDaMeta =
-                gmdAtual < meta.getGmdEsperado();
+                gmdAtual < gmdEsperado;
 
         return new ComparacaoDesempenhoResponseDTO(
                 animal.getBrinco(),
                 animal.getLote().getFinalidade(),
                 gmdAtual,
-                meta.getGmdEsperado(),
+                gmdEsperado,
                 diferenca,
                 percentualDaMeta,
                 percentualAbaixoDaMeta,

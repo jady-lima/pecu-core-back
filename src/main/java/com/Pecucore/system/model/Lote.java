@@ -15,6 +15,7 @@ public class Lote {
     private FinalidadeLote finalidade;
     private int capacidade;
     private LocalDate dataCriacao;
+    private Double gmdMeta;
 
     @ManyToOne
     @JoinColumn(name = "propriedade_id")
@@ -26,6 +27,7 @@ public class Lote {
     public int getCapacidade(){return capacidade;}
     public Long getId(){return id;}
     public Propriedade getPropriedade() {return propriedade;}
+    public Double getGmdMeta(){return gmdMeta;}
 
 
     public void setNumero(Integer numero) {
@@ -45,5 +47,9 @@ public class Lote {
     }
     public void setPropriedade(Propriedade propriedade) {
         this.propriedade = propriedade;
+    }
+
+    public void setGmdMeta(Double gmdMeta) {
+        this.gmdMeta = gmdMeta;
     }
 }

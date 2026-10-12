@@ -37,6 +37,9 @@ public class AnimalService {
     @Autowired
     private CarenciaService carenciaService;
 
+    @Autowired
+    private AcessoPropriedadeService acessoPropriedadeService;
+
     @Transactional
     public Animal create(
             AnimalRequestDTO dados,
@@ -194,6 +197,10 @@ public class AnimalService {
                     );
         }
 
+        if (usuarioLogado.getPerfil() == Perfil.VETERINARIO) {
+            return animalRepository.findByLotePropriedadeVeterinariosId(usuarioLogado.getId());
+        }
+
         return animalRepository.findAll();
     }
 
@@ -279,19 +286,12 @@ public class AnimalService {
             Usuario usuarioLogado
     ) {
 
-        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
+        if (!acessoPropriedadeService.possuiAcesso(lote != null ? lote.getPropriedade() : null, usuarioLogado)) {
 
-            if (lote == null
-                    || lote.getPropriedade() == null
-                    || lote.getPropriedade().getUsuario() == null
-                    || !lote.getPropriedade().getUsuario().getId()
-                    .equals(usuarioLogado.getId())) {
-
-                throw new ResponseStatusException(
-                        HttpStatus.FORBIDDEN,
-                        "Você não tem acesso a este lote"
-                );
-            }
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Você não tem acesso a este lote"
+            );
         }
     }
 

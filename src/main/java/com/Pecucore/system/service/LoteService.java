@@ -30,6 +30,9 @@ public class LoteService {
     @Autowired
     private AnimalRepository animalRepository;
 
+    @Autowired
+    private AcessoPropriedadeService acessoPropriedadeService;
+
     public Lote create(
             LoteRequestDTO dados,
             Usuario usuarioLogado
@@ -122,6 +125,10 @@ public class LoteService {
             return loteRepository.findByPropriedadeUsuarioId(
                     usuarioLogado.getId()
             );
+        }
+
+        if (usuarioLogado.getPerfil() == Perfil.VETERINARIO) {
+            return loteRepository.findByPropriedadeVeterinariosId(usuarioLogado.getId());
         }
 
         return loteRepository.findAll();
@@ -217,17 +224,11 @@ public class LoteService {
             Usuario usuarioLogado
     ) {
 
-        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
-
-            if (propriedade.getUsuario() == null
-                    || !propriedade.getUsuario().getId()
-                    .equals(usuarioLogado.getId())) {
-
-                throw new ResponseStatusException(
-                        HttpStatus.FORBIDDEN,
-                        "Você não tem acesso a esta propriedade"
-                );
-            }
+        if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Você não tem acesso a esta propriedade"
+            );
         }
     }
 
@@ -236,18 +237,11 @@ public class LoteService {
             Usuario usuarioLogado
     ) {
 
-        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
-
-            if (lote.getPropriedade() == null
-                    || lote.getPropriedade().getUsuario() == null
-                    || !lote.getPropriedade().getUsuario().getId()
-                    .equals(usuarioLogado.getId())) {
-
-                throw new ResponseStatusException(
-                        HttpStatus.FORBIDDEN,
-                        "Você não tem acesso a este lote"
-                );
-            }
+        if (!acessoPropriedadeService.possuiAcesso(lote.getPropriedade(),usuarioLogado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Você não tem acesso a este lote"
+            );
         }
     }
 }

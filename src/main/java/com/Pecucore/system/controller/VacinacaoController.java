@@ -46,8 +46,8 @@ public class VacinacaoController {
         @ApiResponse(responseCode = "200", description = "Histórico encontrado com sucesso"),
         @ApiResponse(responseCode = "404", description = "Animal não encontrado")
     })
-    public ResponseEntity<List<VacinacaoResponseDTO>> getHistorico(@Parameter(description = "Brinco do animal", example = "1001") @PathVariable Integer brinco) {
-        List<Vacinacao> vacinacoes = vacinacaoService.getHistorico(brinco);
+    public ResponseEntity<List<VacinacaoResponseDTO>> getHistorico(@Parameter(description = "Brinco do animal", example = "1001") @PathVariable Integer brinco, @AuthenticationPrincipal Usuario usuarioLogado) {
+        List<Vacinacao> vacinacoes = vacinacaoService.getHistorico(brinco, usuarioLogado);
         List<VacinacaoResponseDTO> dtos = vacinacoes.stream().map(VacinacaoResponseDTO::new).toList();
         return ResponseEntity.ok(dtos);
     }

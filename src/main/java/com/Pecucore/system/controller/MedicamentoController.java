@@ -3,6 +3,7 @@ package com.Pecucore.system.controller;
 import com.Pecucore.system.dto.MedicamentoRequestDTO;
 import com.Pecucore.system.dto.MedicamentoResponseDTO;
 import com.Pecucore.system.model.Medicamento;
+import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.service.MedicamentoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,9 +36,10 @@ public class MedicamentoController {
     })
     @PostMapping
     public ResponseEntity<MedicamentoResponseDTO> create(
-            @RequestBody @Valid MedicamentoRequestDTO dados) {
+            @RequestBody @Valid MedicamentoRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        Medicamento medicamento = medicamentoService.create(dados);
+        Medicamento medicamento = medicamentoService.create(dados, usuarioLogado);
 
         return ResponseEntity.status(201)
                 .body(new MedicamentoResponseDTO(medicamento));
@@ -51,10 +54,11 @@ public class MedicamentoController {
     })
     @GetMapping("/animal/{brinco}")
     public ResponseEntity<List<MedicamentoResponseDTO>> getHistorico(
-            @PathVariable int brinco) {
+            @PathVariable int brinco,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
 
         List<MedicamentoResponseDTO> historico = medicamentoService
-                .getHistorico(brinco)
+                .getHistorico(brinco, usuarioLogado)
                 .stream()
                 .map(MedicamentoResponseDTO::new)
                 .toList();

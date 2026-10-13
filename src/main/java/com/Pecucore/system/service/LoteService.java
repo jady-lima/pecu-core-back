@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.Pecucore.system.dto.LoteMetaGmdRequestDTO;
 import com.Pecucore.system.dto.LoteRequestDTO;
 import com.Pecucore.system.model.Lote;
 import com.Pecucore.system.model.Perfil;
@@ -108,6 +109,20 @@ public class LoteService {
             );
         }
 
+        long animaisAtivos =
+                animalRepository.countByLoteIdAndStatus(
+                        id,
+                        StatusAnimal.ATIVO
+                );
+
+        if (dados.capacidade() < animaisAtivos) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "A capacidade não pode ser menor que a quantidade de animais ativos no lote (" + animaisAtivos + ")"
+            );
+        }
+
         loteExistente.setNumero(dados.numero());
         loteExistente.setFinalidade(dados.finalidade());
         loteExistente.setCapacidade(dados.capacidade());
@@ -152,6 +167,28 @@ public class LoteService {
         );
 
         return lote;
+    }
+
+    public Lote atualizarMetaGmd(Long id, LoteMetaGmdRequestDTO dados, Usuario usuarioLogado) {
+        Lote lote = getLoteById(
+                id,
+                usuarioLogado
+        );
+
+        lote.setGmdMeta(dados.gmdEsperado());
+
+        return loteRepository.save(lote);
+    }
+
+    public void removerMetaGmd(Long id,Usuario usuarioLogado) {
+        Lote lote = getLoteById(
+                        id,
+                        usuarioLogado
+                );
+
+        lote.setGmdMeta(null);
+
+        loteRepository.save(lote);
     }
 
     public void deleteLote(

@@ -27,7 +27,7 @@ public class PromptAnaliseBuilder {
 
             Significado dos campos:
             - desempenho.gmdPeriodoKgDia: ganho médio diário entre a primeira e a última pesagem.
-            - desempenho.gmdMetaKgDia: meta de GMD para a finalidade do lote (nulo quando não há meta cadastrada).
+            - desempenho.gmdMetaKgDia: meta de GMD definida pelo produtor para o lote; sem meta própria do lote, é a meta da finalidade (nulo quando não há nenhuma meta cadastrada).
             - desempenho.percentualDaMeta: quanto do GMD esperado o animal atingiu (100 = exatamente na meta).
             - animal.emCarencia: verdadeiro quando o animal está em carência de vacina ou medicamento e não está apto para venda ou abate.
             - alertas: alertas gerados pelo sistema, com status (ABERTO, EM_ANALISE, RESOLVIDO, IGNORADO).

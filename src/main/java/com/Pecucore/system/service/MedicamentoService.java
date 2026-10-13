@@ -4,6 +4,7 @@ import com.Pecucore.system.dto.MedicamentoRequestDTO;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Medicamento;
 import com.Pecucore.system.model.TipoCusto;
+import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.MedicamentoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +28,9 @@ public class MedicamentoService {
     private CustoService custoService;
 
     @Transactional
-    public Medicamento create(MedicamentoRequestDTO dados) {
+    public Medicamento create(MedicamentoRequestDTO dados, Usuario usuarioLogado) {
 
-        Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco());
+        Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
 
         animalService.validarDataRegistro(animal, dados.data());
 
@@ -64,9 +65,9 @@ public class MedicamentoService {
         return medicamentoSalvo;
     }
 
-    public List<Medicamento> getHistorico(int brinco) {
+    public List<Medicamento> getHistorico(int brinco, Usuario usuarioLogado) {
 
-        Animal animal = animalService.getAnimalByBrinco(brinco);
+        Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
         return medicamentoRepository
                 .findByAnimalIdOrderByDataAscIdAsc(animal.getId());

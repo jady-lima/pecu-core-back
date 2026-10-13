@@ -1,5 +1,6 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.repository.MedicamentoRepository;
 import com.Pecucore.system.repository.VacinacaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,13 @@ public class CarenciaService {
     @Autowired
     private VacinacaoRepository vacinacaoRepository;
 
+    @Autowired
+    private MedicamentoRepository medicamentoRepository;
+
     public boolean estaEmCarencia(Long animalId) {
-        return vacinacaoRepository.existsByAnimalIdAndDataFimCarenciaAfter(animalId, LocalDate.now());
+        LocalDate hoje = LocalDate.now();
+
+        return vacinacaoRepository.existsByAnimalIdAndDataFimCarenciaAfter(animalId, hoje)
+                || medicamentoRepository.existsByAnimalIdAndDataFimCarenciaAfter(animalId, hoje);
     }
 }

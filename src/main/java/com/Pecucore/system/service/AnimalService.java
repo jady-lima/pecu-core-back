@@ -65,6 +65,8 @@ public class AnimalService {
                 usuarioLogado
         );
 
+        validarCapacidadeLote(lote);
+
         Animal animal = new Animal();
 
         animal.setBrinco(dados.brinco());
@@ -134,6 +136,13 @@ public class AnimalService {
                 usuarioLogado
         );
 
+        boolean mudouDeLote = animalExistente.getLote() == null
+                || !animalExistente.getLote().getId().equals(lote.getId());
+
+        if (mudouDeLote && animalExistente.getStatus() == StatusAnimal.ATIVO) {
+            validarCapacidadeLote(lote);
+        }
+
         animalExistente.setBrinco(dados.brinco());
         animalExistente.setSexo(dados.sexo());
         animalExistente.setLote(lote);
@@ -171,12 +180,28 @@ public class AnimalService {
                         usuarioLogado
                 );
 
-        if (dados.status() == StatusAnimal.ABATIDO
+        if (animal.getStatus() != StatusAnimal.ATIVO) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Não é possível alterar o status de um animal com status " + animal.getStatus()
+            );
+        }
+
+        if (dados.status() == StatusAnimal.ATIVO) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "O animal já está com o status ATIVO"
+            );
+        }
+
+        if ((dados.status() == StatusAnimal.ABATIDO || dados.status() == StatusAnimal.VENDIDO)
                 && carenciaService.estaEmCarencia(id)) {
 
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "O animal está em período de carência e não pode ser abatido"
+                    "O animal está em período de carência e não pode ser vendido ou abatido"
             );
         }
 
@@ -229,7 +254,7 @@ public class AnimalService {
         return animal;
     }
 
-    public Animal getAnimalByBrinco(int brinco) {
+    private Animal getAnimalByBrinco(int brinco) {
 
         return animalRepository.findByBrinco(brinco)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -242,8 +267,19 @@ public class AnimalService {
         return validarAtivo(getAnimalById(id));
     }
 
-    public Animal getAnimalAtivoByBrinco(int brinco) {
-        return validarAtivo(getAnimalByBrinco(brinco));
+    public Animal getAnimalByBrinco(int brinco,Usuario usuarioLogado) {
+        Animal animal = getAnimalByBrinco(brinco);
+
+        validarAcessoAoLote(animal.getLote(),usuarioLogado);
+
+        return animal;
+    }
+
+    public Animal getAnimalAtivoByBrinco(
+            int brinco,
+            Usuario usuarioLogado
+    ) {
+        return validarAtivo(getAnimalByBrinco(brinco, usuarioLogado));
     }
 
     public List<Animal> getAnimaisAtivosByLoteId(Long loteId) {
@@ -279,6 +315,23 @@ public class AnimalService {
         }
 
         return animal;
+    }
+
+    private void validarCapacidadeLote(Lote lote) {
+
+        long animaisAtivos =
+                animalRepository.countByLoteIdAndStatus(
+                        lote.getId(),
+                        StatusAnimal.ATIVO
+                );
+
+        if (animaisAtivos >= lote.getCapacidade()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "O lote atingiu a capacidade máxima de " + lote.getCapacidade() + " animais"
+            );
+        }
     }
 
     private void validarAcessoAoLote(

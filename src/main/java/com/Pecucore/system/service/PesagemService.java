@@ -12,6 +12,7 @@ import com.Pecucore.system.dto.PesagemRequestDTO;
 import com.Pecucore.system.evento.PesoAnimalAlteradoEvento;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Pesagem;
+import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.AnimalRepository;
 import com.Pecucore.system.repository.PesagemRepository;
 import java.time.LocalDate;
@@ -47,8 +48,8 @@ public class PesagemService {
     }
 
     @Transactional
-    public ResultadoPesagem create(PesagemRequestDTO dados) {
-        Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco());
+    public ResultadoPesagem create(PesagemRequestDTO dados, Usuario usuarioLogado) {
+        Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
         return registrar(animal, dados.pesoAtual(), dados.dataPesagem());
     }
 
@@ -96,9 +97,9 @@ public class PesagemService {
         return new ResultadoPesagem(pesagem, aviso);
     }
 
-    public List<Pesagem> getHistorico(int brinco) {
+    public List<Pesagem> getHistorico(int brinco, Usuario usuarioLogado) {
 
-        Animal animal = animalService.getAnimalByBrinco(brinco);
+        Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
         return pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
     }

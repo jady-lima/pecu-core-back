@@ -25,6 +25,11 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
             StatusAnimal status
     );
 
+    long countByLoteIdAndStatus(
+            Long loteId,
+            StatusAnimal status
+    );
+
     List<Animal> findByLotePropriedadeUsuarioId(
             Long usuarioId
     );

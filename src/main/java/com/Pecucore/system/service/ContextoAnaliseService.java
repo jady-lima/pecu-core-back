@@ -12,7 +12,6 @@ import com.Pecucore.system.dto.analise.VacinacaoContextoDTO;
 import com.Pecucore.system.exception.DadosInsuficientesException;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Medicamento;
-import com.Pecucore.system.model.MetaDesempenho;
 import com.Pecucore.system.model.Pesagem;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.model.Vacinacao;
@@ -20,7 +19,6 @@ import com.Pecucore.system.repository.AlertaRepository;
 import com.Pecucore.system.repository.AlimentacaoRepository;
 import com.Pecucore.system.repository.CustoRepository;
 import com.Pecucore.system.repository.MedicamentoRepository;
-import com.Pecucore.system.repository.MetaDesempenhoRepository;
 import com.Pecucore.system.repository.PesagemRepository;
 import com.Pecucore.system.repository.VacinacaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +62,7 @@ public class ContextoAnaliseService {
     private CustoRepository custoRepository;
 
     @Autowired
-    private MetaDesempenhoRepository metaDesempenhoRepository;
+    private MetaDesempenhoService metaDesempenhoService;
 
     @Transactional(readOnly = true)
     public ContextoAnaliseAnimalDTO montar(Long animalId, Usuario usuarioLogado) {
@@ -103,13 +101,7 @@ public class ContextoAnaliseService {
         Double gmdPeriodo = gmdService.calculateGmdHistorico(primeiraPesagem, ultimaPesagem);
         long diasAvaliados = ChronoUnit.DAYS.between(primeiraPesagem.getData(), ultimaPesagem.getData());
 
-        Double gmdMeta = null;
-
-        if (animal.getLote() != null && animal.getLote().getFinalidade() != null) {
-            gmdMeta = metaDesempenhoRepository.findByFase(animal.getLote().getFinalidade())
-                                              .map(MetaDesempenho::getGmdEsperado)
-                                              .orElse(null);
-        }
+        Double gmdMeta = metaDesempenhoService.getGmdEsperado(animal.getLote()).orElse(null);
 
         Double percentualDaMeta = null;
         if (gmdPeriodo != null && gmdMeta != null && gmdMeta > 0) {

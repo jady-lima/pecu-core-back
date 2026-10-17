@@ -1,6 +1,9 @@
-package com.Pecucore.system.ia;
+package com.Pecucore.system.ia.provedor.gemini;
 
 import com.Pecucore.system.exception.ServicoIAIndisponivelException;
+import com.Pecucore.system.ia.provedor.PromptIA;
+import com.Pecucore.system.ia.provedor.ProvedorIA;
+import com.Pecucore.system.ia.provedor.RespostaIA;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;

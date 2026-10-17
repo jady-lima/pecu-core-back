@@ -1,6 +1,5 @@
-package com.Pecucore.system.config;
+package com.Pecucore.system.ia.provedor.gemini;
 
-import com.Pecucore.system.ia.GeminiProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

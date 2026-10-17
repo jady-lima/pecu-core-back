@@ -2,9 +2,8 @@ package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.analise.ContextoAnaliseAnimalDTO;
 import com.Pecucore.system.dto.analise.RelatorioAnaliseDTO;
-import com.Pecucore.system.exception.ServicoIAIndisponivelException;
-import com.Pecucore.system.ia.ProvedorIA;
-import com.Pecucore.system.ia.RespostaIA;
+import com.Pecucore.system.ia.AnaliseAnimalIAFacade;
+import com.Pecucore.system.ia.ResultadoAnaliseIA;
 import com.Pecucore.system.model.AnaliseIA;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.TipoAnalise;
@@ -14,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -35,23 +32,15 @@ public class AnaliseIAService {
     private ContextoAnaliseService contextoAnaliseService;
 
     @Autowired
-    private PromptAnaliseBuilder promptAnaliseBuilder;
-
-    @Autowired
-    private ProvedorIA provedorIA;
+    private AnaliseAnimalIAFacade analiseAnimalIAFacade;
 
     @Autowired
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
-    @Autowired
-    private JsonMapper jsonMapper;
-
     public AnaliseIA gerarIndividual(Long animalId, Usuario usuarioLogado) {
         
         ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montar(animalId, usuarioLogado);
-        RespostaIA resposta = provedorIA.gerarJson(promptAnaliseBuilder.montar(contexto));
-
-        converterRelatorio(resposta.texto());
+        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisar(contexto);
 
         Animal animal = animalService.getAnimalById(animalId, usuarioLogado);
         Usuario solicitante = usuarioService.getUsuarioById(usuarioLogado.getId());
@@ -60,8 +49,8 @@ public class AnaliseIAService {
         analise.setTipo(TipoAnalise.INDIVIDUAL);
         analise.setAnimal(animal);
         analise.setSolicitante(solicitante);
-        analise.setConteudo(resposta.texto());
-        analise.setModeloUtilizado(resposta.modelo());
+        analise.setConteudo(resultado.conteudoBruto());
+        analise.setModeloUtilizado(resultado.modelo());
         analise.setIncluiDadosFinanceiros(contexto.custos() != null);
 
         return analiseIARepository.save(analise);
@@ -88,24 +77,10 @@ public class AnaliseIAService {
     }
 
     public RelatorioAnaliseDTO getRelatorio(AnaliseIA analise) {
-        return converterRelatorio(analise.getConteudo());
+        return analiseAnimalIAFacade.lerRelatorio(analise.getConteudo());
     }
 
     private boolean podeVisualizar(AnaliseIA analise, Usuario usuarioLogado) {
         return !analise.isIncluiDadosFinanceiros() || politicaVisibilidadeFinanceira.podeVerDadosFinanceiros(usuarioLogado);
-    }
-
-    private RelatorioAnaliseDTO converterRelatorio(String json) {
-        try {
-            RelatorioAnaliseDTO relatorio = jsonMapper.readValue(json, RelatorioAnaliseDTO.class);
-
-            if (relatorio == null || relatorio.situacaoGeral() == null || relatorio.resumo() == null) {
-                throw new ServicoIAIndisponivelException("O serviço de IA retornou um relatório incompleto. Tente novamente.");
-            }
-
-            return relatorio;
-        } catch (JacksonException exception) {
-            throw new ServicoIAIndisponivelException("O serviço de IA retornou um relatório em formato inválido. Tente novamente.", exception);
-        }
     }
 }

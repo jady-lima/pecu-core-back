@@ -35,12 +35,7 @@ public class AlimentacaoService {
 
     @Transactional
     public Alimentacao create(AlimentacaoRequestDTO dados, Usuario usuarioLogado) {
-
-        Animal animal =
-                animalService.getAnimalAtivoByBrinco(
-                        dados.brinco(),
-                        usuarioLogado
-                );
+        Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
 
         return registrar(
                 animal,
@@ -52,25 +47,15 @@ public class AlimentacaoService {
     }
 
     @Transactional
-    public List<Alimentacao> createEmLote(
-            AlimentacaoLoteRequestDTO dados,
-            Usuario usuarioLogado
-    ) {
+    public List<Alimentacao> createEmLote(AlimentacaoLoteRequestDTO dados, Usuario usuarioLogado) {
+        loteService.getLoteById(dados.loteId(), usuarioLogado);
 
-        loteService.getLoteById(
-                dados.loteId(),
-                usuarioLogado
-        );
-
-        List<Animal> animais =
-                animalService.getAnimaisAtivosByLoteId(
-                        dados.loteId()
-                );
+        List<Animal> animais = animalService.getAnimaisAtivosByLoteId(dados.loteId());
 
         if (animais.isEmpty()) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "O lote não possui animais ativos"
+                HttpStatus.CONFLICT,
+                "O lote não possui animais ativos"
             );
         }
 
@@ -88,14 +73,9 @@ public class AlimentacaoService {
     }
 
     public List<Alimentacao> getHistorico(int brinco, Usuario usuarioLogado) {
+        Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
-        Animal animal =
-                animalService.getAnimalByBrinco(brinco, usuarioLogado);
-
-        return alimentacaoRepository
-                .findByAnimalIdOrderByDataAscIdAsc(
-                        animal.getId()
-                );
+        return alimentacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
     }
 
     private Alimentacao registrar(
@@ -106,26 +86,18 @@ public class AlimentacaoService {
             Double valor
     ) {
 
-        animalService.validarDataRegistro(
-                animal,
-                data
-        );
+        animalService.validarDataRegistro(animal, data);
 
         Alimentacao alimentacao = new Alimentacao();
-
         alimentacao.setTipo(tipo);
         alimentacao.setQuantidade(quantidade);
         alimentacao.setValor(valor);
         alimentacao.setData(data);
         alimentacao.setAnimal(animal);
 
-        Alimentacao alimentacaoSalva =
-                alimentacaoRepository.save(
-                        alimentacao
-                );
+        Alimentacao alimentacaoSalva = alimentacaoRepository.save(alimentacao);
 
         if (valor != null) {
-
             custoService.registrarAutomatico(
                     TipoCusto.ALIMENTACAO,
                     valor,

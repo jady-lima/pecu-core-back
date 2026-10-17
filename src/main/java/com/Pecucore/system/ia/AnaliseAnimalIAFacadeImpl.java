@@ -23,7 +23,7 @@ public class AnaliseAnimalIAFacadeImpl implements AnaliseAnimalIAFacade {
 
     @Override
     public ResultadoAnaliseIA analisar(ContextoAnaliseAnimalDTO contexto) {
-        RespostaIA resposta = provedorIA.gerarJson(promptAnaliseBuilder.montar(contexto));
+        RespostaIA resposta = provedorIA.gerarJson(promptAnaliseBuilder.montarIndividual(contexto));
         RelatorioAnaliseDTO relatorio = relatorioAnaliseParser.converterRespostaIA(resposta.texto());
 
         return new ResultadoAnaliseIA(relatorio, resposta.texto(), resposta.modelo());

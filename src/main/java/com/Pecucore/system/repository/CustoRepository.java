@@ -5,10 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface CustoRepository extends JpaRepository<Custo, Long> {
     List<Custo> findByAnimalIdOrderByDataAscIdAsc(Long animalId);
+
+    List<Custo> findByAnimalIdIn(Collection<Long> animalIds);
 
     @Query("""
             SELECT c FROM Custo c

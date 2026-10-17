@@ -9,6 +9,7 @@ import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.TipoAnalise;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.AnaliseIARepository;
+import com.Pecucore.system.service.politica.PoliticaVisibilidadeFinanceira;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class AnaliseIAService {
 
     public AnaliseIA gerarIndividual(Long animalId, Usuario usuarioLogado) {
         
-        ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montar(animalId, usuarioLogado);
+        ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montarIndividual(animalId, usuarioLogado);
         ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisar(contexto);
 
         Animal animal = animalService.getAnimalById(animalId, usuarioLogado);

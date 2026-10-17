@@ -42,4 +42,10 @@ public class GlobalExceptionHandler {
         log.error("Falha ao gerar análise com IA", exception);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(new ErroResponseDTO(exception.getMessage()));
     }
+
+    @ExceptionHandler(ConteudoAnaliseInvalidoException.class)
+    public ResponseEntity<ErroResponseDTO> handleConteudoAnaliseInvalidoException(ConteudoAnaliseInvalidoException exception) {
+        log.error("Conteúdo de análise salvo está inválido", exception);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErroResponseDTO("Não foi possível exibir a análise."));
+    }
 }

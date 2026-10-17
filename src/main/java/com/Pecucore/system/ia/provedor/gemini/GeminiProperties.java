@@ -1,4 +1,4 @@
-package com.Pecucore.system.ia;
+package com.Pecucore.system.ia.provedor.gemini;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

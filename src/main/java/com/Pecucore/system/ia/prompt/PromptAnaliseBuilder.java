@@ -1,12 +1,12 @@
-package com.Pecucore.system.service;
+package com.Pecucore.system.ia.prompt;
 
 import com.Pecucore.system.dto.analise.ContextoAnaliseAnimalDTO;
-import com.Pecucore.system.ia.PromptIA;
+import com.Pecucore.system.ia.provedor.PromptIA;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import tools.jackson.databind.json.JsonMapper;
 
-@Service
+@Component
 public class PromptAnaliseBuilder {
 
     private static final String INSTRUCOES = """

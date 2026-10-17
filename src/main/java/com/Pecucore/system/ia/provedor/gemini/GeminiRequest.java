@@ -1,4 +1,4 @@
-package com.Pecucore.system.ia;
+package com.Pecucore.system.ia.provedor.gemini;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.databind.JsonNode;

@@ -1,4 +1,4 @@
-package com.Pecucore.system.service;
+package com.Pecucore.system.service.politica;
 
 import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.TipoAlerta;

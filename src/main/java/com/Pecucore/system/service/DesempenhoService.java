@@ -5,6 +5,7 @@ import com.Pecucore.system.dto.CurvaCrescimentoResponseDTO;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Pesagem;
 import com.Pecucore.system.model.Usuario;
+import com.Pecucore.system.service.calculo.GmdService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;

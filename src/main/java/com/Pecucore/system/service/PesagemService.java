@@ -15,6 +15,7 @@ import com.Pecucore.system.model.Pesagem;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.AnimalRepository;
 import com.Pecucore.system.repository.PesagemRepository;
+import com.Pecucore.system.service.calculo.GmdService;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;

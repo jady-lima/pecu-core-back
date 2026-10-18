@@ -93,6 +93,7 @@ public class PesagemService {
         pesagemRepository.save(pesagem);
         animalRepository.save(animal);
         alertaService.verificarGmdAbaixoMeta(animal, gmd);
+        alertaService.verificarQuedaPeso(animal);
 
         return new ResultadoPesagem(pesagem, aviso);
     }

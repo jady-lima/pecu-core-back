@@ -34,6 +34,9 @@ public class CustoService {
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
 
+    @Autowired
+    private AlertaService alertaService;
+
     @Transactional
     public Custo create(CustoRequestDTO dados, Usuario usuarioLogado) {
 
@@ -82,7 +85,11 @@ public class CustoService {
             custo.setPropriedade(propriedade);
         }
 
-        return custoRepository.save(custo);
+        Custo custoSalvo = custoRepository.save(custo);
+        if(custoSalvo.getAnimal() !=null){
+            alertaService.verificarCustoAcima(custoSalvo.getAnimal());
+        }
+        return custoSalvo;
     }
 
     private void validarAcessoPropriedade(Propriedade propriedade, Usuario usuarioLogado) {
@@ -110,7 +117,12 @@ public class CustoService {
         custo.setData(data);
         custo.setAnimal(animal);
 
-        return custoRepository.save(custo);
+        Custo custoSalvo = custoRepository.save(custo);
+        if(custoSalvo.getAnimal() !=null){
+            alertaService.verificarCustoAcima(custoSalvo.getAnimal());
+        }
+        return custoSalvo;
+
     }
 
     private void validarDestino(CustoRequestDTO dados) {

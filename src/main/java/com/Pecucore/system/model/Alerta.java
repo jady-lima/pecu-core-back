@@ -34,6 +34,10 @@ public class Alerta {
     @JoinColumn(name = "animal_id", nullable = false)
     private Animal animal;
 
+    @ManyToOne
+    @JoinColumn(name="lote-id")
+    private Lote lote;
+
     public Long getId() {
         return id;
     }
@@ -62,6 +66,11 @@ public class Alerta {
         return animal;
     }
 
+    public Lote getLote(){
+        return lote;
+    }
+
+
     public void setTipo(TipoAlerta tipo) {
         this.tipo = tipo;
     }
@@ -84,5 +93,9 @@ public class Alerta {
 
     public void setAnimal(Animal animal) {
         this.animal = animal;
+    }
+
+    public void setLote(Lote lote){
+        this.lote=lote;
     }
 }

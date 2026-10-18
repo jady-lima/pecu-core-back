@@ -6,7 +6,6 @@ public enum TipoAlerta{
     PESAGEM_ATRASADA,
     VACINA_PROX_VENC,
     VACINA_VENC,
-    TRATAMENTO_REC,
     PERIODO_CARENCIA,
     CUSTO_ACIMA
 }

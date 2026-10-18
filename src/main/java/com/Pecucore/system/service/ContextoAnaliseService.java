@@ -90,6 +90,9 @@ public class ContextoAnaliseService {
     @Autowired
     private MetaDesempenhoService metaDesempenhoService;
 
+    @Autowired
+    private CarenciaService carenciaService;
+
     @Transactional(readOnly = true)
     public ContextoAnaliseAnimalDTO montarIndividual(Long animalId, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalById(animalId, usuarioLogado);
@@ -147,7 +150,7 @@ public class ContextoAnaliseService {
 
         List<Vacinacao> vacinacoes = vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
         List<Medicamento> medicamentos = medicamentoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
-        boolean emCarencia = estaEmCarencia(vacinacoes, medicamentos, hoje);
+        boolean emCarencia = carenciaService.estaEmCarencia(animalId);
 
         return new ContextoAnaliseAnimalDTO(
             hoje,
@@ -177,14 +180,6 @@ public class ContextoAnaliseService {
         }
 
         return new DesempenhoContextoDTO(gmdPeriodo, diasAvaliados, gmdMeta, percentualDaMeta);
-    }
-
-    private boolean estaEmCarencia(List<Vacinacao> vacinacoes, List<Medicamento> medicamentos, LocalDate hoje) {
-        boolean carenciaVacina = vacinacoes.stream().anyMatch(vacinacao -> vacinacao.getDataFimCarencia().isAfter(hoje));
-
-        boolean carenciaMedicamento = medicamentos.stream().anyMatch(medicamento -> medicamento.getDataFimCarencia().isAfter(hoje));
-
-        return carenciaVacina || carenciaMedicamento;
     }
 
     private List<AlertaContextoDTO> montarAlertas(Long animalId, Usuario usuarioLogado) {

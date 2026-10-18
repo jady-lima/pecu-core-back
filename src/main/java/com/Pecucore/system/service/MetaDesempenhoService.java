@@ -35,6 +35,31 @@ public class MetaDesempenhoService {
         return metaDesempenhoRepository.save(meta);
     }
 
+    public MetaDesempenho update(Long id, MetaDesempenhoRequestDTO dados) {
+
+        MetaDesempenho meta = metaDesempenhoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Meta de desempenho não encontrada."
+                ));
+
+        boolean faseEmUso = metaDesempenhoRepository.findByFase(dados.fase())
+                .filter(outraMeta -> !outraMeta.getId().equals(id))
+                .isPresent();
+
+        if (faseEmUso) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Já existe uma meta cadastrada para essa fase."
+            );
+        }
+
+        meta.setFase(dados.fase());
+        meta.setGmdEsperado(dados.gmdEsperado());
+
+        return metaDesempenhoRepository.save(meta);
+    }
+
     public List<MetaDesempenho> getAll() {
         return metaDesempenhoRepository.findAll();
     }

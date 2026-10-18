@@ -65,6 +65,9 @@ public class SecurityConfig {
 
                 .requestMatchers("/custos/**").hasAuthority(produtor)
 
+                .requestMatchers(HttpMethod.POST, "/metas-desempenho/**").hasAuthority(admin)
+                .requestMatchers(HttpMethod.PUT, "/metas-desempenho/**").hasAuthority(admin)
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

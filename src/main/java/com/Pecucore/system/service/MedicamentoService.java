@@ -6,6 +6,7 @@ import com.Pecucore.system.model.Medicamento;
 import com.Pecucore.system.model.TipoCusto;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.MedicamentoRepository;
+import com.Pecucore.system.service.calculo.CalculadoraCarencia;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

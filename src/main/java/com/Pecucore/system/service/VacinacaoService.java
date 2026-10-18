@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.Pecucore.system.dto.VacinacaoRequestDTO;
 import com.Pecucore.system.repository.VacinacaoRepository;
+import com.Pecucore.system.service.calculo.CalculadoraCarencia;
 import java.util.List;
 
 @Service

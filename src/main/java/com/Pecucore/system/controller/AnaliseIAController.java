@@ -39,6 +39,21 @@ public class AnaliseIAController {
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(analise));
     }
 
+    @Operation(summary = "Gera uma análise comparativa do animal com os demais animais do lote")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Análise gerada com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao animal"),
+        @ApiResponse(responseCode = "404", description = "Animal não encontrado"),
+        @ApiResponse(responseCode = "422", description = "Animal sem lote, sem dados suficientes ou lote com poucos animais para comparação"),
+        @ApiResponse(responseCode = "503", description = "Serviço de IA indisponível")
+    })
+    @PostMapping("/animal/{animalId}/comparativa")
+    public ResponseEntity<AnaliseIAResponseDTO> gerarComparativa(@PathVariable Long animalId, @AuthenticationPrincipal Usuario usuarioLogado) {
+        AnaliseIA analise = analiseIAService.gerarComparativa(animalId, usuarioLogado);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(analise));
+    }
+
     @Operation(summary = "Consulta o histórico de análises do animal")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Histórico encontrado"),

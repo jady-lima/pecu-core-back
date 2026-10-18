@@ -1,4 +1,4 @@
-package com.Pecucore.system.service;
+package com.Pecucore.system.service.calculo;
 
 import com.Pecucore.system.model.Pesagem;
 import org.springframework.stereotype.Service;

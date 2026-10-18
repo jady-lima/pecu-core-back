@@ -10,8 +10,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.AlimentacaoLoteRequestDTO;
 import com.Pecucore.system.dto.AlimentacaoRequestDTO;
+import com.Pecucore.system.dto.AlimentacaoUpdateRequestDTO;
 import com.Pecucore.system.model.Alimentacao;
 import com.Pecucore.system.model.Animal;
+import com.Pecucore.system.model.Custo;
 import com.Pecucore.system.model.TipoAlimentacao;
 import com.Pecucore.system.repository.AlimentacaoRepository;
 
@@ -72,6 +74,47 @@ public class AlimentacaoService {
                 .toList();
     }
 
+    @Transactional
+    public Alimentacao update(Long id, AlimentacaoUpdateRequestDTO dados, Usuario usuarioLogado) {
+        Alimentacao alimentacao = getAlimentacaoById(id, usuarioLogado);
+
+        animalService.validarDataRegistro(alimentacao.getAnimal(), dados.data());
+
+        alimentacao.setTipo(dados.tipo());
+        alimentacao.setQuantidade(dados.quantidade());
+        alimentacao.setValor(dados.valor());
+        alimentacao.setData(dados.data());
+
+        sincronizarCusto(alimentacao);
+
+        return alimentacaoRepository.save(alimentacao);
+    }
+
+    @Transactional
+    public void delete(Long id, Usuario usuarioLogado) {
+        Alimentacao alimentacao = getAlimentacaoById(id, usuarioLogado);
+        Custo custo = alimentacao.getCusto();
+
+        alimentacaoRepository.delete(alimentacao);
+        alimentacaoRepository.flush();
+
+        if (custo != null) {
+            custoService.excluirAutomatico(custo);
+        }
+    }
+
+    public Alimentacao getAlimentacaoById(Long id, Usuario usuarioLogado) {
+        Alimentacao alimentacao = alimentacaoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Alimentação não encontrada"
+                ));
+
+        animalService.getAnimalById(alimentacao.getAnimal().getId(), usuarioLogado);
+
+        return alimentacao;
+    }
+
     public List<Alimentacao> getHistorico(int brinco, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
@@ -95,17 +138,33 @@ public class AlimentacaoService {
         alimentacao.setData(data);
         alimentacao.setAnimal(animal);
 
-        Alimentacao alimentacaoSalva = alimentacaoRepository.save(alimentacao);
+        sincronizarCusto(alimentacao);
 
-        if (valor != null) {
-            custoService.registrarAutomatico(
-                    TipoCusto.ALIMENTACAO,
-                    valor,
-                    data,
-                    animal
-            );
+        return alimentacaoRepository.save(alimentacao);
+    }
+
+    private void sincronizarCusto(Alimentacao alimentacao) {
+        Custo custo = alimentacao.getCusto();
+
+        if (alimentacao.getValor() == null) {
+            if (custo != null) {
+                alimentacao.setCusto(null);
+                alimentacaoRepository.saveAndFlush(alimentacao);
+                custoService.excluirAutomatico(custo);
+            }
+            return;
         }
 
-        return alimentacaoSalva;
+        if (custo == null) {
+            alimentacao.setCusto(custoService.registrarAutomatico(
+                    TipoCusto.ALIMENTACAO,
+                    alimentacao.getValor(),
+                    alimentacao.getData(),
+                    alimentacao.getAnimal()
+            ));
+            return;
+        }
+
+        custoService.atualizarAutomatico(custo, alimentacao.getValor(), alimentacao.getData());
     }
 }

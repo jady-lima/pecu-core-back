@@ -113,6 +113,19 @@ public class CustoService {
         return custoRepository.save(custo);
     }
 
+    @Transactional
+    public Custo atualizarAutomatico(Custo custo, double valor, LocalDate data) {
+        custo.setValor(valor);
+        custo.setData(data);
+
+        return custoRepository.save(custo);
+    }
+
+    @Transactional
+    public void excluirAutomatico(Custo custo) {
+        custoRepository.delete(custo);
+    }
+
     private void validarDestino(CustoRequestDTO dados) {
 
         int destinos = 0;

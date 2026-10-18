@@ -23,7 +23,11 @@ public record AnimalRequestDTO(
         String sexo,
 
         @NotNull(message = "O lote precisa ser informado!!")
-        Long loteId
+        Long loteId,
+
+        @NotNull(message = "A data da primeira pesagem precisa ser informada")
+        @PastOrPresent(message = "A data da primeira pesagem não pode ser futura")
+        LocalDate dataPrimeiraPesagem
 
 ) {
 

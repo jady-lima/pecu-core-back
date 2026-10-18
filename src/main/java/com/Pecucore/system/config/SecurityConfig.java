@@ -70,6 +70,7 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.POST, "/metas-desempenho/**").hasAuthority(admin)
                 .requestMatchers(HttpMethod.PUT, "/metas-desempenho/**").hasAuthority(admin)
+                .requestMatchers(HttpMethod.DELETE, "/metas-desempenho/**").hasAuthority(admin)
 
                 .anyRequest().authenticated()
             )

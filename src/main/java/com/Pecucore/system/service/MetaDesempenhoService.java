@@ -37,11 +37,7 @@ public class MetaDesempenhoService {
 
     public MetaDesempenho update(Long id, MetaDesempenhoRequestDTO dados) {
 
-        MetaDesempenho meta = metaDesempenhoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Meta de desempenho não encontrada."
-                ));
+        MetaDesempenho meta = getById(id);
 
         boolean faseEmUso = metaDesempenhoRepository.findByFase(dados.fase())
                 .filter(outraMeta -> !outraMeta.getId().equals(id))
@@ -58,6 +54,19 @@ public class MetaDesempenhoService {
         meta.setGmdEsperado(dados.gmdEsperado());
 
         return metaDesempenhoRepository.save(meta);
+    }
+
+    public void delete(Long id) {
+        MetaDesempenho meta = getById(id);
+        metaDesempenhoRepository.delete(meta);
+    }
+
+    public MetaDesempenho getById(Long id) {
+        return metaDesempenhoRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Meta de desempenho não encontrada."
+            ));
     }
 
     public List<MetaDesempenho> getAll() {

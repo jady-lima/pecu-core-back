@@ -36,15 +36,77 @@ public class CustoService {
 
     @Transactional
     public Custo create(CustoRequestDTO dados, Usuario usuarioLogado) {
+        Custo custo = new Custo();
+        custo.setOrigem(OrigemCusto.MANUAL);
+
+        preencherDados(custo, dados, usuarioLogado);
+
+        return custoRepository.save(custo);
+    }
+
+    @Transactional
+    public Custo update(Long id, CustoRequestDTO dados, Usuario usuarioLogado) {
+        Custo custo = getCustoManualById(id, usuarioLogado);
+
+        preencherDados(custo, dados, usuarioLogado);
+
+        return custoRepository.save(custo);
+    }
+
+    @Transactional
+    public void delete(Long id, Usuario usuarioLogado) {
+        Custo custo = getCustoManualById(id, usuarioLogado);
+
+        custoRepository.delete(custo);
+    }
+
+    public Custo getCustoById(Long id, Usuario usuarioLogado) {
+        Custo custo = custoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Custo não encontrado"
+                ));
+
+        validarAcessoPropriedade(getPropriedade(custo), usuarioLogado);
+
+        return custo;
+    }
+
+    private Custo getCustoManualById(Long id, Usuario usuarioLogado) {
+        Custo custo = getCustoById(id, usuarioLogado);
+
+        if (custo.getOrigem() == OrigemCusto.AUTOMATICO) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Custos automáticos só podem ser alterados pelo registro que os gerou"
+            );
+        }
+
+        return custo;
+    }
+
+    private Propriedade getPropriedade(Custo custo) {
+        if (custo.getAnimal() != null) {
+            return custo.getAnimal().getLote() != null ? custo.getAnimal().getLote().getPropriedade() : null;
+        }
+
+        if (custo.getLote() != null) {
+            return custo.getLote().getPropriedade();
+        }
+
+        return custo.getPropriedade();
+    }
+
+    private void preencherDados(Custo custo, CustoRequestDTO dados, Usuario usuarioLogado) {
 
         validarDestino(dados);
 
-        Custo custo = new Custo();
-
         custo.setTipo(dados.tipo());
-        custo.setOrigem(OrigemCusto.MANUAL);
         custo.setValor(dados.valor());
         custo.setData(dados.data());
+        custo.setAnimal(null);
+        custo.setLote(null);
+        custo.setPropriedade(null);
 
         if (dados.animalId() != null) {
             Animal animal = animalRepository.findById(dados.animalId())
@@ -81,8 +143,6 @@ public class CustoService {
 
             custo.setPropriedade(propriedade);
         }
-
-        return custoRepository.save(custo);
     }
 
     private void validarAcessoPropriedade(Propriedade propriedade, Usuario usuarioLogado) {

@@ -45,6 +45,58 @@ public class CustoController {
                 .body(new CustoResponseDTO(custo));
     }
 
+    @Operation(summary = "Edita um custo manual")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Custo atualizado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao custo, animal, lote ou propriedade"),
+        @ApiResponse(responseCode = "404", description = "Custo, animal, lote ou propriedade não encontrado"),
+        @ApiResponse(responseCode = "409", description = "Custo automático não pode ser editado")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<CustoResponseDTO> update(
+        @PathVariable Long id,
+        @RequestBody @Valid CustoRequestDTO dados,
+        @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+        Custo custo = custoService.update(id, dados, usuarioLogado);
+
+        return ResponseEntity.ok(new CustoResponseDTO(custo));
+    }
+
+    @Operation(summary = "Exclui um custo manual")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Custo excluído com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao custo"),
+        @ApiResponse(responseCode = "404", description = "Custo não encontrado"),
+        @ApiResponse(responseCode = "409", description = "Custo automático não pode ser excluído")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+        @PathVariable Long id,
+        @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+        custoService.delete(id, usuarioLogado);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Busca um custo por id")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Custo encontrado"),
+        @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao custo"),
+        @ApiResponse(responseCode = "404", description = "Custo não encontrado")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<CustoResponseDTO> getById(
+        @PathVariable Long id,
+        @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+        Custo custo = custoService.getCustoById(id, usuarioLogado);
+
+        return ResponseEntity.ok(new CustoResponseDTO(custo));
+    }
+
     @Operation(
             summary = "Consulta os custos das propriedades do produtor"
     )

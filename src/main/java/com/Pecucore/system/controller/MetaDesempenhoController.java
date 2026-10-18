@@ -83,4 +83,31 @@ public class MetaDesempenhoController {
 
         return ResponseEntity.ok(metas);
     }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar meta padrão de desempenho por id")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Meta encontrada com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+        @ApiResponse(responseCode = "404", description = "Meta não encontrada")
+    })
+    public ResponseEntity<MetaDesempenhoResponseDTO> getById(@PathVariable Long id) {
+        MetaDesempenho meta = metaDesempenhoService.getById(id);
+
+        return ResponseEntity.ok(new MetaDesempenhoResponseDTO(meta));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir meta padrão de desempenho")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Meta excluída com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+        @ApiResponse(responseCode = "403", description = "Usuário sem permissão"),
+        @ApiResponse(responseCode = "404", description = "Meta não encontrada", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class)))
+    })
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        metaDesempenhoService.delete(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }

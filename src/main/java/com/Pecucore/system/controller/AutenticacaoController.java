@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,6 +51,18 @@ public class AutenticacaoController {
         var authentication = authenticationManager.authenticate(authToken);
         var token = tokenService.generateToken((Usuario) authentication.getPrincipal());
         return ResponseEntity.ok(new TokenResponseDTO(token));
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Realizar logout", description = "Encerra a sessão do usuário autenticado. O cliente deve descartar o token JWT armazenado")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Logout realizado com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
+    })
+    public ResponseEntity<Void> logout() {
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/me")

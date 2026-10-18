@@ -1,6 +1,7 @@
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.analise.ContextoAnaliseAnimalDTO;
+import com.Pecucore.system.dto.analise.ContextoAnaliseComparativaDTO;
 import com.Pecucore.system.dto.analise.RelatorioAnaliseDTO;
 import com.Pecucore.system.ia.AnaliseAnimalIAFacade;
 import com.Pecucore.system.ia.ResultadoAnaliseIA;
@@ -39,22 +40,19 @@ public class AnaliseIAService {
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
     public AnaliseIA gerarIndividual(Long animalId, Usuario usuarioLogado) {
-        
         ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montarIndividual(animalId, usuarioLogado);
-        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisar(contexto);
+        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarIndividual(contexto);
 
-        Animal animal = animalService.getAnimalById(animalId, usuarioLogado);
-        Usuario solicitante = usuarioService.getUsuarioById(usuarioLogado.getId());
+        return salvar(TipoAnalise.INDIVIDUAL, animalId, resultado, contexto.custos() != null, usuarioLogado);
+    }
 
-        AnaliseIA analise = new AnaliseIA();
-        analise.setTipo(TipoAnalise.INDIVIDUAL);
-        analise.setAnimal(animal);
-        analise.setSolicitante(solicitante);
-        analise.setConteudo(resultado.conteudoBruto());
-        analise.setModeloUtilizado(resultado.modelo());
-        analise.setIncluiDadosFinanceiros(contexto.custos() != null);
+    public AnaliseIA gerarComparativa(Long animalId, Usuario usuarioLogado) {
+        ContextoAnaliseComparativaDTO contexto = contextoAnaliseService.montarComparativo(animalId, usuarioLogado);
+        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarComparativo(contexto);
 
-        return analiseIARepository.save(analise);
+        boolean incluiDadosFinanceiros = contexto.animalAnalisado().custos() != null || contexto.estatisticasLote().custoMedioPorAnimal() != null;
+
+        return salvar(TipoAnalise.COMPARATIVA, animalId, resultado, incluiDadosFinanceiros, usuarioLogado);
     }
 
     public List<AnaliseIA> getHistoricoByAnimal(Long animalId, Usuario usuarioLogado) {
@@ -79,6 +77,21 @@ public class AnaliseIAService {
 
     public RelatorioAnaliseDTO getRelatorio(AnaliseIA analise) {
         return analiseAnimalIAFacade.lerRelatorio(analise.getConteudo());
+    }
+
+    private AnaliseIA salvar(TipoAnalise tipo, Long animalId, ResultadoAnaliseIA resultado, boolean incluiDadosFinanceiros, Usuario usuarioLogado) {
+        Animal animal = animalService.getAnimalById(animalId, usuarioLogado);
+        Usuario solicitante = usuarioService.getUsuarioById(usuarioLogado.getId());
+
+        AnaliseIA analise = new AnaliseIA();
+        analise.setTipo(tipo);
+        analise.setAnimal(animal);
+        analise.setSolicitante(solicitante);
+        analise.setConteudo(resultado.conteudoBruto());
+        analise.setModeloUtilizado(resultado.modelo());
+        analise.setIncluiDadosFinanceiros(incluiDadosFinanceiros);
+
+        return analiseIARepository.save(analise);
     }
 
     private boolean podeVisualizar(AnaliseIA analise, Usuario usuarioLogado) {

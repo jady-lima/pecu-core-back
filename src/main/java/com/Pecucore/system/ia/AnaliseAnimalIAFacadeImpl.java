@@ -1,9 +1,11 @@
 package com.Pecucore.system.ia;
 
 import com.Pecucore.system.dto.analise.ContextoAnaliseAnimalDTO;
+import com.Pecucore.system.dto.analise.ContextoAnaliseComparativaDTO;
 import com.Pecucore.system.dto.analise.RelatorioAnaliseDTO;
 import com.Pecucore.system.ia.parser.RelatorioAnaliseParser;
 import com.Pecucore.system.ia.prompt.PromptAnaliseBuilder;
+import com.Pecucore.system.ia.provedor.PromptIA;
 import com.Pecucore.system.ia.provedor.ProvedorIA;
 import com.Pecucore.system.ia.provedor.RespostaIA;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +24,24 @@ public class AnaliseAnimalIAFacadeImpl implements AnaliseAnimalIAFacade {
     private RelatorioAnaliseParser relatorioAnaliseParser;
 
     @Override
-    public ResultadoAnaliseIA analisar(ContextoAnaliseAnimalDTO contexto) {
-        RespostaIA resposta = provedorIA.gerarJson(promptAnaliseBuilder.montarIndividual(contexto));
-        RelatorioAnaliseDTO relatorio = relatorioAnaliseParser.converterRespostaIA(resposta.texto());
+    public ResultadoAnaliseIA analisarIndividual(ContextoAnaliseAnimalDTO contexto) {
+        return analisar(promptAnaliseBuilder.montarIndividual(contexto));
+    }
 
-        return new ResultadoAnaliseIA(relatorio, resposta.texto(), resposta.modelo());
+    @Override
+    public ResultadoAnaliseIA analisarComparativo(ContextoAnaliseComparativaDTO contexto) {
+        return analisar(promptAnaliseBuilder.montarComparativo(contexto));
     }
 
     @Override
     public RelatorioAnaliseDTO lerRelatorio(String conteudo) {
         return relatorioAnaliseParser.converterConteudoSalvo(conteudo);
+    }
+
+    private ResultadoAnaliseIA analisar(PromptIA prompt) {
+        RespostaIA resposta = provedorIA.gerarJson(prompt);
+        RelatorioAnaliseDTO relatorio = relatorioAnaliseParser.converterRespostaIA(resposta.texto());
+
+        return new ResultadoAnaliseIA(relatorio, resposta.texto(), resposta.modelo());
     }
 }

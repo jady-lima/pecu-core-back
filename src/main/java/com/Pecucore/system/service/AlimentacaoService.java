@@ -96,7 +96,6 @@ public class AlimentacaoService {
         Custo custo = alimentacao.getCusto();
 
         alimentacaoRepository.delete(alimentacao);
-        alimentacaoRepository.flush();
 
         if (custo != null) {
             custoService.excluirAutomatico(custo);
@@ -144,27 +143,12 @@ public class AlimentacaoService {
     }
 
     private void sincronizarCusto(Alimentacao alimentacao) {
-        Custo custo = alimentacao.getCusto();
-
-        if (alimentacao.getValor() == null) {
-            if (custo != null) {
-                alimentacao.setCusto(null);
-                alimentacaoRepository.saveAndFlush(alimentacao);
-                custoService.excluirAutomatico(custo);
-            }
-            return;
-        }
-
-        if (custo == null) {
-            alimentacao.setCusto(custoService.registrarAutomatico(
-                    TipoCusto.ALIMENTACAO,
-                    alimentacao.getValor(),
-                    alimentacao.getData(),
-                    alimentacao.getAnimal()
-            ));
-            return;
-        }
-
-        custoService.atualizarAutomatico(custo, alimentacao.getValor(), alimentacao.getData());
+        alimentacao.setCusto(custoService.sincronizarAutomatico(
+                alimentacao.getCusto(),
+                TipoCusto.ALIMENTACAO,
+                alimentacao.getValor(),
+                alimentacao.getData(),
+                alimentacao.getAnimal()
+        ));
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.Pecucore.system.dto.VacinaRequestDTO;
 import com.Pecucore.system.model.Vacina;
 import com.Pecucore.system.repository.VacinaRepository;
+import com.Pecucore.system.repository.VacinacaoRepository;
 import java.util.List;
 import java.util.Locale;
 
@@ -16,6 +17,9 @@ public class VacinaService {
 
     @Autowired
     private VacinaRepository vacinaRepository;
+
+    @Autowired
+    private VacinacaoRepository vacinacaoRepository;
 
     public Vacina create(VacinaRequestDTO dados) {
         String nome = normalizarNome(dados.nome());
@@ -46,6 +50,16 @@ public class VacinaService {
         vacinaExistente.setIntervaloDoseDias(dados.intervaloDoseDias());
 
         return vacinaRepository.save(vacinaExistente);
+    }
+
+    public void delete(Long id) {
+        Vacina vacina = getVacinaById(id);
+
+        if (vacinacaoRepository.existsByVacinaId(id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Não é possível excluir uma vacina que já foi aplicada em algum animal");
+        }
+
+        vacinaRepository.delete(vacina);
     }
 
     public List<Vacina> getAllVacinas() {

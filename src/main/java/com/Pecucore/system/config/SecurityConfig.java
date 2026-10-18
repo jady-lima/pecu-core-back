@@ -61,7 +61,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/alimentacoes/**").hasAnyAuthority(admin, produtor, veterinario)
                 .requestMatchers(HttpMethod.DELETE, "/alimentacoes/**").hasAnyAuthority(admin, produtor)
 
-                .requestMatchers("/vacinas/**", "/vacinacoes/**").hasAnyAuthority(admin, produtor, veterinario)
+                .requestMatchers(HttpMethod.DELETE, "/vacinas/**", "/vacinacoes/**", "/medicamentos/**").hasAnyAuthority(admin, produtor)
+                .requestMatchers("/vacinas/**", "/vacinacoes/**", "/medicamentos/**").hasAnyAuthority(admin, produtor, veterinario)
 
                 .requestMatchers("/analises/**").hasAnyAuthority(admin, produtor, veterinario)
 

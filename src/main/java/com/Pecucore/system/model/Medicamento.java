@@ -25,6 +25,10 @@ public class Medicamento extends RegistroAnimal{
 
     private Double valor;
 
+    @OneToOne
+    @JoinColumn(name = "custo_id")
+    private Custo custo;
+
     public String getNome() {
         return nome;
     }
@@ -72,5 +76,13 @@ public class Medicamento extends RegistroAnimal{
 
     public void setValor(Double valor) {
         this.valor = valor;
+    }
+
+    public Custo getCusto() {
+        return custo;
+    }
+
+    public void setCusto(Custo custo) {
+        this.custo = custo;
     }
 }

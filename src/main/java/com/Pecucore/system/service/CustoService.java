@@ -122,6 +122,22 @@ public class CustoService {
     }
 
     @Transactional
+    public Custo sincronizarAutomatico(Custo custoAtual, TipoCusto tipo, Double valor, LocalDate data, Animal animal) {
+        if (valor == null) {
+            if (custoAtual != null) {
+                excluirAutomatico(custoAtual);
+            }
+            return null;
+        }
+
+        if (custoAtual == null) {
+            return registrarAutomatico(tipo, valor, data, animal);
+        }
+
+        return atualizarAutomatico(custoAtual, valor, data);
+    }
+
+    @Transactional
     public void excluirAutomatico(Custo custo) {
         custoRepository.delete(custo);
     }

@@ -3,9 +3,6 @@ package com.Pecucore.system.service;
 import com.Pecucore.system.dto.CustoRequestDTO;
 import com.Pecucore.system.model.*;
 import com.Pecucore.system.repository.CustoRepository;
-import com.Pecucore.system.repository.LoteRepository;
-import com.Pecucore.system.repository.PropriedadeRepository;
-import com.Pecucore.system.repository.AnimalRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,13 +20,13 @@ public class CustoService {
     private CustoRepository custoRepository;
 
     @Autowired
-    private AnimalRepository animalRepository;
+    private AnimalService animalService;
 
     @Autowired
-    private LoteRepository loteRepository;
+    private LoteService loteService;
 
     @Autowired
-    private PropriedadeRepository propriedadeRepository;
+    private PropriedadeService propriedadeService;
 
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
@@ -109,39 +106,15 @@ public class CustoService {
         custo.setPropriedade(null);
 
         if (dados.animalId() != null) {
-            Animal animal = animalRepository.findById(dados.animalId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Animal não encontrado"
-                    ));
-
-            validarAcessoPropriedade(animal.getLote() != null ? animal.getLote().getPropriedade() : null, usuarioLogado);
-
-            custo.setAnimal(animal);
+            custo.setAnimal(animalService.getAnimalById(dados.animalId(), usuarioLogado));
         }
 
         if (dados.loteId() != null) {
-            Lote lote = loteRepository.findById(dados.loteId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Lote não encontrado"
-                    ));
-
-            validarAcessoPropriedade(lote.getPropriedade(), usuarioLogado);
-
-            custo.setLote(lote);
+            custo.setLote(loteService.getLoteById(dados.loteId(), usuarioLogado));
         }
 
         if (dados.propriedadeId() != null) {
-            Propriedade propriedade = propriedadeRepository.findById(dados.propriedadeId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Propriedade não encontrada"
-                    ));
-
-            validarAcessoPropriedade(propriedade, usuarioLogado);
-
-            custo.setPropriedade(propriedade);
+            custo.setPropriedade(propriedadeService.getPropriedadeById(dados.propriedadeId(), usuarioLogado));
         }
     }
 

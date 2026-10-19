@@ -13,11 +13,8 @@ import com.Pecucore.system.dto.LoteRequestDTO;
 import com.Pecucore.system.model.Lote;
 import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.Propriedade;
-import com.Pecucore.system.model.StatusAnimal;
 import com.Pecucore.system.model.Usuario;
-import com.Pecucore.system.repository.AnimalRepository;
 import com.Pecucore.system.repository.LoteRepository;
-import com.Pecucore.system.repository.PropriedadeRepository;
 
 @Service
 public class LoteService {
@@ -26,10 +23,10 @@ public class LoteService {
     private LoteRepository loteRepository;
 
     @Autowired
-    private PropriedadeRepository propriedadeRepository;
+    private PropriedadeService propriedadeService;
 
     @Autowired
-    private AnimalRepository animalRepository;
+    private AnimalService animalService;
 
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
@@ -40,16 +37,10 @@ public class LoteService {
     ) {
 
         Propriedade propriedade =
-                propriedadeRepository.findById(dados.propriedadeId())
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Propriedade não encontrada"
-                        ));
-
-        validarAcessoPropriedade(
-                propriedade,
-                usuarioLogado
-        );
+                propriedadeService.getPropriedadeById(
+                        dados.propriedadeId(),
+                        usuarioLogado
+                );
 
         validarNumeroLote(
                 dados.numero(),
@@ -75,29 +66,16 @@ public class LoteService {
     ) {
 
         Lote loteExistente =
-                loteRepository.findById(id)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Lote não encontrado"
-                        ));
-
-        validarAcessoLote(
-                loteExistente,
-                usuarioLogado
-        );
+                getLoteById(
+                        id,
+                        usuarioLogado
+                );
 
         Propriedade propriedade =
-                propriedadeRepository.findById(
-                        dados.propriedadeId()
-                ).orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Propriedade não encontrada"
-                ));
-
-        validarAcessoPropriedade(
-                propriedade,
-                usuarioLogado
-        );
+                propriedadeService.getPropriedadeById(
+                        dados.propriedadeId(),
+                        usuarioLogado
+                );
 
         if (loteExistente.getNumero() != dados.numero()
                 || !loteExistente.getPropriedade().getId().equals(propriedade.getId())) {
@@ -110,10 +88,7 @@ public class LoteService {
         }
 
         long animaisAtivos =
-                animalRepository.countByLoteIdAndStatus(
-                        id,
-                        StatusAnimal.ATIVO
-                );
+                animalService.countAnimaisAtivosByLoteId(id);
 
         if (dados.capacidade() < animaisAtivos) {
 
@@ -197,22 +172,13 @@ public class LoteService {
     ) {
 
         Lote loteExistente =
-                loteRepository.findById(id)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Lote não encontrado"
-                        ));
-
-        validarAcessoLote(
-                loteExistente,
-                usuarioLogado
-        );
+                getLoteById(
+                        id,
+                        usuarioLogado
+                );
 
         boolean possuiAnimaisAtivos =
-                animalRepository.existsByLoteIdAndStatus(
-                        id,
-                        StatusAnimal.ATIVO
-                );
+                animalService.existsAnimalAtivoByLoteId(id);
 
         if (possuiAnimaisAtivos) {
 
@@ -252,19 +218,6 @@ public class LoteService {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Já existe um lote com esse número nesta propriedade"
-            );
-        }
-    }
-
-    private void validarAcessoPropriedade(
-            Propriedade propriedade,
-            Usuario usuarioLogado
-    ) {
-
-        if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Você não tem acesso a esta propriedade"
             );
         }
     }

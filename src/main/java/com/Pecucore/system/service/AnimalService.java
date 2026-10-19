@@ -289,6 +289,20 @@ public class AnimalService {
         );
     }
 
+    public long countAnimaisAtivosByLoteId(Long loteId) {
+        return animalRepository.countByLoteIdAndStatus(
+                loteId,
+                StatusAnimal.ATIVO
+        );
+    }
+
+    public boolean existsAnimalAtivoByLoteId(Long loteId) {
+        return animalRepository.existsByLoteIdAndStatus(
+                loteId,
+                StatusAnimal.ATIVO
+        );
+    }
+
     public void validarDataRegistro(
             Animal animal,
             LocalDate data

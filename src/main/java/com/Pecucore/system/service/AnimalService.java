@@ -360,20 +360,4 @@ public class AnimalService {
             );
         }
     }
-
-    public void deleteAnimal(
-            Long id,
-            Usuario usuarioLogado
-    ) {
-
-        getAnimalById(
-                id,
-                usuarioLogado
-        );
-
-        throw new ResponseStatusException(
-                HttpStatus.CONFLICT,
-                "Não é possível excluir um animal, pois o histórico deve ser mantido"
-        );
-    }
 }

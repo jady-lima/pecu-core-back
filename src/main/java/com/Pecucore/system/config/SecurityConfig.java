@@ -49,7 +49,6 @@ public class SecurityConfig {
 
                 .requestMatchers("/propriedades/**", "/lotes/**").hasAnyAuthority(admin, produtor)
 
-                .requestMatchers(HttpMethod.DELETE, "/animais/**").hasAnyAuthority(admin, produtor)
                 .requestMatchers(HttpMethod.POST, "/animais").hasAnyAuthority(admin, produtor, veterinario)
                 .requestMatchers(HttpMethod.PUT, "/animais/**").hasAnyAuthority(admin, produtor, veterinario)
 

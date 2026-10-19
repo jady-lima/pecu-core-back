@@ -117,15 +117,4 @@ public class AnimalController {
                 new AnimalResponseDTO(animal)
         );
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAnimal(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Usuario usuarioLogado
-    ) {
-
-        animalService.deleteAnimal(id, usuarioLogado);
-
-        return ResponseEntity.noContent().build();
-    }
 }

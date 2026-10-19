@@ -82,7 +82,7 @@ public class AnimalService {
                 new PesoAnimalAlteradoEvento(
                         animalCriado.getId(),
                         dados.pesoAtual(),
-                        LocalDate.now()
+                        dados.dataPrimeiraPesagem()
                 )
         );
 
@@ -319,7 +319,6 @@ public class AnimalService {
     }
 
     private Animal validarAtivo(Animal animal) {
-
         if (animal.getStatus() != StatusAnimal.ATIVO) {
 
             throw new ResponseStatusException(

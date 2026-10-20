@@ -33,7 +33,7 @@ public class VacinacaoService {
     private CalculadoraCarencia calculadoraCarencia;
 
     @Autowired
-    private CustoService custoService;
+    private CustoAutomaticoService custoAutomaticoService;
 
     @Transactional
     public Vacinacao create(VacinacaoRequestDTO dados, Usuario usuarioLogado) {
@@ -74,7 +74,7 @@ public class VacinacaoService {
         vacinacaoRepository.delete(vacinacao);
 
         if (custo != null) {
-            custoService.excluirAutomatico(custo);
+            custoAutomaticoService.excluirAutomatico(custo);
         }
     }
 
@@ -100,6 +100,6 @@ public class VacinacaoService {
         vacinacao.setDataFimCarencia(calculadoraCarencia.calculateDataFimCarencia(data, vacina.getCarenciaDias()));
         vacinacao.setDataProximaDose(vacina.getIntervaloDoseDias() != null ? data.plusDays(vacina.getIntervaloDoseDias()) : null);
 
-        vacinacao.setCusto(custoService.sincronizarAutomatico(vacinacao.getCusto(), TipoCusto.VACINA, valor, data, vacinacao.getAnimal()));
+        vacinacao.setCusto(custoAutomaticoService.sincronizarAutomatico(vacinacao.getCusto(), TipoCusto.VACINA, valor, data, vacinacao.getAnimal()));
     }
 }

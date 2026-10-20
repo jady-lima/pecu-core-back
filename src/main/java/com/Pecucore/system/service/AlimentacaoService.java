@@ -33,7 +33,7 @@ public class AlimentacaoService {
     private LoteService loteService;
 
     @Autowired
-    private CustoService custoService;
+    private CustoAutomaticoService custoAutomaticoService;
 
     @Transactional
     public Alimentacao create(AlimentacaoRequestDTO dados, Usuario usuarioLogado) {
@@ -98,7 +98,7 @@ public class AlimentacaoService {
         alimentacaoRepository.delete(alimentacao);
 
         if (custo != null) {
-            custoService.excluirAutomatico(custo);
+            custoAutomaticoService.excluirAutomatico(custo);
         }
     }
 
@@ -143,7 +143,7 @@ public class AlimentacaoService {
     }
 
     private void sincronizarCusto(Alimentacao alimentacao) {
-        alimentacao.setCusto(custoService.sincronizarAutomatico(
+        alimentacao.setCusto(custoAutomaticoService.sincronizarAutomatico(
                 alimentacao.getCusto(),
                 TipoCusto.ALIMENTACAO,
                 alimentacao.getValor(),

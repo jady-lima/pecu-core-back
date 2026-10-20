@@ -9,8 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-
 import java.util.List;
 
 @Service
@@ -126,53 +124,6 @@ public class CustoService {
                     "Você não tem acesso a esta propriedade"
             );
         }
-    }
-
-    @Transactional
-    public Custo registrarAutomatico(
-            TipoCusto tipo,
-            double valor,
-            LocalDate data,
-            Animal animal) {
-
-        Custo custo = new Custo();
-
-        custo.setTipo(tipo);
-        custo.setOrigem(OrigemCusto.AUTOMATICO);
-        custo.setValor(valor);
-        custo.setData(data);
-        custo.setAnimal(animal);
-
-        return custoRepository.save(custo);
-    }
-
-    @Transactional
-    public Custo atualizarAutomatico(Custo custo, double valor, LocalDate data) {
-        custo.setValor(valor);
-        custo.setData(data);
-
-        return custoRepository.save(custo);
-    }
-
-    @Transactional
-    public Custo sincronizarAutomatico(Custo custoAtual, TipoCusto tipo, Double valor, LocalDate data, Animal animal) {
-        if (valor == null) {
-            if (custoAtual != null) {
-                excluirAutomatico(custoAtual);
-            }
-            return null;
-        }
-
-        if (custoAtual == null) {
-            return registrarAutomatico(tipo, valor, data, animal);
-        }
-
-        return atualizarAutomatico(custoAtual, valor, data);
-    }
-
-    @Transactional
-    public void excluirAutomatico(Custo custo) {
-        custoRepository.delete(custo);
     }
 
     private void validarDestino(CustoRequestDTO dados) {

@@ -31,7 +31,7 @@ public class MedicamentoService {
     private CalculadoraCarencia calculadoraCarencia;
 
     @Autowired
-    private CustoService custoService;
+    private CustoAutomaticoService custoAutomaticoService;
 
     @Transactional
     public Medicamento create(MedicamentoRequestDTO dados, Usuario usuarioLogado) {
@@ -85,7 +85,7 @@ public class MedicamentoService {
         medicamentoRepository.delete(medicamento);
 
         if (custo != null) {
-            custoService.excluirAutomatico(custo);
+            custoAutomaticoService.excluirAutomatico(custo);
         }
     }
 
@@ -135,7 +135,7 @@ public class MedicamentoService {
         );
 
         medicamento.setCusto(
-                custoService.sincronizarAutomatico(
+                custoAutomaticoService.sincronizarAutomatico(
                         medicamento.getCusto(),
                         TipoCusto.MEDICAMENTO,
                         valor,

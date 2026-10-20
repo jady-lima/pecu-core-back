@@ -39,6 +39,9 @@ public class AnaliseIAService {
     @Autowired
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
+    @Autowired
+    private ContextoComparativoService contextoComparativoService;
+
     public AnaliseIA gerarIndividual(Long animalId, Usuario usuarioLogado) {
         ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montarIndividual(animalId, usuarioLogado);
         ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarIndividual(contexto);
@@ -47,7 +50,7 @@ public class AnaliseIAService {
     }
 
     public AnaliseIA gerarComparativa(Long animalId, Usuario usuarioLogado) {
-        ContextoAnaliseComparativaDTO contexto = contextoAnaliseService.montarComparativo(animalId, usuarioLogado);
+        ContextoAnaliseComparativaDTO contexto = contextoComparativoService.montarComparativo(animalId, usuarioLogado);
         ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarComparativo(contexto);
 
         boolean incluiDadosFinanceiros = contexto.animalAnalisado().custos() != null || contexto.estatisticasLote().custoMedioPorAnimal() != null;

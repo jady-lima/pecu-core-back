@@ -1,5 +1,7 @@
 package com.Pecucore.system.Scheduler;
 
+import com.Pecucore.system.service.AlertaPesoService;
+import com.Pecucore.system.service.AlertaSanitarioService;
 import com.Pecucore.system.service.AlertaService;
 import com.Pecucore.system.repository.AnimalRepository;
 import com.Pecucore.system.model.Animal;
@@ -14,19 +16,22 @@ public class AlertaScheduler {
     private AnimalRepository animalRepository;
 
     @Autowired
-    private AlertaService alertaService;
+    private AlertaSanitarioService alertaSanitarioService;
+
+    @Autowired
+    private AlertaPesoService alertaPesoService;
 
     @Scheduled(cron = "0 0 7 * * *")
     public void verificarAlertas() {
 
         for (Animal animal : animalRepository.findAll()) {
-            alertaService.verificarPesagemAtrasada(animal);
+            alertaPesoService.verificarPesagemAtrasada(animal);
 
-            alertaService.verificarVacinaProximaVencimento(animal);
+            alertaSanitarioService.verificarVacinaProximaVencimento(animal);
 
-            alertaService.verificarVacinaVencida(animal);
+            alertaSanitarioService.verificarVacinaVencida(animal);
 
-            alertaService.verificarPeriodoCarencia(animal);
+            alertaSanitarioService.verificarPeriodoCarencia(animal);
         }
     }
 }

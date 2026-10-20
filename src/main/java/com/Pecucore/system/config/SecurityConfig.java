@@ -38,7 +38,9 @@ public class SecurityConfig {
         String produtor = Perfil.PRODUTOR.name();
         String veterinario = Perfil.VETERINARIO.name();
 
-        return http.csrf(csrf -> csrf.disable())
+        return http
+                .csrf(csrf -> csrf.disable())
+                .logout(logout -> logout.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth

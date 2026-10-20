@@ -1,6 +1,9 @@
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.PropriedadeRequestDTO;
+import com.Pecucore.system.exception.AcessoNegadoException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
+import com.Pecucore.system.exception.RegraNegocioException;
 import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.Propriedade;
 import com.Pecucore.system.model.Usuario;
@@ -10,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -47,8 +49,7 @@ public class PropriedadeService {
         if (usuarioLogado.getPerfil() == Perfil.ADMIN) {
 
             if (dados.usuarioId() == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
+                throw new RegraNegocioException(
                         "O usuário dono da propriedade deve ser informado"
                 );
             }
@@ -56,8 +57,7 @@ public class PropriedadeService {
             Usuario dono = getUsuarioById(dados.usuarioId());
 
             if (dono.getPerfil() != Perfil.PRODUTOR) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
+                throw new RegraNegocioException(
                         "A propriedade só pode pertencer a um usuário com perfil PRODUTOR"
                 );
             }
@@ -68,8 +68,7 @@ public class PropriedadeService {
         if (dados.usuarioId() != null
                 && !dados.usuarioId().equals(usuarioLogado.getId())) {
 
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
+            throw new AcessoNegadoException(
                     "Um produtor só pode cadastrar propriedades em seu próprio nome"
             );
         }
@@ -80,8 +79,7 @@ public class PropriedadeService {
     private Usuario getUsuarioById(Long id) {
 
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Usuário não encontrado"
                 ));
     }
@@ -146,14 +144,12 @@ public class PropriedadeService {
 
         Propriedade propriedade =
                 propriedadeRepository.findById(id)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
+                        .orElseThrow(() -> new RecursoNaoEncontradoException(
                                 "Propriedade não encontrada"
                         ));
 
         if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
+            throw new AcessoNegadoException(
                     "Você não tem acesso a esta propriedade"
             );
         }
@@ -168,8 +164,7 @@ public class PropriedadeService {
         Usuario veterinario = getUsuarioById(veterinarioId);
 
         if (veterinario.getPerfil() != Perfil.VETERINARIO) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            throw new RegraNegocioException(
                     "Apenas usuários com perfil VETERINARIO podem ser vinculados à propriedade"
             );
         }
@@ -186,8 +181,7 @@ public class PropriedadeService {
         boolean removido = propriedade.getVeterinarios().removeIf(veterinario -> veterinario.getId().equals(veterinarioId));
 
         if (!removido) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+            throw new RecursoNaoEncontradoException(
                     "Veterinário não está vinculado a esta propriedade"
             );
         }

@@ -1,12 +1,12 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.ConflitoNegocioException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.PesagemRequestDTO;
 import com.Pecucore.system.evento.PesoAnimalAlteradoEvento;
@@ -61,8 +61,7 @@ public class PesagemService {
         Pesagem ultimaPesagem = pesagemRepository.findTopByAnimalIdOrderByDataDescIdDesc(animal.getId()).orElse(null);
 
         if(ultimaPesagem != null && dataPesagem.isBefore(ultimaPesagem.getData())){
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                     "A data da pesagem não pode ser anterior à última pesagem registrada"
             );
         }

@@ -3,10 +3,11 @@ package com.Pecucore.system.service;
 
 import java.util.List;
 
+import com.Pecucore.system.exception.AcessoNegadoException;
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.LoteMetaGmdRequestDTO;
 import com.Pecucore.system.dto.LoteRequestDTO;
@@ -92,8 +93,7 @@ public class LoteService {
 
         if (dados.capacidade() < animaisAtivos) {
 
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                     "A capacidade não pode ser menor que a quantidade de animais ativos no lote (" + animaisAtivos + ")"
             );
         }
@@ -131,8 +131,7 @@ public class LoteService {
 
         Lote lote =
                 loteRepository.findById(id)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
+                        .orElseThrow(() -> new RecursoNaoEncontradoException(
                                 "Lote não encontrado"
                         ));
 
@@ -182,8 +181,7 @@ public class LoteService {
 
         if (possuiAnimaisAtivos) {
 
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                     "Não é possível excluir o lote porque existem animais ativos nesse lote"
             );
         }
@@ -215,8 +213,7 @@ public class LoteService {
         }
 
         if (numeroJaExiste) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                     "Já existe um lote com esse número nesta propriedade"
             );
         }
@@ -228,8 +225,7 @@ public class LoteService {
     ) {
 
         if (!acessoPropriedadeService.possuiAcesso(lote.getPropriedade(),usuarioLogado)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
+            throw new AcessoNegadoException(
                     "Você não tem acesso a este lote"
             );
         }

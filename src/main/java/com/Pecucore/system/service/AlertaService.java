@@ -1,5 +1,6 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.*;
 import com.Pecucore.system.repository.AlertaRepository;
 import com.Pecucore.system.repository.PesagemRepository;
@@ -7,8 +8,6 @@ import com.Pecucore.system.repository.RegraAlertaRepository;
 import com.Pecucore.system.repository.VacinacaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -35,8 +34,7 @@ public class AlertaService {
     public Alerta atualizarStatus(Long id, StatusAlerta novoStatus) {
 
         Alerta alerta = alertaRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Alerta não encontrado"
                 ));
         alerta.setStatus(novoStatus);

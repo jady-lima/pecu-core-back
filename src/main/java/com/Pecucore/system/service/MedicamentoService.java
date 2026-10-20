@@ -2,6 +2,7 @@ package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.MedicamentoRequestDTO;
 import com.Pecucore.system.dto.MedicamentoUpdateRequestDTO;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Custo;
 import com.Pecucore.system.model.Medicamento;
@@ -11,9 +12,7 @@ import com.Pecucore.system.repository.MedicamentoRepository;
 import com.Pecucore.system.service.calculo.CalculadoraCarencia;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -92,8 +91,7 @@ public class MedicamentoService {
     public Medicamento getMedicamentoById(Long id, Usuario usuarioLogado) {
 
         Medicamento medicamento = medicamentoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Medicamento não encontrado"
                 ));
 

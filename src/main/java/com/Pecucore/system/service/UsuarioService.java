@@ -2,6 +2,9 @@ package com.Pecucore.system.service;
 
 import java.util.List;
 
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
+import com.Pecucore.system.exception.RegraNegocioException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.AlterarSenhaRequestDTO;
 import com.Pecucore.system.dto.UsuarioRequestDTO;
@@ -46,7 +48,7 @@ public class UsuarioService implements UserDetailsService {
 
     public Usuario createUsuario(UsuarioRequestDTO dados) {
         if (usuarioRepository.existsByUsernameIgnoreCase(dados.username())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
+            throw new ConflitoNegocioException( "E-mail já cadastrado");
         }
 
         Usuario usuario = new Usuario();
@@ -59,10 +61,10 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public Usuario updateUsuario(Long id, UsuarioUpdateRequestDTO dados) {
-        Usuario usuarioExistente = usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+        Usuario usuarioExistente = usuarioRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Usuário não encontrado"));
 
         if (usuarioRepository.existsByUsernameIgnoreCaseAndIdNot(dados.username(), id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
+            throw new ConflitoNegocioException( "E-mail já cadastrado");
         }
 
         usuarioExistente.setNome(dados.nome());
@@ -80,11 +82,11 @@ public class UsuarioService implements UserDetailsService {
         Usuario usuario = getUsuarioById(usuarioLogado.getId());
 
         if (!passwordEncoder.matches(dados.senhaAtual(), usuario.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha atual incorreta");
+            throw new RegraNegocioException( "Senha atual incorreta");
         }
 
         if (passwordEncoder.matches(dados.novaSenha(), usuario.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A nova senha deve ser diferente da senha atual");
+            throw new RegraNegocioException( "A nova senha deve ser diferente da senha atual");
         }
 
         usuario.setPassword(passwordEncoder.encode(dados.novaSenha()));
@@ -97,11 +99,11 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public Usuario getUsuarioById(Long id) {
-        return usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+        return usuarioRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Usuário não encontrado"));
     }
 
     public void deleteUsuario(Long id) {
-        Usuario usuarioExistente = usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+        Usuario usuarioExistente = usuarioRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Usuário não encontrado"));
         usuarioRepository.delete(usuarioExistente);
     }
 }

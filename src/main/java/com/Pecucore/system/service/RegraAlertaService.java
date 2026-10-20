@@ -1,11 +1,10 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.RegraAlerta;
 import com.Pecucore.system.repository.RegraAlertaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class RegraAlertaService {
@@ -20,8 +19,7 @@ public class RegraAlertaService {
     ) {
 
         RegraAlerta regra = regraAlertaRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Regra de alerta não encontrada"
                 ));
 

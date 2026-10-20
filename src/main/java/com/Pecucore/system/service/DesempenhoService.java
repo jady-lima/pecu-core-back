@@ -2,14 +2,14 @@ package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.ComparacaoDesempenhoResponseDTO;
 import com.Pecucore.system.dto.CurvaCrescimentoResponseDTO;
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Pesagem;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.service.calculo.GmdService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -44,8 +44,7 @@ public class DesempenhoService {
         List<Pesagem> pesagens = pesagemService.getHistorico(brinco, usuarioLogado);
 
         if (pesagens.size() < 2) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                     "O animal precisa possuir pelo menos duas pesagens para avaliação de desempenho."
             );
         }
@@ -59,8 +58,7 @@ public class DesempenhoService {
         );
 
         double gmdEsperado = metaDesempenhoService.getGmdEsperado(animal.getLote())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Meta de desempenho não encontrada para o lote nem para a fase."
                 ));
 

@@ -1,12 +1,13 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.TipoCusto;
 import com.Pecucore.system.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.AlimentacaoLoteRequestDTO;
 import com.Pecucore.system.dto.AlimentacaoRequestDTO;
@@ -55,8 +56,7 @@ public class AlimentacaoService {
         List<Animal> animais = animalService.getAnimaisAtivosByLoteId(dados.loteId());
 
         if (animais.isEmpty()) {
-            throw new ResponseStatusException(
-                HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                 "O lote não possui animais ativos"
             );
         }
@@ -104,8 +104,7 @@ public class AlimentacaoService {
 
     public Alimentacao getAlimentacaoById(Long id, Usuario usuarioLogado) {
         Alimentacao alimentacao = alimentacaoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Alimentação não encontrada"
                 ));
 

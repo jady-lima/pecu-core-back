@@ -1,13 +1,15 @@
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.CustoRequestDTO;
+import com.Pecucore.system.exception.AcessoNegadoException;
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
+import com.Pecucore.system.exception.RegraNegocioException;
 import com.Pecucore.system.model.*;
 import com.Pecucore.system.repository.CustoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -57,8 +59,7 @@ public class CustoService {
 
     public Custo getCustoById(Long id, Usuario usuarioLogado) {
         Custo custo = custoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                     "Custo não encontrado"
                 ));
 
@@ -71,8 +72,7 @@ public class CustoService {
         Custo custo = getCustoById(id, usuarioLogado);
 
         if (custo.getOrigem() == OrigemCusto.AUTOMATICO) {
-            throw new ResponseStatusException(
-                HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                 "Custos automáticos só podem ser alterados pelo registro que os gerou"
             );
         }
@@ -119,8 +119,7 @@ public class CustoService {
     private void validarAcessoPropriedade(Propriedade propriedade, Usuario usuarioLogado) {
 
         if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
+            throw new AcessoNegadoException(
                     "Você não tem acesso a esta propriedade"
             );
         }
@@ -143,8 +142,7 @@ public class CustoService {
         }
 
         if (destinos != 1) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            throw new RegraNegocioException(
                     "O custo deve estar associado a um animal, lote ou propriedade."
             );
         }

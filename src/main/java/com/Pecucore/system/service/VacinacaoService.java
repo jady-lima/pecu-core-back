@@ -1,11 +1,11 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.VacinacaoRequestDTO;
 import com.Pecucore.system.dto.VacinacaoUpdateRequestDTO;
@@ -79,7 +79,7 @@ public class VacinacaoService {
     }
 
     public Vacinacao getVacinacaoById(Long id, Usuario usuarioLogado) {
-        Vacinacao vacinacao = vacinacaoRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vacinação não encontrada"));
+        Vacinacao vacinacao = vacinacaoRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Vacinação não encontrada"));
         animalService.getAnimalById(vacinacao.getAnimal().getId(), usuarioLogado);
         return vacinacao;
     }

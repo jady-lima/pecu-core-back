@@ -1,12 +1,13 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.TipoCusto;
 import com.Pecucore.system.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.AlimentacaoLoteRequestDTO;
 import com.Pecucore.system.dto.AlimentacaoRequestDTO;
@@ -33,7 +34,7 @@ public class AlimentacaoService {
     private LoteService loteService;
 
     @Autowired
-    private CustoService custoService;
+    private CustoAutomaticoService custoAutomaticoService;
 
     @Transactional
     public Alimentacao create(AlimentacaoRequestDTO dados, Usuario usuarioLogado) {
@@ -55,8 +56,7 @@ public class AlimentacaoService {
         List<Animal> animais = animalService.getAnimaisAtivosByLoteId(dados.loteId());
 
         if (animais.isEmpty()) {
-            throw new ResponseStatusException(
-                HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                 "O lote não possui animais ativos"
             );
         }
@@ -98,14 +98,13 @@ public class AlimentacaoService {
         alimentacaoRepository.delete(alimentacao);
 
         if (custo != null) {
-            custoService.excluirAutomatico(custo);
+            custoAutomaticoService.excluirAutomatico(custo);
         }
     }
 
     public Alimentacao getAlimentacaoById(Long id, Usuario usuarioLogado) {
         Alimentacao alimentacao = alimentacaoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Alimentação não encontrada"
                 ));
 
@@ -117,7 +116,11 @@ public class AlimentacaoService {
     public List<Alimentacao> getHistorico(int brinco, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
-        return alimentacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+        return getHistoricoByAnimalId(animal.getId());
+    }
+
+    public List<Alimentacao> getHistoricoByAnimalId(Long animalId) {
+        return alimentacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
     }
 
     private Alimentacao registrar(
@@ -143,7 +146,7 @@ public class AlimentacaoService {
     }
 
     private void sincronizarCusto(Alimentacao alimentacao) {
-        alimentacao.setCusto(custoService.sincronizarAutomatico(
+        alimentacao.setCusto(custoAutomaticoService.sincronizarAutomatico(
                 alimentacao.getCusto(),
                 TipoCusto.ALIMENTACAO,
                 alimentacao.getValor(),

@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @RestControllerAdvice
@@ -21,9 +20,38 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErroResponseDTO("Usuário ou senha inválidos"));
     }
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErroResponseDTO> handleResponseStatusException(ResponseStatusException exception) {
-        return ResponseEntity.status(exception.getStatusCode()).body(new ErroResponseDTO(exception.getReason()));
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<ErroResponseDTO> handleRecursoNaoEncontradoException(
+            RecursoNaoEncontradoException exception) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErroResponseDTO(exception.getMessage()));
+    }
+
+
+    @ExceptionHandler(ConflitoNegocioException.class)
+    public ResponseEntity<ErroResponseDTO> handleConflitoNegocioException(
+            ConflitoNegocioException exception) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErroResponseDTO(exception.getMessage()));
+    }
+
+    @ExceptionHandler(RegraNegocioException.class)
+    public ResponseEntity<ErroResponseDTO> handleRegraNegocioException(
+            RegraNegocioException exception) {
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErroResponseDTO(exception.getMessage()));
+    }
+
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    public ResponseEntity<ErroResponseDTO> handleAcessoNegadoException(
+            AcessoNegadoException exception) {
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErroResponseDTO(exception.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

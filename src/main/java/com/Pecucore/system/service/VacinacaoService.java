@@ -1,11 +1,11 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.VacinacaoRequestDTO;
 import com.Pecucore.system.dto.VacinacaoUpdateRequestDTO;
@@ -33,7 +33,7 @@ public class VacinacaoService {
     private CalculadoraCarencia calculadoraCarencia;
 
     @Autowired
-    private CustoService custoService;
+    private CustoAutomaticoService custoAutomaticoService;
 
     @Transactional
     public Vacinacao create(VacinacaoRequestDTO dados, Usuario usuarioLogado) {
@@ -74,19 +74,23 @@ public class VacinacaoService {
         vacinacaoRepository.delete(vacinacao);
 
         if (custo != null) {
-            custoService.excluirAutomatico(custo);
+            custoAutomaticoService.excluirAutomatico(custo);
         }
     }
 
     public Vacinacao getVacinacaoById(Long id, Usuario usuarioLogado) {
-        Vacinacao vacinacao = vacinacaoRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vacinação não encontrada"));
+        Vacinacao vacinacao = vacinacaoRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Vacinação não encontrada"));
         animalService.getAnimalById(vacinacao.getAnimal().getId(), usuarioLogado);
         return vacinacao;
     }
 
     public List<Vacinacao> getHistorico(int brinco, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
-        return vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+        return getHistoricoByAnimalId(animal.getId());
+    }
+
+    public List<Vacinacao> getHistoricoByAnimalId(Long animalId) {
+        return vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
     }
 
     private void preencherDados(Vacinacao vacinacao, Vacina vacina, Usuario aplicador, LocalDate data, String loteVacina, Double doseAplicada, String observacoes, Double valor) {
@@ -100,6 +104,6 @@ public class VacinacaoService {
         vacinacao.setDataFimCarencia(calculadoraCarencia.calculateDataFimCarencia(data, vacina.getCarenciaDias()));
         vacinacao.setDataProximaDose(vacina.getIntervaloDoseDias() != null ? data.plusDays(vacina.getIntervaloDoseDias()) : null);
 
-        vacinacao.setCusto(custoService.sincronizarAutomatico(vacinacao.getCusto(), TipoCusto.VACINA, valor, data, vacinacao.getAnimal()));
+        vacinacao.setCusto(custoAutomaticoService.sincronizarAutomatico(vacinacao.getCusto(), TipoCusto.VACINA, valor, data, vacinacao.getAnimal()));
     }
 }

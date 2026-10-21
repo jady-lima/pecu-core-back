@@ -1,5 +1,6 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.RegraAlerta;
 import com.Pecucore.system.repository.RegraAlertaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,9 @@ public class RegraAlertaService {
     ) {
 
         RegraAlerta regra = regraAlertaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Regra de alerta não encontrada"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Regra de alerta não encontrada"
+                ));
 
         regra.setParametro(parametro);
         regra.setAtiva(ativa);

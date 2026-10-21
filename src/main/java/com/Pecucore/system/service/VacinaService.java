@@ -1,10 +1,9 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.Pecucore.system.dto.VacinaRequestDTO;
 import com.Pecucore.system.model.Vacina;
 import com.Pecucore.system.repository.VacinaRepository;
@@ -24,7 +23,7 @@ public class VacinaService {
     public Vacina create(VacinaRequestDTO dados) {
         String nome = normalizarNome(dados.nome());
         if (vacinaRepository.existsByNome(nome)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma vacina com este nome.");
+            throw new ConflitoNegocioException( "Já existe uma vacina com este nome.");
         }
 
         Vacina vacina = new Vacina();
@@ -41,7 +40,7 @@ public class VacinaService {
 
         String nome = normalizarNome(dados.nome());
         if (vacinaRepository.existsByNomeAndIdNot(nome, id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe outra vacina com este nome"); 
+            throw new ConflitoNegocioException( "Já existe outra vacina com este nome");
         }
 
         vacinaExistente.setNome(nome);
@@ -56,7 +55,7 @@ public class VacinaService {
         Vacina vacina = getVacinaById(id);
 
         if (vacinacaoRepository.existsByVacinaId(id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Não é possível excluir uma vacina que já foi aplicada em algum animal");
+            throw new ConflitoNegocioException( "Não é possível excluir uma vacina que já foi aplicada em algum animal");
         }
 
         vacinaRepository.delete(vacina);
@@ -67,7 +66,7 @@ public class VacinaService {
     }
 
     public Vacina getVacinaById(Long id) {
-        return vacinaRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vacina não encontrada"));
+        return vacinaRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Vacina não encontrada"));
     }
 
     private String normalizarNome(String nome) {

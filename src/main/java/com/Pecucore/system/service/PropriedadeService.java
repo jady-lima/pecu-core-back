@@ -1,16 +1,17 @@
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.PropriedadeRequestDTO;
+import com.Pecucore.system.exception.AcessoNegadoException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
+import com.Pecucore.system.exception.RegraNegocioException;
 import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.Propriedade;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.PropriedadeRepository;
-import com.Pecucore.system.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class PropriedadeService {
     private PropriedadeRepository propriedadeRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UsuarioService usuarioService;
 
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
@@ -47,17 +48,15 @@ public class PropriedadeService {
         if (usuarioLogado.getPerfil() == Perfil.ADMIN) {
 
             if (dados.usuarioId() == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
+                throw new RegraNegocioException(
                         "O usuário dono da propriedade deve ser informado"
                 );
             }
 
-            Usuario dono = getUsuarioById(dados.usuarioId());
+            Usuario dono = usuarioService.getUsuarioById(dados.usuarioId());
 
             if (dono.getPerfil() != Perfil.PRODUTOR) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
+                throw new RegraNegocioException(
                         "A propriedade só pode pertencer a um usuário com perfil PRODUTOR"
                 );
             }
@@ -68,22 +67,12 @@ public class PropriedadeService {
         if (dados.usuarioId() != null
                 && !dados.usuarioId().equals(usuarioLogado.getId())) {
 
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
+            throw new AcessoNegadoException(
                     "Um produtor só pode cadastrar propriedades em seu próprio nome"
             );
         }
 
-        return getUsuarioById(usuarioLogado.getId());
-    }
-
-    private Usuario getUsuarioById(Long id) {
-
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Usuário não encontrado"
-                ));
+        return usuarioService.getUsuarioById(usuarioLogado.getId());
     }
 
     public Propriedade update(
@@ -105,19 +94,12 @@ public class PropriedadeService {
             Usuario usuarioLogado
     ) {
 
-        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
-            return propriedadeRepository.findByUsuarioId(
-                    usuarioLogado.getId()
-            );
-        }
-
-        if (usuarioLogado.getPerfil() == Perfil.VETERINARIO) {
-            return propriedadeRepository.findByVeterinariosId(
-                    usuarioLogado.getId()
-            );
-        }
-
-        return propriedadeRepository.findAll();
+        return acessoPropriedadeService.filtrarPorPerfil(
+                usuarioLogado,
+                propriedadeRepository::findAll,
+                propriedadeRepository::findByUsuarioId,
+                propriedadeRepository::findByVeterinariosId
+        );
     }
 
     public Propriedade getPropriedadeById(
@@ -146,17 +128,15 @@ public class PropriedadeService {
 
         Propriedade propriedade =
                 propriedadeRepository.findById(id)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
+                        .orElseThrow(() -> new RecursoNaoEncontradoException(
                                 "Propriedade não encontrada"
                         ));
 
-        if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Você não tem acesso a esta propriedade"
-            );
-        }
+        acessoPropriedadeService.validarAcesso(
+                propriedade,
+                usuarioLogado,
+                "Você não tem acesso a esta propriedade"
+        );
 
         return propriedade;
     }
@@ -165,11 +145,10 @@ public class PropriedadeService {
     public Propriedade vincularVeterinario(Long id, Long veterinarioId, Usuario usuarioLogado) {
 
         Propriedade propriedade = getPropriedadeComAcesso(id, usuarioLogado);
-        Usuario veterinario = getUsuarioById(veterinarioId);
+        Usuario veterinario = usuarioService.getUsuarioById(veterinarioId);
 
         if (veterinario.getPerfil() != Perfil.VETERINARIO) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            throw new RegraNegocioException(
                     "Apenas usuários com perfil VETERINARIO podem ser vinculados à propriedade"
             );
         }
@@ -186,8 +165,7 @@ public class PropriedadeService {
         boolean removido = propriedade.getVeterinarios().removeIf(veterinario -> veterinario.getId().equals(veterinarioId));
 
         if (!removido) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+            throw new RecursoNaoEncontradoException(
                     "Veterinário não está vinculado a esta propriedade"
             );
         }

@@ -3,6 +3,8 @@ package com.Pecucore.system.service;
 import com.Pecucore.system.dto.analise.ContextoAnaliseAnimalDTO;
 import com.Pecucore.system.dto.analise.ContextoAnaliseComparativaDTO;
 import com.Pecucore.system.dto.analise.RelatorioAnaliseDTO;
+import com.Pecucore.system.exception.AcessoNegadoException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.ia.AnaliseAnimalIAFacade;
 import com.Pecucore.system.ia.ResultadoAnaliseIA;
 import com.Pecucore.system.model.AnaliseIA;
@@ -12,9 +14,7 @@ import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.AnaliseIARepository;
 import com.Pecucore.system.service.politica.PoliticaVisibilidadeFinanceira;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -39,6 +39,9 @@ public class AnaliseIAService {
     @Autowired
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
+    @Autowired
+    private ContextoComparativoService contextoComparativoService;
+
     public AnaliseIA gerarIndividual(Long animalId, Usuario usuarioLogado) {
         ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montarIndividual(animalId, usuarioLogado);
         ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarIndividual(contexto);
@@ -47,7 +50,7 @@ public class AnaliseIAService {
     }
 
     public AnaliseIA gerarComparativa(Long animalId, Usuario usuarioLogado) {
-        ContextoAnaliseComparativaDTO contexto = contextoAnaliseService.montarComparativo(animalId, usuarioLogado);
+        ContextoAnaliseComparativaDTO contexto = contextoComparativoService.montarComparativo(animalId, usuarioLogado);
         ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarComparativo(contexto);
 
         boolean incluiDadosFinanceiros = contexto.animalAnalisado().custos() != null || contexto.estatisticasLote().custoMedioPorAnimal() != null;
@@ -64,12 +67,12 @@ public class AnaliseIAService {
     }
 
     public AnaliseIA getAnaliseById(Long id, Usuario usuarioLogado) {
-        AnaliseIA analise = analiseIARepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Análise não encontrada"));
+        AnaliseIA analise = analiseIARepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Análise não encontrada"));
 
         animalService.getAnimalById(analise.getAnimal().getId(), usuarioLogado);
 
         if (!podeVisualizar(analise, usuarioLogado)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem acesso a esta análise");
+            throw new AcessoNegadoException( "Você não tem acesso a esta análise");
         }
 
         return analise;

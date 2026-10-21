@@ -1,16 +1,16 @@
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.CustoRequestDTO;
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
+import com.Pecucore.system.exception.RegraNegocioException;
 import com.Pecucore.system.model.*;
 import com.Pecucore.system.repository.CustoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -59,12 +59,15 @@ public class CustoService {
 
     public Custo getCustoById(Long id, Usuario usuarioLogado) {
         Custo custo = custoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                     "Custo não encontrado"
                 ));
 
-        validarAcessoPropriedade(getPropriedade(custo), usuarioLogado);
+        acessoPropriedadeService.validarAcesso(
+                getPropriedade(custo),
+                usuarioLogado,
+                "Você não tem acesso a esta propriedade"
+        );
 
         return custo;
     }
@@ -73,8 +76,7 @@ public class CustoService {
         Custo custo = getCustoById(id, usuarioLogado);
 
         if (custo.getOrigem() == OrigemCusto.AUTOMATICO) {
-            throw new ResponseStatusException(
-                HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                 "Custos automáticos só podem ser alterados pelo registro que os gerou"
             );
         }
@@ -118,63 +120,6 @@ public class CustoService {
         }
     }
 
-    private void validarAcessoPropriedade(Propriedade propriedade, Usuario usuarioLogado) {
-
-        if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Você não tem acesso a esta propriedade"
-            );
-        }
-    }
-
-    @Transactional
-    public Custo registrarAutomatico(
-            TipoCusto tipo,
-            double valor,
-            LocalDate data,
-            Animal animal) {
-
-        Custo custo = new Custo();
-
-        custo.setTipo(tipo);
-        custo.setOrigem(OrigemCusto.AUTOMATICO);
-        custo.setValor(valor);
-        custo.setData(data);
-        custo.setAnimal(animal);
-
-        return custoRepository.save(custo);
-    }
-
-    @Transactional
-    public Custo atualizarAutomatico(Custo custo, double valor, LocalDate data) {
-        custo.setValor(valor);
-        custo.setData(data);
-
-        return custoRepository.save(custo);
-    }
-
-    @Transactional
-    public Custo sincronizarAutomatico(Custo custoAtual, TipoCusto tipo, Double valor, LocalDate data, Animal animal) {
-        if (valor == null) {
-            if (custoAtual != null) {
-                excluirAutomatico(custoAtual);
-            }
-            return null;
-        }
-
-        if (custoAtual == null) {
-            return registrarAutomatico(tipo, valor, data, animal);
-        }
-
-        return atualizarAutomatico(custoAtual, valor, data);
-    }
-
-    @Transactional
-    public void excluirAutomatico(Custo custo) {
-        custoRepository.delete(custo);
-    }
-
     private void validarDestino(CustoRequestDTO dados) {
 
         int destinos = 0;
@@ -192,8 +137,7 @@ public class CustoService {
         }
 
         if (destinos != 1) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            throw new RegraNegocioException(
                     "O custo deve estar associado a um animal, lote ou propriedade."
             );
         }
@@ -201,5 +145,13 @@ public class CustoService {
 
     public List<Custo> getAll(Usuario usuarioLogado) {
         return custoRepository.findByProdutor(usuarioLogado.getId());
+    }
+
+    public List<Custo> getByAnimalId(Long animalId) {
+        return custoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
+    }
+
+    public List<Custo> getByAnimalIds(Collection<Long> animalIds) {
+        return custoRepository.findByAnimalIdIn(animalIds);
     }
 }

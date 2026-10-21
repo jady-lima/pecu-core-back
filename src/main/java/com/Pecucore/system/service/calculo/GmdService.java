@@ -49,4 +49,13 @@ public class GmdService {
 
         return variacaoKg / dias;
     }
+
+    public Double calcularPercentualDaMeta(Double gmd, Double gmdMeta) {
+
+        if (gmd == null || gmdMeta == null || gmdMeta <= 0) {
+            return null;
+        }
+
+        return (gmd / gmdMeta) * 100;
+    }
 }

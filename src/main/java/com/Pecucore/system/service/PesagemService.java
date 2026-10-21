@@ -86,9 +86,9 @@ public class PesagemService {
         pesagem.setAnimal(animal);
 
         pesagemRepository.save(pesagem);
-        animalService.atualizarPesoAtual(animal, pesoKg);
-        alertaPesoService.verificarGmdAbaixoMeta(animal, gmd);
-        alertaPesoService.verificarQuedaPeso(animal);
+        animalRepository.save(animal);
+        alertaService.verificarGmdAbaixoMeta(animal, gmd);
+        alertaService.verificarQuedaPeso(animal);
 
         return new ResultadoPesagem(pesagem, aviso);
     }

@@ -31,6 +31,9 @@ public class CustoService {
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
 
+    @Autowired
+    private AlertaService alertaService;
+
     @Transactional
     public Custo create(CustoRequestDTO dados, Usuario usuarioLogado) {
         Custo custo = new Custo();
@@ -38,7 +41,11 @@ public class CustoService {
 
         preencherDados(custo, dados, usuarioLogado);
 
-        return custoRepository.save(custo);
+        Custo custoSalvo = custoRepository.save(custo);
+        if(custoSalvo.getAnimal() !=null){
+            alertaService.verificarCustoAcima(custoSalvo.getAnimal());
+        }
+        return custoSalvo;
     }
 
     @Transactional
@@ -47,7 +54,12 @@ public class CustoService {
 
         preencherDados(custo, dados, usuarioLogado);
 
-        return custoRepository.save(custo);
+        Custo custoSalvo = custoRepository.save(custo);
+        if(custoSalvo.getAnimal() !=null){
+            alertaService.verificarCustoAcima(custoSalvo.getAnimal());
+        }
+        return custoSalvo;
+
     }
 
     @Transactional

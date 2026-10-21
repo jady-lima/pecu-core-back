@@ -23,6 +23,7 @@ public class RegraAlerta{
     @JoinColumn(name = "propriedade_id", nullable = false)
     private Propriedade propriedade;
 
+
     public Long getId(){
         return id;
     }

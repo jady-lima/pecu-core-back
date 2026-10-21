@@ -103,19 +103,12 @@ public class PropriedadeService {
             Usuario usuarioLogado
     ) {
 
-        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
-            return propriedadeRepository.findByUsuarioId(
-                    usuarioLogado.getId()
-            );
-        }
-
-        if (usuarioLogado.getPerfil() == Perfil.VETERINARIO) {
-            return propriedadeRepository.findByVeterinariosId(
-                    usuarioLogado.getId()
-            );
-        }
-
-        return propriedadeRepository.findAll();
+        return acessoPropriedadeService.filtrarPorPerfil(
+                usuarioLogado,
+                propriedadeRepository::findAll,
+                propriedadeRepository::findByUsuarioId,
+                propriedadeRepository::findByVeterinariosId
+        );
     }
 
     public Propriedade getPropriedadeById(

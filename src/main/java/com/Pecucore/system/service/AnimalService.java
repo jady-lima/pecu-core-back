@@ -17,7 +17,6 @@ import com.Pecucore.system.dto.AnimalStatusRequestDTO;
 import com.Pecucore.system.evento.PesoAnimalAlteradoEvento;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Lote;
-import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.StatusAnimal;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.AnimalRepository;
@@ -207,19 +206,12 @@ public class AnimalService {
             Usuario usuarioLogado
     ) {
 
-        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
-
-            return animalRepository
-                    .findByLotePropriedadeUsuarioId(
-                            usuarioLogado.getId()
-                    );
-        }
-
-        if (usuarioLogado.getPerfil() == Perfil.VETERINARIO) {
-            return animalRepository.findByLotePropriedadeVeterinariosId(usuarioLogado.getId());
-        }
-
-        return animalRepository.findAll();
+        return acessoPropriedadeService.filtrarPorPerfil(
+                usuarioLogado,
+                animalRepository::findAll,
+                animalRepository::findByLotePropriedadeUsuarioId,
+                animalRepository::findByLotePropriedadeVeterinariosId
+        );
     }
 
     public Animal getAnimalById(Long id) {

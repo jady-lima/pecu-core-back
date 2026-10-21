@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import com.Pecucore.system.dto.LoteMetaGmdRequestDTO;
 import com.Pecucore.system.dto.LoteRequestDTO;
 import com.Pecucore.system.model.Lote;
-import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.Propriedade;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.LoteRepository;
@@ -110,17 +109,12 @@ public class LoteService {
             Usuario usuarioLogado
     ) {
 
-        if (usuarioLogado.getPerfil() == Perfil.PRODUTOR) {
-            return loteRepository.findByPropriedadeUsuarioId(
-                    usuarioLogado.getId()
-            );
-        }
-
-        if (usuarioLogado.getPerfil() == Perfil.VETERINARIO) {
-            return loteRepository.findByPropriedadeVeterinariosId(usuarioLogado.getId());
-        }
-
-        return loteRepository.findAll();
+        return acessoPropriedadeService.filtrarPorPerfil(
+                usuarioLogado,
+                loteRepository::findAll,
+                loteRepository::findByPropriedadeUsuarioId,
+                loteRepository::findByPropriedadeVeterinariosId
+        );
     }
 
     public Lote getLoteById(

@@ -1,13 +1,12 @@
-
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.model.*;
-import com.Pecucore.system.model.Pesagem;
 import com.Pecucore.system.repository.*;
-import com.Pecucore.system.model.Vacinacao;
-import com.Pecucore.system.model.Custo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,7 +32,8 @@ public class AlertaService {
     private CustoRepository custoRepository;
 
     public void verificarGmdAbaixoMeta(Animal animal, Double gmd) {
-        if (gmd == null) {
+        if (gmd == null || animal.getLote() == null
+                || animal.getLote().getPropriedade() == null) {
             return;
         }
 
@@ -42,29 +42,20 @@ public class AlertaService {
         RegraAlerta regra = regraAlertaRepository
                 .findByPropriedadeIdAndTipoAndAtivaTrue(
                         propriedade.getId(), TipoAlerta.GMD_ABAIXO_META)
-                .stream()
-                .findFirst()
-                .orElse(null);
+                .stream().findFirst().orElse(null);
 
         if (regra == null || gmd >= regra.getParametro()) {
             return;
         }
 
-        boolean alertaJaExiste = alertaRepository
-                .existsByAnimalIdAndTipoAndStatusIn(
-                        animal.getId(),
-                        TipoAlerta.GMD_ABAIXO_META,
-                        List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE));
-
-        if (alertaJaExiste) {
+        if (alertaRepository.existsByAnimalIdAndTipoAndStatusIn(
+                animal.getId(), TipoAlerta.GMD_ABAIXO_META,
+                List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE))) {
             return;
         }
 
-        criarAlerta(
-                animal,
-                TipoAlerta.GMD_ABAIXO_META,
-                "GMD do animal abaixo da meta estabelecida: " + gmd + " kg/dia."
-        );
+        criarAlerta(animal, TipoAlerta.GMD_ABAIXO_META,
+                "GMD do animal abaixo da meta estabelecida: " + gmd + " kg/dia.");
     }
 
     public void verificarQuedaPeso(Animal animal) {
@@ -79,38 +70,27 @@ public class AlertaService {
         Pesagem anterior = pesagens.get(pesagens.size() - 2);
         Pesagem anteriorAnterior = pesagens.get(pesagens.size() - 3);
 
-        boolean primeiraQueda =
-                anterior.getPesoKg() < anteriorAnterior.getPesoKg();
-
-        boolean segundaQueda =
-                ultima.getPesoKg() < anterior.getPesoKg();
-
-        if (!primeiraQueda || !segundaQueda) {
+        if (anterior.getPesoKg() >= anteriorAnterior.getPesoKg()
+                || ultima.getPesoKg() >= anterior.getPesoKg()) {
             return;
         }
 
-        boolean alertaJaExiste = alertaRepository
-                .existsByAnimalIdAndTipoAndStatusIn(
-                        animal.getId(),
-                        TipoAlerta.QUEDA_PESO,
-                        List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE));
-
-        if (alertaJaExiste) {
+        if (alertaRepository.existsByAnimalIdAndTipoAndStatusIn(
+                animal.getId(), TipoAlerta.QUEDA_PESO,
+                List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE))) {
             return;
         }
 
-        criarAlerta(
-                animal,
-                TipoAlerta.QUEDA_PESO,
-                "Animal apresentou queda de peso em duas pesagens consecutivas."
-        );
+        criarAlerta(animal, TipoAlerta.QUEDA_PESO,
+                "Animal apresentou queda de peso em duas pesagens consecutivas.");
     }
 
     public void verificarPesagemAtrasada(Animal animal) {
         List<Pesagem> pesagens = pesagemRepository
                 .findByAnimalIdOrderByDataAscIdAsc(animal.getId());
 
-        if (pesagens.isEmpty()) {
+        if (pesagens.isEmpty() || animal.getLote() == null
+                || animal.getLote().getPropriedade() == null) {
             return;
         }
 
@@ -120,48 +100,33 @@ public class AlertaService {
                 .findByPropriedadeIdAndTipoAndAtivaTrue(
                         animal.getLote().getPropriedade().getId(),
                         TipoAlerta.PESAGEM_ATRASADA)
-                .stream()
-                .findFirst()
-                .orElse(null);
+                .stream().findFirst().orElse(null);
 
         if (regra == null) {
             return;
         }
 
         long diasSemPesagem = ChronoUnit.DAYS.between(
-                ultimaPesagem.getData(),
-                LocalDate.now()
-        );
+                ultimaPesagem.getData(), LocalDate.now());
 
         if (diasSemPesagem <= regra.getParametro()) {
             return;
         }
 
-        boolean alertaJaExiste = alertaRepository
-                .existsByAnimalIdAndTipoAndStatusIn(
-                        animal.getId(),
-                        TipoAlerta.PESAGEM_ATRASADA,
-                        List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE));
-
-        if (alertaJaExiste) {
+        if (alertaRepository.existsByAnimalIdAndTipoAndStatusIn(
+                animal.getId(), TipoAlerta.PESAGEM_ATRASADA,
+                List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE))) {
             return;
         }
 
-        criarAlerta(
-                animal,
-                TipoAlerta.PESAGEM_ATRASADA,
+        criarAlerta(animal, TipoAlerta.PESAGEM_ATRASADA,
                 "Pesagem atrasada: animal está há " + diasSemPesagem
-                        + " dias sem nova pesagem."
-        );
+                        + " dias sem nova pesagem.");
     }
 
     public void verificarVacinaProximaVencimento(Animal animal) {
         List<Vacinacao> vacinacoes = vacinacaoRepository
                 .findByAnimalIdOrderByDataAscIdAsc(animal.getId());
-
-        if (vacinacoes.isEmpty()) {
-            return;
-        }
 
         LocalDate hoje = LocalDate.now();
 
@@ -172,51 +137,34 @@ public class AlertaService {
                 continue;
             }
 
-            long diasParaProximaDose = ChronoUnit.DAYS.between(
-                    hoje,
-                    proximaDose
-            );
+            long dias = ChronoUnit.DAYS.between(hoje, proximaDose);
 
-            if (diasParaProximaDose != 15
-                    && diasParaProximaDose != 7
-                    && diasParaProximaDose != 1) {
+            if (dias != 15 && dias != 7 && dias != 1) {
                 continue;
             }
 
-            String identificadorAviso = "Antecedência: "
-                    + diasParaProximaDose
-                    + " dia(s); dose: "
-                    + proximaDose;
+            String identificador = "Antecedência: " + dias
+                    + " dia(s); dose: " + proximaDose;
 
-            boolean alertaJaExiste = alertaRepository.findAll().stream()
-                    .anyMatch(alerta ->
-                            alerta.getAnimal() != null
-                                    && alerta.getAnimal().getId().equals(animal.getId())
-                                    && alerta.getTipo() == TipoAlerta.VACINA_PROX_VENC
-                                    && alerta.getMensagem().contains(identificadorAviso)
-                    );
+            boolean existe = alertaRepository.findByAnimalIdOrderByDataCriacaoDesc(
+                            animal.getId()).stream()
+                    .anyMatch(a -> a.getTipo() == TipoAlerta.VACINA_PROX_VENC
+                            && a.getMensagem() != null
+                            && a.getMensagem().contains(identificador));
 
-            if (alertaJaExiste) {
+            if (existe) {
                 continue;
             }
 
-            criarAlerta(
-                    animal,
-                    TipoAlerta.VACINA_PROX_VENC,
+            criarAlerta(animal, TipoAlerta.VACINA_PROX_VENC,
                     "Atenção: vacina com dose prevista para "
-                            + proximaDose + ". "
-                            + identificadorAviso
-            );
+                            + proximaDose + ". " + identificador);
         }
     }
 
     public void verificarVacinaVencida(Animal animal) {
         List<Vacinacao> vacinacoes = vacinacaoRepository
                 .findByAnimalIdOrderByDataAscIdAsc(animal.getId());
-
-        if (vacinacoes.isEmpty()) {
-            return;
-        }
 
         LocalDate hoje = LocalDate.now();
 
@@ -227,34 +175,28 @@ public class AlertaService {
                 continue;
             }
 
-            boolean alertaJaExiste = alertaRepository
-                    .existsByAnimalIdAndTipoAndStatusIn(
-                            animal.getId(),
-                            TipoAlerta.VACINA_VENC,
-                            List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE));
+            String identificador =
+                    "próxima dose estava prevista para " + proximaDose;
 
-            if (alertaJaExiste) {
-                return;
+            boolean existe = alertaRepository.findByAnimalIdOrderByDataCriacaoDesc(
+                            animal.getId()).stream()
+                    .anyMatch(a -> a.getTipo() == TipoAlerta.VACINA_VENC
+                            && a.getMensagem() != null
+                            && a.getMensagem().contains(identificador));
+
+            if (existe) {
+                continue;
             }
 
-            criarAlerta(
-                    animal,
-                    TipoAlerta.VACINA_VENC,
+            criarAlerta(animal, TipoAlerta.VACINA_VENC,
                     "Vacina vencida. A próxima dose estava prevista para "
-                            + proximaDose + "."
-            );
-
-            return;
+                            + proximaDose + ".");
         }
     }
 
     public void verificarPeriodoCarencia(Animal animal) {
         List<Vacinacao> vacinacoes = vacinacaoRepository
                 .findByAnimalIdOrderByDataAscIdAsc(animal.getId());
-
-        if (vacinacoes.isEmpty()) {
-            return;
-        }
 
         LocalDate hoje = LocalDate.now();
 
@@ -265,24 +207,15 @@ public class AlertaService {
                 continue;
             }
 
-            boolean alertaJaExiste = alertaRepository
-                    .existsByAnimalIdAndTipoAndStatusIn(
-                            animal.getId(),
-                            TipoAlerta.PERIODO_CARENCIA,
-                            List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE));
-
-            if (alertaJaExiste) {
+            if (alertaRepository.existsByAnimalIdAndTipoAndStatusIn(
+                    animal.getId(), TipoAlerta.PERIODO_CARENCIA,
+                    List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE))) {
                 return;
             }
 
-            criarAlerta(
-                    animal,
-                    TipoAlerta.PERIODO_CARENCIA,
-                    "Animal em período de carência até "
-                            + fimCarencia
-                            + ". Não deve ser destinado à venda ou ao abate."
-            );
-
+            criarAlerta(animal, TipoAlerta.PERIODO_CARENCIA,
+                    "Animal em período de carência até " + fimCarencia
+                            + ". Não deve ser destinado à venda ou ao abate.");
             return;
         }
     }
@@ -291,63 +224,110 @@ public class AlertaService {
         List<Custo> custos = custoRepository
                 .findByAnimalIdOrderByDataAscIdAsc(animal.getId());
 
-        if (custos.isEmpty()) {
+        if (custos.isEmpty() || animal.getLote() == null
+                || animal.getLote().getPropriedade() == null) {
             return;
         }
 
-        Propriedade propriedade = animal.getLote().getPropriedade();
-
         RegraAlerta regra = regraAlertaRepository
                 .findByPropriedadeIdAndTipoAndAtivaTrue(
-                        propriedade.getId(), TipoAlerta.CUSTO_ACIMA)
-                .stream()
-                .findFirst()
-                .orElse(null);
+                        animal.getLote().getPropriedade().getId(),
+                        TipoAlerta.CUSTO_ACIMA)
+                .stream().findFirst().orElse(null);
 
         if (regra == null) {
             return;
         }
 
         double custoTotal = custos.stream()
-                .mapToDouble(Custo::getValor)
-                .sum();
+                .mapToDouble(Custo::getValor).sum();
 
         if (custoTotal <= regra.getParametro()) {
             return;
         }
 
-        boolean alertaJaExiste = alertaRepository
-                .existsByAnimalIdAndTipoAndStatusIn(
-                        animal.getId(),
-                        TipoAlerta.CUSTO_ACIMA,
-                        List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE));
-
-        if (alertaJaExiste) {
+        if (alertaRepository.existsByAnimalIdAndTipoAndStatusIn(
+                animal.getId(), TipoAlerta.CUSTO_ACIMA,
+                List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE))) {
             return;
         }
 
-        criarAlerta(
-                animal,
-                TipoAlerta.CUSTO_ACIMA,
-                "O animal está com custo acumulado de R$ "
-                        + custoTotal
+        criarAlerta(animal, TipoAlerta.CUSTO_ACIMA,
+                "O animal está com custo acumulado de R$ " + custoTotal
                         + ", acima do limite estabelecido de R$ "
-                        + regra.getParametro() + "."
-        );
+                        + regra.getParametro() + ".");
     }
 
     public List<Alerta> listarAlertas() {
-        return alertaRepository.findAll();
+        Usuario usuario = usuarioAtual();
+
+        return alertaRepository.findAll().stream()
+                .filter(alerta -> {
+                    try {
+                        validarAcessoAoAlerta(alerta, usuario);
+                        return true;
+                    } catch (AccessDeniedException e) {
+                        return false;
+                    }
+                })
+                .toList();
     }
 
     public Alerta atualizarStatus(Long id, StatusAlerta novoStatus) {
+        if (novoStatus == null) {
+            throw new IllegalArgumentException("O status é obrigatório.");
+        }
+
         Alerta alerta = alertaRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Alerta não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Alerta não encontrado"));
+
+        validarAcessoAoAlerta(alerta, usuarioAtual());
 
         alerta.setStatus(novoStatus);
-
         return alertaRepository.save(alerta);
+    }
+
+    private Usuario usuarioAtual() {
+        Authentication autenticacao =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (autenticacao == null
+                || !(autenticacao.getPrincipal() instanceof Usuario)) {
+            throw new AccessDeniedException("Usuário não autenticado.");
+        }
+
+        return (Usuario) autenticacao.getPrincipal();
+    }
+
+    private boolean temAcesso(Propriedade propriedade, Usuario usuario) {
+        if (usuario.getPerfil() == Perfil.ADMIN) {
+            return true;
+        }
+
+        boolean produtorResponsavel = propriedade.getUsuario() != null
+                && propriedade.getUsuario().getId().equals(usuario.getId());
+
+        boolean veterinarioAssociado = propriedade.getVeterinarios().stream()
+                .anyMatch(v -> v.getId().equals(usuario.getId()));
+
+        return produtorResponsavel || veterinarioAssociado;
+    }
+
+    private void validarAcessoAoAlerta(Alerta alerta, Usuario usuario) {
+        if (alerta.getAnimal() == null
+                || alerta.getAnimal().getLote() == null
+                || alerta.getAnimal().getLote().getPropriedade() == null
+                || !temAcesso(
+                alerta.getAnimal().getLote().getPropriedade(), usuario)) {
+            throw new AccessDeniedException(
+                    "Você não tem acesso a este alerta.");
+        }
+
+        if (usuario.getPerfil() == Perfil.VETERINARIO
+                && alerta.getTipo() == TipoAlerta.CUSTO_ACIMA) {
+            throw new AccessDeniedException(
+                    "Você não tem permissão para acessar alertas financeiros.");
+        }
     }
 
     private SeveridadeAlerta definirSeveridade(TipoAlerta tipo) {
@@ -374,7 +354,6 @@ public class AlertaService {
             String mensagem
     ) {
         Alerta alerta = new Alerta();
-
         alerta.setAnimal(animal);
         alerta.setTipo(tipo);
         alerta.setSeveridade(definirSeveridade(tipo));

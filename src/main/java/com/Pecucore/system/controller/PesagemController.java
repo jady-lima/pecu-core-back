@@ -27,7 +27,7 @@ import java.util.List;
 public class PesagemController {
 
     @Autowired
-    private PesagemService pesagemService;
+    private PesagemService pesagemService;  
 
     @PostMapping
     @Operation(summary = "Registrar pesagem")

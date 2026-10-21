@@ -9,11 +9,7 @@ import com.Pecucore.system.exception.DadosInsuficientesException;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Custo;
 import com.Pecucore.system.model.Pesagem;
-import com.Pecucore.system.model.StatusAnimal;
 import com.Pecucore.system.model.Usuario;
-import com.Pecucore.system.repository.AnimalRepository;
-import com.Pecucore.system.repository.CustoRepository;
-import com.Pecucore.system.repository.PesagemRepository;
 import com.Pecucore.system.service.calculo.CalculadoraEstatisticasLote;
 import com.Pecucore.system.service.calculo.GmdService;
 import com.Pecucore.system.service.politica.PoliticaVisibilidadeFinanceira;
@@ -54,13 +50,10 @@ public class ContextoComparativoService {
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
     @Autowired
-    private AnimalRepository animalRepository;
+    private PesagemService pesagemService;
 
     @Autowired
-    private PesagemRepository pesagemRepository;
-
-    @Autowired
-    private CustoRepository custoRepository;
+    private CustoService custoService;
 
     @Transactional(readOnly = true)
     public ContextoAnaliseComparativaDTO montarComparativo(Long animalId, Usuario usuarioLogado) {
@@ -123,11 +116,8 @@ public class ContextoComparativoService {
 
     private List<AnimalComparado> montarDemaisAnimais(Long animalId, Long loteId) {
         Map<Long, List<Pesagem>> pesagensPorAnimal =
-                pesagemRepository
-                        .findByAnimalLoteIdAndAnimalStatusOrderByAnimalIdAscDataAscIdAsc(
-                                loteId,
-                                StatusAnimal.ATIVO
-                        )
+                pesagemService
+                        .getPesagensAnimaisAtivosByLoteId(loteId)
                         .stream()
                         .filter(pesagem -> !pesagem.getAnimal().getId().equals(animalId))
                         .collect(Collectors.groupingBy(
@@ -166,7 +156,7 @@ public class ContextoComparativoService {
                 .toList();
 
         return new EstatisticasLoteDTO(
-                (int) animalRepository.countByLoteIdAndStatus(loteId, StatusAnimal.ATIVO),
+                (int) animalService.countAnimaisAtivosByLoteId(loteId),
                 comparados.size(),
                 calculadoraEstatisticasLote.calcularMedia(gmds),
                 calculadoraEstatisticasLote.calcularMediana(gmds),
@@ -221,7 +211,7 @@ public class ContextoComparativoService {
                 .map(comparado -> comparado.animal().getId())
                 .toList();
 
-        double total = custoRepository.findByAnimalIdIn(animalIds)
+        double total = custoService.getByAnimalIds(animalIds)
                 .stream()
                 .mapToDouble(Custo::getValor)
                 .sum();

@@ -202,6 +202,17 @@ public class AnimalService {
         return animalRepository.save(animal);
     }
 
+    @Transactional
+    public Animal atualizarPesoAtual(
+            Animal animal,
+            double pesoKg
+    ) {
+
+        animal.setPesoAtual(pesoKg);
+
+        return animalRepository.save(animal);
+    }
+
     public List<Animal> getAllAnimais(
             Usuario usuarioLogado
     ) {

@@ -86,7 +86,11 @@ public class VacinacaoService {
 
     public List<Vacinacao> getHistorico(int brinco, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
-        return vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+        return getHistoricoByAnimalId(animal.getId());
+    }
+
+    public List<Vacinacao> getHistoricoByAnimalId(Long animalId) {
+        return vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
     }
 
     private void preencherDados(Vacinacao vacinacao, Vacina vacina, Usuario aplicador, LocalDate data, String loteVacina, Double doseAplicada, String observacoes, Double valor) {

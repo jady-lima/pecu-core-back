@@ -3,32 +3,19 @@ package com.Pecucore.system.service;
 import com.Pecucore.system.dto.analise.AlertaContextoDTO;
 import com.Pecucore.system.dto.analise.AlimentacaoContextoDTO;
 import com.Pecucore.system.dto.analise.ContextoAnaliseAnimalDTO;
-import com.Pecucore.system.dto.analise.ContextoAnaliseComparativaDTO;
 import com.Pecucore.system.dto.analise.DadosAnimalDTO;
 import com.Pecucore.system.dto.analise.DesempenhoContextoDTO;
-import com.Pecucore.system.dto.analise.EstatisticasLoteDTO;
 import com.Pecucore.system.dto.analise.MedicamentoContextoDTO;
-import com.Pecucore.system.dto.analise.ParLoteDTO;
 import com.Pecucore.system.dto.analise.PesagemContextoDTO;
-import com.Pecucore.system.dto.analise.PosicaoAnimalLoteDTO;
 import com.Pecucore.system.dto.analise.ResumoCustoDTO;
 import com.Pecucore.system.dto.analise.VacinacaoContextoDTO;
 import com.Pecucore.system.exception.DadosInsuficientesException;
 import com.Pecucore.system.model.Animal;
-import com.Pecucore.system.model.Custo;
 import com.Pecucore.system.model.Medicamento;
 import com.Pecucore.system.model.Pesagem;
-import com.Pecucore.system.model.StatusAnimal;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.model.Vacinacao;
 import com.Pecucore.system.repository.AlertaRepository;
-import com.Pecucore.system.repository.AlimentacaoRepository;
-import com.Pecucore.system.repository.AnimalRepository;
-import com.Pecucore.system.repository.CustoRepository;
-import com.Pecucore.system.repository.MedicamentoRepository;
-import com.Pecucore.system.repository.PesagemRepository;
-import com.Pecucore.system.repository.VacinacaoRepository;
-import com.Pecucore.system.service.calculo.CalculadoraEstatisticasLote;
 import com.Pecucore.system.service.calculo.GmdService;
 import com.Pecucore.system.service.politica.PoliticaVisibilidadeFinanceira;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class ContextoAnaliseService {
@@ -60,22 +41,22 @@ public class ContextoAnaliseService {
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
     @Autowired
-    private PesagemRepository pesagemRepository;
+    private PesagemService pesagemService;
 
     @Autowired
-    private AlimentacaoRepository alimentacaoRepository;
+    private AlimentacaoService alimentacaoService;
 
     @Autowired
-    private VacinacaoRepository vacinacaoRepository;
+    private VacinacaoService vacinacaoService;
 
     @Autowired
-    private MedicamentoRepository medicamentoRepository;
+    private MedicamentoService medicamentoService;
 
     @Autowired
     private AlertaRepository alertaRepository;
 
     @Autowired
-    private CustoRepository custoRepository;
+    private CustoService custoService;
 
     @Autowired
     private MetaDesempenhoService metaDesempenhoService;
@@ -95,7 +76,7 @@ public class ContextoAnaliseService {
         Long animalId = animal.getId();
         LocalDate hoje = LocalDate.now();
 
-        List<Pesagem> pesagens = pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
+        List<Pesagem> pesagens = pesagemService.getHistoricoByAnimalId(animalId);
 
         if (pesagens.size() < MINIMO_PESAGENS) {
             throw new DadosInsuficientesException(
@@ -103,8 +84,8 @@ public class ContextoAnaliseService {
             );
         }
 
-        List<Vacinacao> vacinacoes = vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
-        List<Medicamento> medicamentos = medicamentoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
+        List<Vacinacao> vacinacoes = vacinacaoService.getHistoricoByAnimalId(animalId);
+        List<Medicamento> medicamentos = medicamentoService.getHistoricoByAnimalId(animalId);
         boolean emCarencia = carenciaService.estaEmCarencia(animalId);
 
         return new ContextoAnaliseAnimalDTO(
@@ -112,7 +93,7 @@ public class ContextoAnaliseService {
             new DadosAnimalDTO(animal, emCarencia, hoje),
             montarDesempenho(animal, pesagens),
             pesagens.stream().map(PesagemContextoDTO::new).toList(),
-            alimentacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId).stream().map(AlimentacaoContextoDTO::new).toList(),
+            alimentacaoService.getHistoricoByAnimalId(animalId).stream().map(AlimentacaoContextoDTO::new).toList(),
             vacinacoes.stream().map(VacinacaoContextoDTO::new).toList(),
             medicamentos.stream().map(MedicamentoContextoDTO::new).toList(),
             montarAlertas(animalId, usuarioLogado),
@@ -149,7 +130,7 @@ public class ContextoAnaliseService {
             return null;
         }
 
-        return new ResumoCustoDTO(custoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId));
+        return new ResumoCustoDTO(custoService.getByAnimalId(animalId));
     }
 
 

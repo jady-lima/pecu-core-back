@@ -104,8 +104,13 @@ public class MedicamentoService {
 
         Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
+        return getHistoricoByAnimalId(animal.getId());
+    }
+
+    public List<Medicamento> getHistoricoByAnimalId(Long animalId) {
+
         return medicamentoRepository
-                .findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+                .findByAnimalIdOrderByDataAscIdAsc(animalId);
     }
 
     private void preencherDados(

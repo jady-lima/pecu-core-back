@@ -8,7 +8,6 @@ import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.Propriedade;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.PropriedadeRepository;
-import com.Pecucore.system.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ public class PropriedadeService {
     private PropriedadeRepository propriedadeRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UsuarioService usuarioService;
 
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
@@ -54,7 +53,7 @@ public class PropriedadeService {
                 );
             }
 
-            Usuario dono = getUsuarioById(dados.usuarioId());
+            Usuario dono = usuarioService.getUsuarioById(dados.usuarioId());
 
             if (dono.getPerfil() != Perfil.PRODUTOR) {
                 throw new RegraNegocioException(
@@ -73,15 +72,7 @@ public class PropriedadeService {
             );
         }
 
-        return getUsuarioById(usuarioLogado.getId());
-    }
-
-    private Usuario getUsuarioById(Long id) {
-
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Usuário não encontrado"
-                ));
+        return usuarioService.getUsuarioById(usuarioLogado.getId());
     }
 
     public Propriedade update(
@@ -154,7 +145,7 @@ public class PropriedadeService {
     public Propriedade vincularVeterinario(Long id, Long veterinarioId, Usuario usuarioLogado) {
 
         Propriedade propriedade = getPropriedadeComAcesso(id, usuarioLogado);
-        Usuario veterinario = getUsuarioById(veterinarioId);
+        Usuario veterinario = usuarioService.getUsuarioById(veterinarioId);
 
         if (veterinario.getPerfil() != Perfil.VETERINARIO) {
             throw new RegraNegocioException(

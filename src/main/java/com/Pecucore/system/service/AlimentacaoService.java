@@ -116,7 +116,11 @@ public class AlimentacaoService {
     public List<Alimentacao> getHistorico(int brinco, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
-        return alimentacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+        return getHistoricoByAnimalId(animal.getId());
+    }
+
+    public List<Alimentacao> getHistoricoByAnimalId(Long animalId) {
+        return alimentacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
     }
 
     private Alimentacao registrar(

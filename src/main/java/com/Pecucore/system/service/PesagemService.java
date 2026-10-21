@@ -12,8 +12,8 @@ import com.Pecucore.system.dto.PesagemRequestDTO;
 import com.Pecucore.system.evento.PesoAnimalAlteradoEvento;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Pesagem;
+import com.Pecucore.system.model.StatusAnimal;
 import com.Pecucore.system.model.Usuario;
-import com.Pecucore.system.repository.AnimalRepository;
 import com.Pecucore.system.repository.PesagemRepository;
 import com.Pecucore.system.service.calculo.GmdService;
 import java.time.LocalDate;
@@ -25,9 +25,6 @@ public class PesagemService {
 
     @Autowired
     private PesagemRepository pesagemRepository;
-
-    @Autowired
-    private AnimalRepository animalRepository;
 
     @Autowired
     private AnimalService animalService;
@@ -88,10 +85,8 @@ public class PesagemService {
         pesagem.setData(dataPesagem);
         pesagem.setAnimal(animal);
 
-        animal.setPesoAtual(pesoKg);
-
         pesagemRepository.save(pesagem);
-        animalRepository.save(animal);
+        animalService.atualizarPesoAtual(animal, pesoKg);
         alertaPesoService.verificarGmdAbaixoMeta(animal, gmd);
         alertaPesoService.verificarQuedaPeso(animal);
 
@@ -102,6 +97,17 @@ public class PesagemService {
 
         Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
-        return pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+        return getHistoricoByAnimalId(animal.getId());
+    }
+
+    public List<Pesagem> getHistoricoByAnimalId(Long animalId) {
+        return pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
+    }
+
+    public List<Pesagem> getPesagensAnimaisAtivosByLoteId(Long loteId) {
+        return pesagemRepository.findByAnimalLoteIdAndAnimalStatusOrderByAnimalIdAscDataAscIdAsc(
+                loteId,
+                StatusAnimal.ATIVO
+        );
     }
 }

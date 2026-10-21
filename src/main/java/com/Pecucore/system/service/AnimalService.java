@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
-import com.Pecucore.system.exception.AcessoNegadoException;
 import com.Pecucore.system.exception.ConflitoNegocioException;
 import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -341,11 +340,10 @@ public class AnimalService {
             Usuario usuarioLogado
     ) {
 
-        if (!acessoPropriedadeService.possuiAcesso(lote != null ? lote.getPropriedade() : null, usuarioLogado)) {
-
-            throw new AcessoNegadoException(
-                    "Você não tem acesso a este lote"
-            );
-        }
+        acessoPropriedadeService.validarAcesso(
+                lote != null ? lote.getPropriedade() : null,
+                usuarioLogado,
+                "Você não tem acesso a este lote"
+        );
     }
 }

@@ -3,7 +3,6 @@ package com.Pecucore.system.service;
 
 import java.util.List;
 
-import com.Pecucore.system.exception.AcessoNegadoException;
 import com.Pecucore.system.exception.ConflitoNegocioException;
 import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -224,10 +223,10 @@ public class LoteService {
             Usuario usuarioLogado
     ) {
 
-        if (!acessoPropriedadeService.possuiAcesso(lote.getPropriedade(),usuarioLogado)) {
-            throw new AcessoNegadoException(
-                    "Você não tem acesso a este lote"
-            );
-        }
+        acessoPropriedadeService.validarAcesso(
+                lote.getPropriedade(),
+                usuarioLogado,
+                "Você não tem acesso a este lote"
+        );
     }
 }

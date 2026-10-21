@@ -1,5 +1,6 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.AcessoNegadoException;
 import com.Pecucore.system.model.Perfil;
 import com.Pecucore.system.model.Propriedade;
 import com.Pecucore.system.model.Usuario;
@@ -34,5 +35,11 @@ public class AcessoPropriedadeService {
         }
 
         return false;
+    }
+
+    public void validarAcesso(Propriedade propriedade, Usuario usuarioLogado, String mensagem) {
+        if (!possuiAcesso(propriedade, usuarioLogado)) {
+            throw new AcessoNegadoException(mensagem);
+        }
     }
 }

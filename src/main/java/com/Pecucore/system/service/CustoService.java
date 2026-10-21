@@ -1,7 +1,6 @@
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.CustoRequestDTO;
-import com.Pecucore.system.exception.AcessoNegadoException;
 import com.Pecucore.system.exception.ConflitoNegocioException;
 import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.exception.RegraNegocioException;
@@ -63,7 +62,11 @@ public class CustoService {
                     "Custo não encontrado"
                 ));
 
-        validarAcessoPropriedade(getPropriedade(custo), usuarioLogado);
+        acessoPropriedadeService.validarAcesso(
+                getPropriedade(custo),
+                usuarioLogado,
+                "Você não tem acesso a esta propriedade"
+        );
 
         return custo;
     }
@@ -113,15 +116,6 @@ public class CustoService {
 
         if (dados.propriedadeId() != null) {
             custo.setPropriedade(propriedadeService.getPropriedadeById(dados.propriedadeId(), usuarioLogado));
-        }
-    }
-
-    private void validarAcessoPropriedade(Propriedade propriedade, Usuario usuarioLogado) {
-
-        if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
-            throw new AcessoNegadoException(
-                    "Você não tem acesso a esta propriedade"
-            );
         }
     }
 

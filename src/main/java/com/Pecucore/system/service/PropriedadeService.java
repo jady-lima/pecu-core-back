@@ -148,11 +148,11 @@ public class PropriedadeService {
                                 "Propriedade não encontrada"
                         ));
 
-        if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
-            throw new AcessoNegadoException(
-                    "Você não tem acesso a esta propriedade"
-            );
-        }
+        acessoPropriedadeService.validarAcesso(
+                propriedade,
+                usuarioLogado,
+                "Você não tem acesso a esta propriedade"
+        );
 
         return propriedade;
     }

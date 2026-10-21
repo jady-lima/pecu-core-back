@@ -110,10 +110,7 @@ public class ContextoAnaliseService {
 
         Double gmdMeta = metaDesempenhoService.getGmdEsperado(animal.getLote()).orElse(null);
 
-        Double percentualDaMeta = null;
-        if (gmdPeriodo != null && gmdMeta != null && gmdMeta > 0) {
-            percentualDaMeta = (gmdPeriodo / gmdMeta) * 100;
-        }
+        Double percentualDaMeta = gmdService.calcularPercentualDaMeta(gmdPeriodo, gmdMeta);
 
         return new DesempenhoContextoDTO(gmdPeriodo, diasAvaliados, gmdMeta, percentualDaMeta);
     }

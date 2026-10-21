@@ -57,6 +57,12 @@ public class DesempenhoService {
                 ultimaPesagem
         );
 
+        if (gmdAtual == null) {
+            throw new ConflitoNegocioException(
+                    "Não foi possível calcular o GMD do animal. As pesagens precisam ter datas diferentes."
+            );
+        }
+
         double gmdEsperado = metaDesempenhoService.getGmdEsperado(animal.getLote())
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Meta de desempenho não encontrada para o lote nem para a fase."
@@ -65,7 +71,7 @@ public class DesempenhoService {
         double diferenca = gmdAtual - gmdEsperado;
 
         double percentualDaMeta =
-                (gmdAtual / gmdEsperado) * 100;
+                gmdService.calcularPercentualDaMeta(gmdAtual, gmdEsperado);
 
         double percentualAbaixoDaMeta =
                 100 - percentualDaMeta;

@@ -1,20 +1,21 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.ConflitoNegocioException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.PesagemRequestDTO;
 import com.Pecucore.system.evento.PesoAnimalAlteradoEvento;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.Pesagem;
+import com.Pecucore.system.model.StatusAnimal;
 import com.Pecucore.system.model.Usuario;
-import com.Pecucore.system.repository.AnimalRepository;
 import com.Pecucore.system.repository.PesagemRepository;
+import com.Pecucore.system.service.calculo.GmdService;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -26,16 +27,13 @@ public class PesagemService {
     private PesagemRepository pesagemRepository;
 
     @Autowired
-    private AnimalRepository animalRepository;
-
-    @Autowired
     private AnimalService animalService;
 
     @Autowired
     private GmdService gmdService;
 
     @Autowired
-    private AlertaService alertaService;
+    private AlertaPesoService alertaPesoService;
 
     @Value("${pesagem.intervalo-recomendado-dias}")
     private int intervaloRecomendadoDias;
@@ -60,8 +58,7 @@ public class PesagemService {
         Pesagem ultimaPesagem = pesagemRepository.findTopByAnimalIdOrderByDataDescIdDesc(animal.getId()).orElse(null);
 
         if(ultimaPesagem != null && dataPesagem.isBefore(ultimaPesagem.getData())){
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
+            throw new ConflitoNegocioException(
                     "A data da pesagem não pode ser anterior à última pesagem registrada"
             );
         }
@@ -88,8 +85,6 @@ public class PesagemService {
         pesagem.setData(dataPesagem);
         pesagem.setAnimal(animal);
 
-        animal.setPesoAtual(pesoKg);
-
         pesagemRepository.save(pesagem);
         animalRepository.save(animal);
         alertaService.verificarGmdAbaixoMeta(animal, gmd);
@@ -102,6 +97,17 @@ public class PesagemService {
 
         Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
-        return pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+        return getHistoricoByAnimalId(animal.getId());
+    }
+
+    public List<Pesagem> getHistoricoByAnimalId(Long animalId) {
+        return pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
+    }
+
+    public List<Pesagem> getPesagensAnimaisAtivosByLoteId(Long loteId) {
+        return pesagemRepository.findByAnimalLoteIdAndAnimalStatusOrderByAnimalIdAscDataAscIdAsc(
+                loteId,
+                StatusAnimal.ATIVO
+        );
     }
 }

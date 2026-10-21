@@ -2,6 +2,7 @@ package com.Pecucore.system.controller;
 
 import com.Pecucore.system.dto.MedicamentoRequestDTO;
 import com.Pecucore.system.dto.MedicamentoResponseDTO;
+import com.Pecucore.system.dto.MedicamentoUpdateRequestDTO;
 import com.Pecucore.system.model.Medicamento;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.service.MedicamentoService;
@@ -43,6 +44,41 @@ public class MedicamentoController {
 
         return ResponseEntity.status(201)
                 .body(new MedicamentoResponseDTO(medicamento));
+    }
+
+    @Operation(summary = "Edita um medicamento aplicado em um animal")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Medicamento atualizado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao animal"),
+        @ApiResponse(responseCode = "404", description = "Medicamento não encontrado"),
+        @ApiResponse(responseCode = "409", description = "Data anterior ao nascimento do animal")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<MedicamentoResponseDTO> update(
+            @PathVariable Long id,
+            @RequestBody @Valid MedicamentoUpdateRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        Medicamento medicamento = medicamentoService.update(id, dados, usuarioLogado);
+
+        return ResponseEntity.ok(new MedicamentoResponseDTO(medicamento));
+    }
+
+    @Operation(summary = "Exclui um medicamento aplicado em um animal")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Medicamento excluído com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao animal"),
+            @ApiResponse(responseCode = "404", description = "Medicamento não encontrado")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        medicamentoService.delete(id, usuarioLogado);
+
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(

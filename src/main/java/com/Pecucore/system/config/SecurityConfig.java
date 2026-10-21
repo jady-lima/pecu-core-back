@@ -11,8 +11,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -40,7 +38,9 @@ public class SecurityConfig {
         String produtor = Perfil.PRODUTOR.name();
         String veterinario = Perfil.VETERINARIO.name();
 
-        return http.csrf(csrf -> csrf.disable())
+        return http
+                .csrf(csrf -> csrf.disable())
+                .logout(logout -> logout.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
@@ -51,19 +51,25 @@ public class SecurityConfig {
 
                 .requestMatchers("/propriedades/**", "/lotes/**").hasAnyAuthority(admin, produtor)
 
-                .requestMatchers(HttpMethod.DELETE, "/animais/**").hasAnyAuthority(admin, produtor)
                 .requestMatchers(HttpMethod.POST, "/animais").hasAnyAuthority(admin, produtor, veterinario)
                 .requestMatchers(HttpMethod.PUT, "/animais/**").hasAnyAuthority(admin, produtor, veterinario)
 
                 .requestMatchers(HttpMethod.POST, "/pesagens").hasAnyAuthority(admin, produtor, veterinario)
 
                 .requestMatchers(HttpMethod.POST, "/alimentacoes/**").hasAnyAuthority(admin, produtor, veterinario)
+                .requestMatchers(HttpMethod.PUT, "/alimentacoes/**").hasAnyAuthority(admin, produtor, veterinario)
+                .requestMatchers(HttpMethod.DELETE, "/alimentacoes/**").hasAnyAuthority(admin, produtor)
 
-                .requestMatchers("/vacinas/**", "/vacinacoes/**").hasAnyAuthority(admin, produtor, veterinario)
+                .requestMatchers(HttpMethod.DELETE, "/vacinas/**", "/vacinacoes/**", "/medicamentos/**").hasAnyAuthority(admin, produtor)
+                .requestMatchers("/vacinas/**", "/vacinacoes/**", "/medicamentos/**").hasAnyAuthority(admin, produtor, veterinario)
 
                 .requestMatchers("/analises/**").hasAnyAuthority(admin, produtor, veterinario)
 
                 .requestMatchers("/custos/**").hasAuthority(produtor)
+
+                .requestMatchers(HttpMethod.POST, "/metas-desempenho/**").hasAuthority(admin)
+                .requestMatchers(HttpMethod.PUT, "/metas-desempenho/**").hasAuthority(admin)
+                .requestMatchers(HttpMethod.DELETE, "/metas-desempenho/**").hasAuthority(admin)
 
                 .anyRequest().authenticated()
             )
@@ -82,11 +88,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean

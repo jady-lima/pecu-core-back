@@ -1,4 +1,4 @@
-package com.Pecucore.system.service;
+package com.Pecucore.system.service.calculo;
 
 import com.Pecucore.system.model.Pesagem;
 import org.springframework.stereotype.Service;
@@ -48,5 +48,14 @@ public class GmdService {
                 ultimaPesagem.getPesoKg() - primeiraPesagem.getPesoKg();
 
         return variacaoKg / dias;
+    }
+
+    public Double calcularPercentualDaMeta(Double gmd, Double gmdMeta) {
+
+        if (gmd == null || gmdMeta == null || gmdMeta <= 0) {
+            return null;
+        }
+
+        return (gmd / gmdMeta) * 100;
     }
 }

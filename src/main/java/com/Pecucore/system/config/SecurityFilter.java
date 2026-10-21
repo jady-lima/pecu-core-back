@@ -1,7 +1,7 @@
 package com.Pecucore.system.config;
 
 import com.Pecucore.system.model.Usuario;
-import com.Pecucore.system.repository.UsuarioRepository;
+import com.Pecucore.system.service.UsuarioService;
 import com.Pecucore.system.service.TokenService;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 
@@ -26,7 +26,7 @@ public class SecurityFilter extends OncePerRequestFilter {
     private TokenService tokenService;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UsuarioService usuarioService;
 
     @Override
     protected void doFilterInternal(
@@ -47,7 +47,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                 }
 
                 Usuario usuario =
-                        usuarioRepository.findByUsername(username);
+                        usuarioService.findByUsername(username);
 
                 if (usuario == null) {
                     responderNaoAutenticado(response);

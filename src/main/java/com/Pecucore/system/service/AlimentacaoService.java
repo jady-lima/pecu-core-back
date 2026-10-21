@@ -1,17 +1,20 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.TipoCusto;
 import com.Pecucore.system.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.Pecucore.system.dto.AlimentacaoLoteRequestDTO;
 import com.Pecucore.system.dto.AlimentacaoRequestDTO;
+import com.Pecucore.system.dto.AlimentacaoUpdateRequestDTO;
 import com.Pecucore.system.model.Alimentacao;
 import com.Pecucore.system.model.Animal;
+import com.Pecucore.system.model.Custo;
 import com.Pecucore.system.model.TipoAlimentacao;
 import com.Pecucore.system.repository.AlimentacaoRepository;
 
@@ -31,16 +34,11 @@ public class AlimentacaoService {
     private LoteService loteService;
 
     @Autowired
-    private CustoService custoService;
+    private CustoAutomaticoService custoAutomaticoService;
 
     @Transactional
     public Alimentacao create(AlimentacaoRequestDTO dados, Usuario usuarioLogado) {
-
-        Animal animal =
-                animalService.getAnimalAtivoByBrinco(
-                        dados.brinco(),
-                        usuarioLogado
-                );
+        Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
 
         return registrar(
                 animal,
@@ -52,25 +50,14 @@ public class AlimentacaoService {
     }
 
     @Transactional
-    public List<Alimentacao> createEmLote(
-            AlimentacaoLoteRequestDTO dados,
-            Usuario usuarioLogado
-    ) {
+    public List<Alimentacao> createEmLote(AlimentacaoLoteRequestDTO dados, Usuario usuarioLogado) {
+        loteService.getLoteById(dados.loteId(), usuarioLogado);
 
-        loteService.getLoteById(
-                dados.loteId(),
-                usuarioLogado
-        );
-
-        List<Animal> animais =
-                animalService.getAnimaisAtivosByLoteId(
-                        dados.loteId()
-                );
+        List<Animal> animais = animalService.getAnimaisAtivosByLoteId(dados.loteId());
 
         if (animais.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "O lote não possui animais ativos"
+            throw new ConflitoNegocioException(
+                "O lote não possui animais ativos"
             );
         }
 
@@ -87,15 +74,53 @@ public class AlimentacaoService {
                 .toList();
     }
 
+    @Transactional
+    public Alimentacao update(Long id, AlimentacaoUpdateRequestDTO dados, Usuario usuarioLogado) {
+        Alimentacao alimentacao = getAlimentacaoById(id, usuarioLogado);
+
+        animalService.validarDataRegistro(alimentacao.getAnimal(), dados.data());
+
+        alimentacao.setTipo(dados.tipo());
+        alimentacao.setQuantidade(dados.quantidade());
+        alimentacao.setValor(dados.valor());
+        alimentacao.setData(dados.data());
+
+        sincronizarCusto(alimentacao);
+
+        return alimentacaoRepository.save(alimentacao);
+    }
+
+    @Transactional
+    public void delete(Long id, Usuario usuarioLogado) {
+        Alimentacao alimentacao = getAlimentacaoById(id, usuarioLogado);
+        Custo custo = alimentacao.getCusto();
+
+        alimentacaoRepository.delete(alimentacao);
+
+        if (custo != null) {
+            custoAutomaticoService.excluirAutomatico(custo);
+        }
+    }
+
+    public Alimentacao getAlimentacaoById(Long id, Usuario usuarioLogado) {
+        Alimentacao alimentacao = alimentacaoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Alimentação não encontrada"
+                ));
+
+        animalService.getAnimalById(alimentacao.getAnimal().getId(), usuarioLogado);
+
+        return alimentacao;
+    }
+
     public List<Alimentacao> getHistorico(int brinco, Usuario usuarioLogado) {
+        Animal animal = animalService.getAnimalByBrinco(brinco, usuarioLogado);
 
-        Animal animal =
-                animalService.getAnimalByBrinco(brinco, usuarioLogado);
+        return getHistoricoByAnimalId(animal.getId());
+    }
 
-        return alimentacaoRepository
-                .findByAnimalIdOrderByDataAscIdAsc(
-                        animal.getId()
-                );
+    public List<Alimentacao> getHistoricoByAnimalId(Long animalId) {
+        return alimentacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
     }
 
     private Alimentacao registrar(
@@ -106,34 +131,27 @@ public class AlimentacaoService {
             Double valor
     ) {
 
-        animalService.validarDataRegistro(
-                animal,
-                data
-        );
+        animalService.validarDataRegistro(animal, data);
 
         Alimentacao alimentacao = new Alimentacao();
-
         alimentacao.setTipo(tipo);
         alimentacao.setQuantidade(quantidade);
         alimentacao.setValor(valor);
         alimentacao.setData(data);
         alimentacao.setAnimal(animal);
 
-        Alimentacao alimentacaoSalva =
-                alimentacaoRepository.save(
-                        alimentacao
-                );
+        sincronizarCusto(alimentacao);
 
-        if (valor != null) {
+        return alimentacaoRepository.save(alimentacao);
+    }
 
-            custoService.registrarAutomatico(
-                    TipoCusto.ALIMENTACAO,
-                    valor,
-                    data,
-                    animal
-            );
-        }
-
-        return alimentacaoSalva;
+    private void sincronizarCusto(Alimentacao alimentacao) {
+        alimentacao.setCusto(custoAutomaticoService.sincronizarAutomatico(
+                alimentacao.getCusto(),
+                TipoCusto.ALIMENTACAO,
+                alimentacao.getValor(),
+                alimentacao.getData(),
+                alimentacao.getAnimal()
+        ));
     }
 }

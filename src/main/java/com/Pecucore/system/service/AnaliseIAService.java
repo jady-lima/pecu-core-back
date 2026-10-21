@@ -1,21 +1,20 @@
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.analise.ContextoAnaliseAnimalDTO;
+import com.Pecucore.system.dto.analise.ContextoAnaliseComparativaDTO;
 import com.Pecucore.system.dto.analise.RelatorioAnaliseDTO;
-import com.Pecucore.system.exception.ServicoIAIndisponivelException;
-import com.Pecucore.system.ia.ProvedorIA;
-import com.Pecucore.system.ia.RespostaIA;
+import com.Pecucore.system.exception.AcessoNegadoException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
+import com.Pecucore.system.ia.AnaliseAnimalIAFacade;
+import com.Pecucore.system.ia.ResultadoAnaliseIA;
 import com.Pecucore.system.model.AnaliseIA;
 import com.Pecucore.system.model.Animal;
 import com.Pecucore.system.model.TipoAnalise;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.repository.AnaliseIARepository;
+import com.Pecucore.system.service.politica.PoliticaVisibilidadeFinanceira;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -35,36 +34,28 @@ public class AnaliseIAService {
     private ContextoAnaliseService contextoAnaliseService;
 
     @Autowired
-    private PromptAnaliseBuilder promptAnaliseBuilder;
-
-    @Autowired
-    private ProvedorIA provedorIA;
+    private AnaliseAnimalIAFacade analiseAnimalIAFacade;
 
     @Autowired
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
     @Autowired
-    private JsonMapper jsonMapper;
+    private ContextoComparativoService contextoComparativoService;
 
     public AnaliseIA gerarIndividual(Long animalId, Usuario usuarioLogado) {
-        
-        ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montar(animalId, usuarioLogado);
-        RespostaIA resposta = provedorIA.gerarJson(promptAnaliseBuilder.montar(contexto));
+        ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montarIndividual(animalId, usuarioLogado);
+        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarIndividual(contexto);
 
-        converterRelatorio(resposta.texto());
+        return salvar(TipoAnalise.INDIVIDUAL, animalId, resultado, contexto.custos() != null, usuarioLogado);
+    }
 
-        Animal animal = animalService.getAnimalById(animalId, usuarioLogado);
-        Usuario solicitante = usuarioService.getUsuarioById(usuarioLogado.getId());
+    public AnaliseIA gerarComparativa(Long animalId, Usuario usuarioLogado) {
+        ContextoAnaliseComparativaDTO contexto = contextoComparativoService.montarComparativo(animalId, usuarioLogado);
+        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarComparativo(contexto);
 
-        AnaliseIA analise = new AnaliseIA();
-        analise.setTipo(TipoAnalise.INDIVIDUAL);
-        analise.setAnimal(animal);
-        analise.setSolicitante(solicitante);
-        analise.setConteudo(resposta.texto());
-        analise.setModeloUtilizado(resposta.modelo());
-        analise.setIncluiDadosFinanceiros(contexto.custos() != null);
+        boolean incluiDadosFinanceiros = contexto.animalAnalisado().custos() != null || contexto.estatisticasLote().custoMedioPorAnimal() != null;
 
-        return analiseIARepository.save(analise);
+        return salvar(TipoAnalise.COMPARATIVA, animalId, resultado, incluiDadosFinanceiros, usuarioLogado);
     }
 
     public List<AnaliseIA> getHistoricoByAnimal(Long animalId, Usuario usuarioLogado) {
@@ -76,36 +67,37 @@ public class AnaliseIAService {
     }
 
     public AnaliseIA getAnaliseById(Long id, Usuario usuarioLogado) {
-        AnaliseIA analise = analiseIARepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Análise não encontrada"));
+        AnaliseIA analise = analiseIARepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Análise não encontrada"));
 
         animalService.getAnimalById(analise.getAnimal().getId(), usuarioLogado);
 
         if (!podeVisualizar(analise, usuarioLogado)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem acesso a esta análise");
+            throw new AcessoNegadoException( "Você não tem acesso a esta análise");
         }
 
         return analise;
     }
 
     public RelatorioAnaliseDTO getRelatorio(AnaliseIA analise) {
-        return converterRelatorio(analise.getConteudo());
+        return analiseAnimalIAFacade.lerRelatorio(analise.getConteudo());
+    }
+
+    private AnaliseIA salvar(TipoAnalise tipo, Long animalId, ResultadoAnaliseIA resultado, boolean incluiDadosFinanceiros, Usuario usuarioLogado) {
+        Animal animal = animalService.getAnimalById(animalId, usuarioLogado);
+        Usuario solicitante = usuarioService.getUsuarioById(usuarioLogado.getId());
+
+        AnaliseIA analise = new AnaliseIA();
+        analise.setTipo(tipo);
+        analise.setAnimal(animal);
+        analise.setSolicitante(solicitante);
+        analise.setConteudo(resultado.conteudoBruto());
+        analise.setModeloUtilizado(resultado.modelo());
+        analise.setIncluiDadosFinanceiros(incluiDadosFinanceiros);
+
+        return analiseIARepository.save(analise);
     }
 
     private boolean podeVisualizar(AnaliseIA analise, Usuario usuarioLogado) {
         return !analise.isIncluiDadosFinanceiros() || politicaVisibilidadeFinanceira.podeVerDadosFinanceiros(usuarioLogado);
-    }
-
-    private RelatorioAnaliseDTO converterRelatorio(String json) {
-        try {
-            RelatorioAnaliseDTO relatorio = jsonMapper.readValue(json, RelatorioAnaliseDTO.class);
-
-            if (relatorio == null || relatorio.situacaoGeral() == null || relatorio.resumo() == null) {
-                throw new ServicoIAIndisponivelException("O serviço de IA retornou um relatório incompleto. Tente novamente.");
-            }
-
-            return relatorio;
-        } catch (JacksonException exception) {
-            throw new ServicoIAIndisponivelException("O serviço de IA retornou um relatório em formato inválido. Tente novamente.", exception);
-        }
     }
 }

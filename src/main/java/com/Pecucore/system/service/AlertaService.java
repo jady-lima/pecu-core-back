@@ -1,16 +1,24 @@
 package com.Pecucore.system.service;
 
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.*;
+
 import com.Pecucore.system.repository.*;
+import com.Pecucore.system.repository.AlertaRepository;
+import com.Pecucore.system.repository.PesagemRepository;
+import com.Pecucore.system.repository.RegraAlertaRepository;
+import com.Pecucore.system.repository.VacinacaoRepositoryn
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+
 import java.util.List;
 
 @Service
@@ -282,6 +290,10 @@ public class AlertaService {
                 .orElseThrow(() -> new RuntimeException("Alerta não encontrado"));
 
         validarAcessoAoAlerta(alerta, usuarioAtual());
+        Alerta alerta = alertaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Alerta não encontrado"
+                ));
 
         alerta.setStatus(novoStatus);
         return alertaRepository.save(alerta);
@@ -348,7 +360,7 @@ public class AlertaService {
         }
     }
 
-    private void criarAlerta(
+    public void criarAlerta(
             Animal animal,
             TipoAlerta tipo,
             String mensagem

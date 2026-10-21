@@ -13,6 +13,10 @@ public class Alimentacao extends RegistroAnimal {
 
     private Double valor;
 
+    @OneToOne
+    @JoinColumn(name = "custo_id")
+    private Custo custo;
+
     public TipoAlimentacao getTipo() {
         return tipo;
     }
@@ -35,5 +39,13 @@ public class Alimentacao extends RegistroAnimal {
 
     public void setQuantidade(double quantidade) {
         this.quantidade = quantidade;
+    }
+
+    public Custo getCusto() {
+        return custo;
+    }
+
+    public void setCusto(Custo custo) {
+        this.custo = custo;
     }
 }

@@ -36,6 +36,10 @@ public class Vacinacao extends RegistroAnimal {
 
     private Double valor;
 
+    @OneToOne
+    @JoinColumn(name = "custo_id")
+    private Custo custo;
+
     public Vacina getVacina() {
         return vacina;
     }
@@ -106,5 +110,13 @@ public class Vacinacao extends RegistroAnimal {
 
     public void setValor(Double valor) {
         this.valor = valor;
+    }
+
+    public Custo getCusto() {
+        return custo;
+    }
+
+    public void setCusto(Custo custo) {
+        this.custo = custo;
     }
 }

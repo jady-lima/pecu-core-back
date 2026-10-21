@@ -11,4 +11,6 @@ public interface VacinacaoRepository extends JpaRepository<Vacinacao, Long> {
     List<Vacinacao> findByAnimalIdOrderByDataAscIdAsc(Long animalId);
 
     boolean existsByAnimalIdAndDataFimCarenciaAfter(Long animalId, LocalDate data);
+
+    boolean existsByVacinaId(Long vacinaId);
 }

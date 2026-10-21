@@ -1,6 +1,8 @@
 package com.Pecucore.system.service;
 
+
 import com.Pecucore.system.model.Propriedade;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
 import com.Pecucore.system.model.RegraAlerta;
 import com.Pecucore.system.model.TipoAlerta;
 import com.Pecucore.system.model.Usuario;
@@ -50,11 +52,16 @@ public class RegraAlertaService {
             boolean ativa
     ) {
         RegraAlerta regra = regraAlertaRepository.findById(id)
+feat/UC011-AJUSTES
                 .orElseThrow(() ->
                         new RuntimeException("Regra de alerta não encontrada"));
 
         validarRegra(regra.getTipo(), parametro);
         validarAcesso(regra.getPropriedade(), regra.getTipo());
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Regra de alerta não encontrada"
+                ));
+
 
         regra.setParametro(parametro);
         regra.setAtiva(ativa);

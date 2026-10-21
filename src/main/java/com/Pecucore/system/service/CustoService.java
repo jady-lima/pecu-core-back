@@ -1,19 +1,16 @@
 package com.Pecucore.system.service;
 
 import com.Pecucore.system.dto.CustoRequestDTO;
+import com.Pecucore.system.exception.ConflitoNegocioException;
+import com.Pecucore.system.exception.RecursoNaoEncontradoException;
+import com.Pecucore.system.exception.RegraNegocioException;
 import com.Pecucore.system.model.*;
 import com.Pecucore.system.repository.CustoRepository;
-import com.Pecucore.system.repository.LoteRepository;
-import com.Pecucore.system.repository.PropriedadeRepository;
-import com.Pecucore.system.repository.AnimalRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -23,13 +20,13 @@ public class CustoService {
     private CustoRepository custoRepository;
 
     @Autowired
-    private AnimalRepository animalRepository;
+    private AnimalService animalService;
 
     @Autowired
-    private LoteRepository loteRepository;
+    private LoteService loteService;
 
     @Autowired
-    private PropriedadeRepository propriedadeRepository;
+    private PropriedadeService propriedadeService;
 
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
@@ -39,83 +36,23 @@ public class CustoService {
 
     @Transactional
     public Custo create(CustoRequestDTO dados, Usuario usuarioLogado) {
-
-        validarDestino(dados);
-
         Custo custo = new Custo();
-
-        custo.setTipo(dados.tipo());
         custo.setOrigem(OrigemCusto.MANUAL);
-        custo.setValor(dados.valor());
-        custo.setData(dados.data());
 
-        if (dados.animalId() != null) {
-            Animal animal = animalRepository.findById(dados.animalId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Animal não encontrado"
-                    ));
-
-            validarAcessoPropriedade(animal.getLote() != null ? animal.getLote().getPropriedade() : null, usuarioLogado);
-
-            custo.setAnimal(animal);
-        }
-
-        if (dados.loteId() != null) {
-            Lote lote = loteRepository.findById(dados.loteId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Lote não encontrado"
-                    ));
-
-            validarAcessoPropriedade(lote.getPropriedade(), usuarioLogado);
-
-            custo.setLote(lote);
-        }
-
-        if (dados.propriedadeId() != null) {
-            Propriedade propriedade = propriedadeRepository.findById(dados.propriedadeId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Propriedade não encontrada"
-                    ));
-
-            validarAcessoPropriedade(propriedade, usuarioLogado);
-
-            custo.setPropriedade(propriedade);
-        }
+        preencherDados(custo, dados, usuarioLogado);
 
         Custo custoSalvo = custoRepository.save(custo);
         if(custoSalvo.getAnimal() !=null){
             alertaService.verificarCustoAcima(custoSalvo.getAnimal());
         }
         return custoSalvo;
-    }
-
-    private void validarAcessoPropriedade(Propriedade propriedade, Usuario usuarioLogado) {
-
-        if (!acessoPropriedadeService.possuiAcesso(propriedade, usuarioLogado)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Você não tem acesso a esta propriedade"
-            );
-        }
     }
 
     @Transactional
-    public Custo registrarAutomatico(
-            TipoCusto tipo,
-            double valor,
-            LocalDate data,
-            Animal animal) {
+    public Custo update(Long id, CustoRequestDTO dados, Usuario usuarioLogado) {
+        Custo custo = getCustoManualById(id, usuarioLogado);
 
-        Custo custo = new Custo();
-
-        custo.setTipo(tipo);
-        custo.setOrigem(OrigemCusto.AUTOMATICO);
-        custo.setValor(valor);
-        custo.setData(data);
-        custo.setAnimal(animal);
+        preencherDados(custo, dados, usuarioLogado);
 
         Custo custoSalvo = custoRepository.save(custo);
         if(custoSalvo.getAnimal() !=null){
@@ -123,6 +60,76 @@ public class CustoService {
         }
         return custoSalvo;
 
+    }
+
+    @Transactional
+    public void delete(Long id, Usuario usuarioLogado) {
+        Custo custo = getCustoManualById(id, usuarioLogado);
+
+        custoRepository.delete(custo);
+    }
+
+    public Custo getCustoById(Long id, Usuario usuarioLogado) {
+        Custo custo = custoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                    "Custo não encontrado"
+                ));
+
+        acessoPropriedadeService.validarAcesso(
+                getPropriedade(custo),
+                usuarioLogado,
+                "Você não tem acesso a esta propriedade"
+        );
+
+        return custo;
+    }
+
+    private Custo getCustoManualById(Long id, Usuario usuarioLogado) {
+        Custo custo = getCustoById(id, usuarioLogado);
+
+        if (custo.getOrigem() == OrigemCusto.AUTOMATICO) {
+            throw new ConflitoNegocioException(
+                "Custos automáticos só podem ser alterados pelo registro que os gerou"
+            );
+        }
+
+        return custo;
+    }
+
+    private Propriedade getPropriedade(Custo custo) {
+        if (custo.getAnimal() != null) {
+            return custo.getAnimal().getLote() != null ? custo.getAnimal().getLote().getPropriedade() : null;
+        }
+
+        if (custo.getLote() != null) {
+            return custo.getLote().getPropriedade();
+        }
+
+        return custo.getPropriedade();
+    }
+
+    private void preencherDados(Custo custo, CustoRequestDTO dados, Usuario usuarioLogado) {
+
+        validarDestino(dados);
+
+        custo.setTipo(dados.tipo());
+        custo.setValor(dados.valor());
+        custo.setData(dados.data());
+        custo.setAnimal(null);
+        custo.setLote(null);
+        custo.setPropriedade(null);
+
+        if (dados.animalId() != null) {
+            custo.setAnimal(animalService.getAnimalById(dados.animalId(), usuarioLogado));
+        }
+
+        if (dados.loteId() != null) {
+            custo.setLote(loteService.getLoteById(dados.loteId(), usuarioLogado));
+        }
+
+        if (dados.propriedadeId() != null) {
+            custo.setPropriedade(propriedadeService.getPropriedadeById(dados.propriedadeId(), usuarioLogado));
+        }
     }
 
     private void validarDestino(CustoRequestDTO dados) {
@@ -142,8 +149,7 @@ public class CustoService {
         }
 
         if (destinos != 1) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            throw new RegraNegocioException(
                     "O custo deve estar associado a um animal, lote ou propriedade."
             );
         }
@@ -151,5 +157,13 @@ public class CustoService {
 
     public List<Custo> getAll(Usuario usuarioLogado) {
         return custoRepository.findByProdutor(usuarioLogado.getId());
+    }
+
+    public List<Custo> getByAnimalId(Long animalId) {
+        return custoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
+    }
+
+    public List<Custo> getByAnimalIds(Collection<Long> animalIds) {
+        return custoRepository.findByAnimalIdIn(animalIds);
     }
 }

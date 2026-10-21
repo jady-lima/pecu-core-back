@@ -16,11 +16,8 @@ import com.Pecucore.system.model.Pesagem;
 import com.Pecucore.system.model.Usuario;
 import com.Pecucore.system.model.Vacinacao;
 import com.Pecucore.system.repository.AlertaRepository;
-import com.Pecucore.system.repository.AlimentacaoRepository;
-import com.Pecucore.system.repository.CustoRepository;
-import com.Pecucore.system.repository.MedicamentoRepository;
-import com.Pecucore.system.repository.PesagemRepository;
-import com.Pecucore.system.repository.VacinacaoRepository;
+import com.Pecucore.system.service.calculo.GmdService;
+import com.Pecucore.system.service.politica.PoliticaVisibilidadeFinanceira;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,32 +41,42 @@ public class ContextoAnaliseService {
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
     @Autowired
-    private PesagemRepository pesagemRepository;
+    private PesagemService pesagemService;
 
     @Autowired
-    private AlimentacaoRepository alimentacaoRepository;
+    private AlimentacaoService alimentacaoService;
 
     @Autowired
-    private VacinacaoRepository vacinacaoRepository;
+    private VacinacaoService vacinacaoService;
 
     @Autowired
-    private MedicamentoRepository medicamentoRepository;
+    private MedicamentoService medicamentoService;
 
     @Autowired
     private AlertaRepository alertaRepository;
 
     @Autowired
-    private CustoRepository custoRepository;
+    private CustoService custoService;
 
     @Autowired
     private MetaDesempenhoService metaDesempenhoService;
 
+    @Autowired
+    private CarenciaService carenciaService;
+
     @Transactional(readOnly = true)
-    public ContextoAnaliseAnimalDTO montar(Long animalId, Usuario usuarioLogado) {
+    public ContextoAnaliseAnimalDTO montarIndividual(Long animalId, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalById(animalId, usuarioLogado);
+
+        return montarContextoAnimal(animal, usuarioLogado);
+    }
+
+
+    private ContextoAnaliseAnimalDTO montarContextoAnimal(Animal animal, Usuario usuarioLogado) {
+        Long animalId = animal.getId();
         LocalDate hoje = LocalDate.now();
 
-        List<Pesagem> pesagens = pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
+        List<Pesagem> pesagens = pesagemService.getHistoricoByAnimalId(animalId);
 
         if (pesagens.size() < MINIMO_PESAGENS) {
             throw new DadosInsuficientesException(
@@ -77,16 +84,16 @@ public class ContextoAnaliseService {
             );
         }
 
-        List<Vacinacao> vacinacoes = vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
-        List<Medicamento> medicamentos = medicamentoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
-        boolean emCarencia = estaEmCarencia(vacinacoes, medicamentos, hoje);
+        List<Vacinacao> vacinacoes = vacinacaoService.getHistoricoByAnimalId(animalId);
+        List<Medicamento> medicamentos = medicamentoService.getHistoricoByAnimalId(animalId);
+        boolean emCarencia = carenciaService.estaEmCarencia(animalId);
 
         return new ContextoAnaliseAnimalDTO(
             hoje,
             new DadosAnimalDTO(animal, emCarencia, hoje),
             montarDesempenho(animal, pesagens),
             pesagens.stream().map(PesagemContextoDTO::new).toList(),
-            alimentacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId).stream().map(AlimentacaoContextoDTO::new).toList(),
+            alimentacaoService.getHistoricoByAnimalId(animalId).stream().map(AlimentacaoContextoDTO::new).toList(),
             vacinacoes.stream().map(VacinacaoContextoDTO::new).toList(),
             medicamentos.stream().map(MedicamentoContextoDTO::new).toList(),
             montarAlertas(animalId, usuarioLogado),
@@ -103,20 +110,9 @@ public class ContextoAnaliseService {
 
         Double gmdMeta = metaDesempenhoService.getGmdEsperado(animal.getLote()).orElse(null);
 
-        Double percentualDaMeta = null;
-        if (gmdPeriodo != null && gmdMeta != null && gmdMeta > 0) {
-            percentualDaMeta = (gmdPeriodo / gmdMeta) * 100;
-        }
+        Double percentualDaMeta = gmdService.calcularPercentualDaMeta(gmdPeriodo, gmdMeta);
 
         return new DesempenhoContextoDTO(gmdPeriodo, diasAvaliados, gmdMeta, percentualDaMeta);
-    }
-
-    private boolean estaEmCarencia(List<Vacinacao> vacinacoes, List<Medicamento> medicamentos, LocalDate hoje) {
-        boolean carenciaVacina = vacinacoes.stream().anyMatch(vacinacao -> vacinacao.getDataFimCarencia().isAfter(hoje));
-
-        boolean carenciaMedicamento = medicamentos.stream().anyMatch(medicamento -> medicamento.getDataFimCarencia().isAfter(hoje));
-
-        return carenciaVacina || carenciaMedicamento;
     }
 
     private List<AlertaContextoDTO> montarAlertas(Long animalId, Usuario usuarioLogado) {
@@ -131,6 +127,8 @@ public class ContextoAnaliseService {
             return null;
         }
 
-        return new ResumoCustoDTO(custoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId));
+        return new ResumoCustoDTO(custoService.getByAnimalId(animalId));
     }
+
+
 }

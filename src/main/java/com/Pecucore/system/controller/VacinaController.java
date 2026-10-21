@@ -49,6 +49,18 @@ public class VacinaController {
         return ResponseEntity.ok(new VacinaResponseDTO(vacinaAtualizada));
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir vacina do catálogo")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Vacina excluída com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Vacina não encontrada"),
+        @ApiResponse(responseCode = "409", description = "Vacina já aplicada em algum animal")
+    })
+    public ResponseEntity<Void> deleteVacina(@PathVariable Long id) {
+        vacinaService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     @Operation(summary = "Listar vacinas do catálogo")
     public ResponseEntity<List<VacinaResponseDTO>> getAllVacinas() {

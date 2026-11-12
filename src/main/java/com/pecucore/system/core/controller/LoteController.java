@@ -13,12 +13,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Lotes", description = "Lotes das propriedades e suas metas")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/lotes")
@@ -27,6 +33,13 @@ public class LoteController {
     private LoteService loteService;
 
     @PostMapping
+    @Operation(summary = "Cadastrar lote")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Lote cadastrado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Propriedade não encontrada"),
+            @ApiResponse(responseCode = "409", description = "Já existe um lote com esse número na propriedade")
+    })
     public ResponseEntity<LoteResponseDTO> create(
             @RequestBody @Valid LoteRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado
@@ -41,6 +54,13 @@ public class LoteController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar lote")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lote atualizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Lote não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Número já usado ou capacidade menor que os animais ativos")
+    })
     public ResponseEntity<LoteResponseDTO> updateLote(
             @PathVariable Long id,
             @RequestBody @Valid LoteRequestDTO dados,
@@ -60,6 +80,10 @@ public class LoteController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar lotes")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lotes listados com sucesso")
+    })
     public ResponseEntity<List<LoteResponseDTO>> getAllLotes(
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
@@ -76,6 +100,11 @@ public class LoteController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar lote por ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lote encontrado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Lote não encontrado")
+    })
     public ResponseEntity<LoteResponseDTO> getLoteById(
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuarioLogado
@@ -93,6 +122,12 @@ public class LoteController {
     }
 
     @PutMapping("/{id}/meta-gmd")
+    @Operation(summary = "Definir a meta de GMD do lote")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Meta definida com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Lote não encontrado")
+    })
     public ResponseEntity<LoteResponseDTO> atualizarMetaGmd(@PathVariable Long id, @RequestBody @Valid LoteMetaGmdRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
 
         Lote loteAtualizado =loteService.atualizarMetaGmd(
@@ -105,6 +140,11 @@ public class LoteController {
     }
 
     @DeleteMapping("/{id}/meta-gmd")
+    @Operation(summary = "Remover a meta de GMD do lote")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Meta removida com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Lote não encontrado")
+    })
     public ResponseEntity<Void> removerMetaGmd(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
 
         loteService.removerMetaGmd(
@@ -116,6 +156,12 @@ public class LoteController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir lote")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Lote excluído com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Lote não encontrado"),
+            @ApiResponse(responseCode = "409", description = "O lote possui animais ativos")
+    })
     public ResponseEntity<Void> deleteLote(
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuarioLogado

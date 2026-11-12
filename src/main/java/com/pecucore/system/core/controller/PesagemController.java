@@ -7,11 +7,14 @@ import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import com.pecucore.system.core.service.pesagem.ResultadoPesagem;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Pesagens", description = "Registros de pesagem e cálculo de GMD")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/pesagens")

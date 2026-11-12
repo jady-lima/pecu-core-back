@@ -4,10 +4,13 @@ import com.pecucore.system.core.dto.analise.AnaliseIAResponseDTO;
 import com.pecucore.system.core.model.AnaliseIA;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.service.analise.AnaliseIAService;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Análises com IA", description = "Análises individuais e comparativas e seu histórico")
 @RestController
 @RequestMapping("/analises")
 @SecurityRequirement(name = "bearerAuth")

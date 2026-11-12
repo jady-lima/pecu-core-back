@@ -1,5 +1,7 @@
 package com.pecucore.system.core.service.alerta;
 
+import com.pecucore.system.core.exception.AcessoNegadoException;
+import com.pecucore.system.core.exception.RegraNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.model.*;
 
@@ -8,7 +10,6 @@ import com.pecucore.system.core.repository.CustoRepository;
 import com.pecucore.system.core.repository.RegraAlertaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -73,7 +74,7 @@ public class AlertaService {
                     try {
                         validarAcessoAoAlerta(alerta, usuario);
                         return true;
-                    } catch (AccessDeniedException e) {
+                    } catch (AcessoNegadoException e) {
                         return false;
                     }
                 })
@@ -82,7 +83,7 @@ public class AlertaService {
 
     public Alerta atualizarStatus(Long id, StatusAlerta novoStatus) {
         if (novoStatus == null) {
-            throw new IllegalArgumentException("O status é obrigatório.");
+            throw new RegraNegocioException("O status é obrigatório.");
         }
 
         Alerta alerta = alertaRepository.findById(id)
@@ -102,7 +103,7 @@ public class AlertaService {
 
         if (autenticacao == null
                 || !(autenticacao.getPrincipal() instanceof Usuario)) {
-            throw new AccessDeniedException("Usuário não autenticado.");
+            throw new AcessoNegadoException("Usuário não autenticado.");
         }
 
         return (Usuario) autenticacao.getPrincipal();
@@ -128,13 +129,13 @@ public class AlertaService {
                 || alerta.getAnimal().getLote().getPropriedade() == null
                 || !temAcesso(
                 alerta.getAnimal().getLote().getPropriedade(), usuario)) {
-            throw new AccessDeniedException(
+            throw new AcessoNegadoException(
                     "Você não tem acesso a este alerta.");
         }
 
         if (usuario.getPerfil() == Perfil.VETERINARIO
                 && alerta.getTipo() == TipoAlerta.CUSTO_ACIMA) {
-            throw new AccessDeniedException(
+            throw new AcessoNegadoException(
                     "Você não tem permissão para acessar alertas financeiros.");
         }
     }

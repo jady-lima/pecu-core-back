@@ -1,8 +1,8 @@
 package com.pecucore.system;
 
-import com.pecucore.system.repository.MedicamentoRepository;
-import com.pecucore.system.repository.VacinacaoRepository;
-import com.pecucore.system.service.CarenciaService;
+import com.pecucore.system.core.repository.MedicamentoRepository;
+import com.pecucore.system.core.repository.VacinacaoRepository;
+import com.pecucore.system.bovinos.sanidade.CarenciaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

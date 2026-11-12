@@ -1,16 +1,16 @@
 package com.pecucore.system;
 
-import com.pecucore.system.dto.pesagem.PesagemRequestDTO;
-import com.pecucore.system.exception.ConflitoNegocioException;
-import com.pecucore.system.model.Animal;
-import com.pecucore.system.model.Pesagem;
-import com.pecucore.system.model.Usuario;
-import com.pecucore.system.repository.PesagemRepository;
-import com.pecucore.system.service.AnimalService;
-import com.pecucore.system.service.alerta.AlertaPesoService;
-import com.pecucore.system.service.calculo.GmdService;
-import com.pecucore.system.service.pesagem.PesagemService;
-import com.pecucore.system.service.pesagem.ResultadoPesagem;
+import com.pecucore.system.core.dto.pesagem.PesagemRequestDTO;
+import com.pecucore.system.core.exception.ConflitoNegocioException;
+import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.Pesagem;
+import com.pecucore.system.core.model.Usuario;
+import com.pecucore.system.core.repository.PesagemRepository;
+import com.pecucore.system.core.service.AnimalService;
+import com.pecucore.system.core.service.alerta.AlertaPesoService;
+import com.pecucore.system.bovinos.desempenho.GmdService;
+import com.pecucore.system.core.service.pesagem.PesagemService;
+import com.pecucore.system.core.service.pesagem.ResultadoPesagem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

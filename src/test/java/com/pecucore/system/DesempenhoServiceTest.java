@@ -1,14 +1,15 @@
 package com.pecucore.system;
 
-import com.pecucore.system.dto.desempenho.ComparacaoDesempenhoResponseDTO;
-import com.pecucore.system.exception.ConflitoNegocioException;
-import com.pecucore.system.exception.RecursoNaoEncontradoException;
-import com.pecucore.system.model.*;
-import com.pecucore.system.service.AnimalService;
-import com.pecucore.system.service.DesempenhoService;
-import com.pecucore.system.service.MetaDesempenhoService;
-import com.pecucore.system.service.calculo.GmdService;
-import com.pecucore.system.service.pesagem.PesagemService;
+import com.pecucore.system.bovinos.agrupamento.FinalidadeLote;
+import com.pecucore.system.core.dto.desempenho.ComparacaoDesempenhoResponseDTO;
+import com.pecucore.system.core.exception.ConflitoNegocioException;
+import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
+import com.pecucore.system.core.model.*;
+import com.pecucore.system.core.service.AnimalService;
+import com.pecucore.system.core.service.DesempenhoService;
+import com.pecucore.system.bovinos.agrupamento.MetaDesempenhoService;
+import com.pecucore.system.bovinos.desempenho.GmdService;
+import com.pecucore.system.core.service.pesagem.PesagemService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

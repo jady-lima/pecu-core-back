@@ -1,0 +1,104 @@
+package com.pecucore.system.core.controller;
+
+import com.pecucore.system.core.dto.medicamento.MedicamentoRequestDTO;
+import com.pecucore.system.core.dto.medicamento.MedicamentoResponseDTO;
+import com.pecucore.system.core.dto.medicamento.MedicamentoUpdateRequestDTO;
+import com.pecucore.system.core.model.Medicamento;
+import com.pecucore.system.core.model.Usuario;
+import com.pecucore.system.core.service.MedicamentoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/medicamentos")
+@SecurityRequirement(name = "bearerAuth")
+public class MedicamentoController {
+
+    @Autowired
+    private MedicamentoService medicamentoService;
+
+    @Operation(
+            summary = "Registra um medicamento aplicado em um animal",
+            description = "Registra o medicamento e calcula a data final de carência."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Medicamento registrado com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Animal não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Animal não está ativo ou data inválida")
+    })
+    @PostMapping
+    public ResponseEntity<MedicamentoResponseDTO> create(
+            @RequestBody @Valid MedicamentoRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        Medicamento medicamento = medicamentoService.create(dados, usuarioLogado);
+
+        return ResponseEntity.status(201)
+                .body(new MedicamentoResponseDTO(medicamento));
+    }
+
+    @Operation(summary = "Edita um medicamento aplicado em um animal")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Medicamento atualizado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao animal"),
+        @ApiResponse(responseCode = "404", description = "Medicamento não encontrado"),
+        @ApiResponse(responseCode = "409", description = "Data anterior ao nascimento do animal")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<MedicamentoResponseDTO> update(
+            @PathVariable Long id,
+            @RequestBody @Valid MedicamentoUpdateRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        Medicamento medicamento = medicamentoService.update(id, dados, usuarioLogado);
+
+        return ResponseEntity.ok(new MedicamentoResponseDTO(medicamento));
+    }
+
+    @Operation(summary = "Exclui um medicamento aplicado em um animal")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Medicamento excluído com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao animal"),
+            @ApiResponse(responseCode = "404", description = "Medicamento não encontrado")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        medicamentoService.delete(id, usuarioLogado);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Consulta o histórico de medicamentos de um animal"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Histórico encontrado"),
+            @ApiResponse(responseCode = "404", description = "Animal não encontrado")
+    })
+    @GetMapping("/animal/{brinco}")
+    public ResponseEntity<List<MedicamentoResponseDTO>> getHistorico(
+            @PathVariable int brinco,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        List<MedicamentoResponseDTO> historico = medicamentoService
+                .getHistorico(brinco, usuarioLogado)
+                .stream()
+                .map(MedicamentoResponseDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(historico);
+    }
+}

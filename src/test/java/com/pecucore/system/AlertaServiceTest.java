@@ -1,11 +1,11 @@
 package com.pecucore.system;
 
-import com.pecucore.system.exception.RecursoNaoEncontradoException;
-import com.pecucore.system.model.*;
-import com.pecucore.system.repository.AlertaRepository;
-import com.pecucore.system.repository.CustoRepository;
-import com.pecucore.system.repository.RegraAlertaRepository;
-import com.pecucore.system.service.alerta.AlertaService;
+import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
+import com.pecucore.system.core.model.*;
+import com.pecucore.system.core.repository.AlertaRepository;
+import com.pecucore.system.core.repository.CustoRepository;
+import com.pecucore.system.core.repository.RegraAlertaRepository;
+import com.pecucore.system.core.service.alerta.AlertaService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

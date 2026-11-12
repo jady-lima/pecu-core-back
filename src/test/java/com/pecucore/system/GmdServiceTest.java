@@ -1,7 +1,7 @@
 package com.pecucore.system;
 
-import com.pecucore.system.model.Pesagem;
-import com.pecucore.system.service.calculo.GmdService;
+import com.pecucore.system.core.model.Pesagem;
+import com.pecucore.system.bovinos.desempenho.GmdService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

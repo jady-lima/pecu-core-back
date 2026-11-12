@@ -1,0 +1,18 @@
+
+package com.pecucore.system.core.repository;
+
+import com.pecucore.system.core.model.Lote;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface LoteRepository extends JpaRepository<Lote, Long> {
+
+    List<Lote> findByPropriedadeUsuarioId(Long usuarioId);
+
+    List<Lote> findByPropriedadeVeterinariosId(Long veterinarioId);
+
+    boolean existsByNumeroAndPropriedade_Id(int numero, Long propriedadeId);
+
+    boolean existsByNumeroAndPropriedade_IdAndIdNot(int numero, Long propriedadeId, Long id);
+}

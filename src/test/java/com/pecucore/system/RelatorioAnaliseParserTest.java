@@ -1,10 +1,10 @@
 package com.pecucore.system;
 
-import com.pecucore.system.dto.analise.RelatorioAnaliseDTO;
-import com.pecucore.system.exception.ConteudoAnaliseInvalidoException;
-import com.pecucore.system.exception.ServicoIAIndisponivelException;
-import com.pecucore.system.ia.parser.RelatorioAnaliseParser;
-import com.pecucore.system.model.SituacaoGeralAnimal;
+import com.pecucore.system.core.dto.analise.RelatorioAnaliseDTO;
+import com.pecucore.system.core.exception.ConteudoAnaliseInvalidoException;
+import com.pecucore.system.core.exception.ServicoIAIndisponivelException;
+import com.pecucore.system.core.ia.parser.RelatorioAnaliseParser;
+import com.pecucore.system.core.model.SituacaoGeralAnimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;

@@ -1,11 +1,11 @@
 package com.pecucore.system;
 
-import com.pecucore.system.model.*;
-import com.pecucore.system.repository.AlertaRepository;
-import com.pecucore.system.repository.PesagemRepository;
-import com.pecucore.system.repository.RegraAlertaRepository;
-import com.pecucore.system.service.alerta.AlertaPesoService;
-import com.pecucore.system.service.alerta.AlertaService;
+import com.pecucore.system.core.model.*;
+import com.pecucore.system.core.repository.AlertaRepository;
+import com.pecucore.system.core.repository.PesagemRepository;
+import com.pecucore.system.core.repository.RegraAlertaRepository;
+import com.pecucore.system.core.service.alerta.AlertaPesoService;
+import com.pecucore.system.core.service.alerta.AlertaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

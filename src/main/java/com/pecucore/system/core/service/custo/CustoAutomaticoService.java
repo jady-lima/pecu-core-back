@@ -18,7 +18,7 @@ public class CustoAutomaticoService {
     private CustoRepository custoRepository;
 
     @Transactional
-    public Custo registrarAutomatico(
+    public Custo createCustoAutomatico(
             TipoCusto tipo,
             double valor,
             LocalDate data,
@@ -36,7 +36,7 @@ public class CustoAutomaticoService {
     }
 
     @Transactional
-    public Custo atualizarAutomatico(
+    public Custo updateCustoAutomatico(
             Custo custo,
             double valor,
             LocalDate data) {
@@ -48,7 +48,7 @@ public class CustoAutomaticoService {
     }
 
     @Transactional
-    public Custo sincronizarAutomatico(
+    public Custo sincronizarCustoAutomatico(
             Custo custoAtual,
             TipoCusto tipo,
             Double valor,
@@ -57,21 +57,21 @@ public class CustoAutomaticoService {
 
         if (valor == null) {
             if (custoAtual != null) {
-                excluirAutomatico(custoAtual);
+                deleteCustoAutomatico(custoAtual);
             }
 
             return null;
         }
 
         if (custoAtual == null) {
-            return registrarAutomatico(tipo, valor, data, animal);
+            return createCustoAutomatico(tipo, valor, data, animal);
         }
 
-        return atualizarAutomatico(custoAtual, valor, data);
+        return updateCustoAutomatico(custoAtual, valor, data);
     }
 
     @Transactional
-    public void excluirAutomatico(Custo custo) {
+    public void deleteCustoAutomatico(Custo custo) {
         custoRepository.delete(custo);
     }
 }

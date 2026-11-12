@@ -43,7 +43,7 @@ public class CustoService {
     private AlertaService alertaService;
 
     @Transactional
-    public Custo create(CustoRequestDTO dados, Usuario usuarioLogado) {
+    public Custo createCusto(CustoRequestDTO dados, Usuario usuarioLogado) {
         Custo custo = new Custo();
         custo.setOrigem(OrigemCusto.MANUAL);
 
@@ -57,7 +57,7 @@ public class CustoService {
     }
 
     @Transactional
-    public Custo update(Long id, CustoRequestDTO dados, Usuario usuarioLogado) {
+    public Custo updateCusto(Long id, CustoRequestDTO dados, Usuario usuarioLogado) {
         Custo custo = getCustoManualById(id, usuarioLogado);
 
         preencherDados(custo, dados, usuarioLogado);
@@ -71,7 +71,7 @@ public class CustoService {
     }
 
     @Transactional
-    public void delete(Long id, Usuario usuarioLogado) {
+    public void deleteCusto(Long id, Usuario usuarioLogado) {
         Custo custo = getCustoManualById(id, usuarioLogado);
 
         custoRepository.delete(custo);
@@ -163,15 +163,15 @@ public class CustoService {
         }
     }
 
-    public List<Custo> getAll(Usuario usuarioLogado) {
+    public List<Custo> getAllCustos(Usuario usuarioLogado) {
         return custoRepository.findByProdutor(usuarioLogado.getId());
     }
 
-    public List<Custo> getByAnimalId(Long animalId) {
+    public List<Custo> getCustosByAnimalId(Long animalId) {
         return custoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
     }
 
-    public List<Custo> getByAnimalIds(Collection<Long> animalIds) {
+    public List<Custo> getCustosByAnimalIds(Collection<Long> animalIds) {
         return custoRepository.findByAnimalIdIn(animalIds);
     }
 }

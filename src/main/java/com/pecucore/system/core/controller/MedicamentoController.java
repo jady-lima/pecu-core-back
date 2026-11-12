@@ -41,11 +41,11 @@ public class MedicamentoController {
             @ApiResponse(responseCode = "409", description = "Animal não está ativo ou data inválida")
     })
     @PostMapping
-    public ResponseEntity<MedicamentoResponseDTO> create(
+    public ResponseEntity<MedicamentoResponseDTO> createMedicamento(
             @RequestBody @Valid MedicamentoRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        Medicamento medicamento = medicamentoService.create(dados, usuarioLogado);
+        Medicamento medicamento = medicamentoService.createMedicamento(dados, usuarioLogado);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new MedicamentoResponseDTO(medicamento));
@@ -60,12 +60,12 @@ public class MedicamentoController {
         @ApiResponse(responseCode = "409", description = "Data anterior ao nascimento do animal")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<MedicamentoResponseDTO> update(
+    public ResponseEntity<MedicamentoResponseDTO> updateMedicamento(
             @PathVariable Long id,
             @RequestBody @Valid MedicamentoUpdateRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        Medicamento medicamento = medicamentoService.update(id, dados, usuarioLogado);
+        Medicamento medicamento = medicamentoService.updateMedicamento(id, dados, usuarioLogado);
 
         return ResponseEntity.ok(new MedicamentoResponseDTO(medicamento));
     }
@@ -77,11 +77,11 @@ public class MedicamentoController {
             @ApiResponse(responseCode = "404", description = "Medicamento não encontrado")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<Void> deleteMedicamento(
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        medicamentoService.delete(id, usuarioLogado);
+        medicamentoService.deleteMedicamento(id, usuarioLogado);
 
         return ResponseEntity.noContent().build();
     }

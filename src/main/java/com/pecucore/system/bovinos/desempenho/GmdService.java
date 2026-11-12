@@ -9,7 +9,7 @@ import java.time.temporal.ChronoUnit;
 @Service
 public class GmdService {
 
-    public Double calculateGmd(Pesagem pesagemAnterior, double pesoAtualKg, LocalDate dataAtual) {
+    public Double calcularGmd(Pesagem pesagemAnterior, double pesoAtualKg, LocalDate dataAtual) {
 
         if (pesagemAnterior == null) {
             return null;
@@ -29,7 +29,7 @@ public class GmdService {
         return variacaoKg / dias;
     }
 
-    public Double calculateGmdHistorico(Pesagem primeiraPesagem, Pesagem ultimaPesagem) {
+    public Double calcularGmdHistorico(Pesagem primeiraPesagem, Pesagem ultimaPesagem) {
 
         if (primeiraPesagem == null || ultimaPesagem == null) {
             return null;

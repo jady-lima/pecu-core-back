@@ -26,7 +26,7 @@ public class PropriedadeService {
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
 
-    public Propriedade create(PropriedadeRequestDTO dados, Usuario usuarioLogado) {
+    public Propriedade createPropriedade(PropriedadeRequestDTO dados, Usuario usuarioLogado) {
 
         Usuario dono = definirDono(dados, usuarioLogado);
 
@@ -74,7 +74,7 @@ public class PropriedadeService {
         return usuarioService.getUsuarioById(usuarioLogado.getId());
     }
 
-    public Propriedade update(
+    public Propriedade updatePropriedade(
             Long id,
             PropriedadeRequestDTO dados,
             Usuario usuarioLogado

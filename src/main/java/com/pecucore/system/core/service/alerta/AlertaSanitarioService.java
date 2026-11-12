@@ -77,7 +77,7 @@ public class AlertaSanitarioService {
                 return;
             }
 
-            alertaService.criarAlerta(
+            alertaService.createAlerta(
                     animal,
                     TipoAlerta.VACINA_PROX_VENC,
                     "Atenção: vacinação próxima. A próxima dose da vacina está prevista para "
@@ -120,7 +120,7 @@ public class AlertaSanitarioService {
                 return;
             }
 
-            alertaService.criarAlerta(
+            alertaService.createAlerta(
                     animal,
                     TipoAlerta.VACINA_VENC,
                     "A vacina do animal está vencida. A próxima dose estava prevista para "
@@ -163,7 +163,7 @@ public class AlertaSanitarioService {
                 return;
             }
 
-            alertaService.criarAlerta(
+            alertaService.createAlerta(
                     animal,
                     TipoAlerta.PERIODO_CARENCIA,
                     "Animal ainda está em período de carência. Animal estará em período de carência até "

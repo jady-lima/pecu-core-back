@@ -41,7 +41,7 @@ public class AnimalService {
     private AcessoPropriedadeService acessoPropriedadeService;
 
     @Transactional
-    public Animal create(
+    public Animal createAnimal(
             AnimalRequestDTO dados,
             Usuario usuarioLogado
     ) {
@@ -88,7 +88,7 @@ public class AnimalService {
     }
 
     @Transactional
-    public Animal update(
+    public Animal updateAnimal(
             Long id,
             AnimalRequestDTO dados,
             Usuario usuarioLogado
@@ -163,7 +163,7 @@ public class AnimalService {
     }
 
     @Transactional
-    public Animal updateStatus(
+    public Animal updateStatusAnimal(
             Long id,
             AnimalStatusRequestDTO dados,
             Usuario usuarioLogado
@@ -203,7 +203,7 @@ public class AnimalService {
     }
 
     @Transactional
-    public Animal atualizarPesoAtual(
+    public Animal updatePesoAtual(
             Animal animal,
             double pesoKg
     ) {

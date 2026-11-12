@@ -36,7 +36,7 @@ public class VacinacaoService {
     private CustoAutomaticoService custoAutomaticoService;
 
     @Transactional
-    public Vacinacao create(VacinacaoRequestDTO dados, Usuario usuarioLogado) {
+    public Vacinacao createVacinacao(VacinacaoRequestDTO dados, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
         animalService.validarDataRegistro(animal, dados.data());
 
@@ -54,7 +54,7 @@ public class VacinacaoService {
     }
 
     @Transactional
-    public Vacinacao update(Long id, VacinacaoUpdateRequestDTO dados, Usuario usuarioLogado) {
+    public Vacinacao updateVacinacao(Long id, VacinacaoUpdateRequestDTO dados, Usuario usuarioLogado) {
         Vacinacao vacinacao = getVacinacaoById(id, usuarioLogado);
         animalService.validarDataRegistro(vacinacao.getAnimal(), dados.data());
 
@@ -67,14 +67,14 @@ public class VacinacaoService {
     }
 
     @Transactional
-    public void delete(Long id, Usuario usuarioLogado) {
+    public void deleteVacinacao(Long id, Usuario usuarioLogado) {
         Vacinacao vacinacao = getVacinacaoById(id, usuarioLogado);
         Custo custo = vacinacao.getCusto();
 
         vacinacaoRepository.delete(vacinacao);
 
         if (custo != null) {
-            custoAutomaticoService.excluirAutomatico(custo);
+            custoAutomaticoService.deleteCustoAutomatico(custo);
         }
     }
 
@@ -104,6 +104,6 @@ public class VacinacaoService {
         vacinacao.setDataFimCarencia(calculadoraCarencia.calcularDataFimCarencia(data, vacina.getCarenciaDias()));
         vacinacao.setDataProximaDose(vacina.getIntervaloDoseDias() != null ? data.plusDays(vacina.getIntervaloDoseDias()) : null);
 
-        vacinacao.setCusto(custoAutomaticoService.sincronizarAutomatico(vacinacao.getCusto(), TipoCusto.VACINA, valor, data, vacinacao.getAnimal()));
+        vacinacao.setCusto(custoAutomaticoService.sincronizarCustoAutomatico(vacinacao.getCusto(), TipoCusto.VACINA, valor, data, vacinacao.getAnimal()));
     }
 }

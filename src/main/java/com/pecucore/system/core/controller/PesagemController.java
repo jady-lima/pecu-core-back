@@ -41,8 +41,8 @@ public class PesagemController {
         @ApiResponse(responseCode = "404", description = "Animal não encontrado"),
         @ApiResponse(responseCode = "409", description = "Animal não está ativo, ou a data da pesagem é anterior ao nascimento do animal ou à última pesagem registrada")
     })
-    public ResponseEntity<PesagemResponseDTO> create(@RequestBody @Valid PesagemRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
-        ResultadoPesagem resultado = pesagemService.create(dados, usuarioLogado);
+    public ResponseEntity<PesagemResponseDTO> createPesagem(@RequestBody @Valid PesagemRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
+        ResultadoPesagem resultado = pesagemService.createPesagem(dados, usuarioLogado);
         return ResponseEntity.status(HttpStatus.CREATED).body(new PesagemResponseDTO(resultado.pesagem(), resultado.aviso()));
     }
 

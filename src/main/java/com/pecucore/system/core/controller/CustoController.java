@@ -40,11 +40,11 @@ public class CustoController {
             @ApiResponse(responseCode = "404", description = "Animal, lote ou propriedade não encontrado")
     })
     @PostMapping
-    public ResponseEntity<CustoResponseDTO> create(
+    public ResponseEntity<CustoResponseDTO> createCusto(
             @RequestBody @Valid CustoRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        Custo custo = custoService.create(dados, usuarioLogado);
+        Custo custo = custoService.createCusto(dados, usuarioLogado);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new CustoResponseDTO(custo));
@@ -59,12 +59,12 @@ public class CustoController {
         @ApiResponse(responseCode = "409", description = "Custo automático não pode ser editado")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<CustoResponseDTO> update(
+    public ResponseEntity<CustoResponseDTO> updateCusto(
         @PathVariable Long id,
         @RequestBody @Valid CustoRequestDTO dados,
         @AuthenticationPrincipal Usuario usuarioLogado
     ) {
-        Custo custo = custoService.update(id, dados, usuarioLogado);
+        Custo custo = custoService.updateCusto(id, dados, usuarioLogado);
 
         return ResponseEntity.ok(new CustoResponseDTO(custo));
     }
@@ -77,11 +77,11 @@ public class CustoController {
         @ApiResponse(responseCode = "409", description = "Custo automático não pode ser excluído")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<Void> deleteCusto(
         @PathVariable Long id,
         @AuthenticationPrincipal Usuario usuarioLogado
     ) {
-        custoService.delete(id, usuarioLogado);
+        custoService.deleteCusto(id, usuarioLogado);
 
         return ResponseEntity.noContent().build();
     }
@@ -93,7 +93,7 @@ public class CustoController {
         @ApiResponse(responseCode = "404", description = "Custo não encontrado")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<CustoResponseDTO> getById(
+    public ResponseEntity<CustoResponseDTO> getCustoById(
         @PathVariable Long id,
         @AuthenticationPrincipal Usuario usuarioLogado
     ) {
@@ -109,10 +109,10 @@ public class CustoController {
             @ApiResponse(responseCode = "200", description = "Custos encontrados")
     })
     @GetMapping
-    public ResponseEntity<List<CustoResponseDTO>> getAll(
+    public ResponseEntity<List<CustoResponseDTO>> getAllCustos(
             @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        List<CustoResponseDTO> custos = custoService.getAll(usuarioLogado)
+        List<CustoResponseDTO> custos = custoService.getAllCustos(usuarioLogado)
                 .stream()
                 .map(CustoResponseDTO::new)
                 .toList();

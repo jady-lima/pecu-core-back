@@ -43,13 +43,13 @@ public class AnimalController {
             @ApiResponse(responseCode = "404", description = "Lote não encontrado"),
             @ApiResponse(responseCode = "409", description = "Brinco já cadastrado ou lote sem capacidade")
     })
-    public ResponseEntity<AnimalResponseDTO> create(
+    public ResponseEntity<AnimalResponseDTO> createAnimal(
             @RequestBody @Valid AnimalRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
         Animal animalCriado =
-                animalService.create(dados, usuarioLogado);
+                animalService.createAnimal(dados, usuarioLogado);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -71,7 +71,7 @@ public class AnimalController {
     ) {
 
         Animal animalAtualizado =
-                animalService.update(id, dados, usuarioLogado);
+                animalService.updateAnimal(id, dados, usuarioLogado);
 
         return ResponseEntity.ok(
                 new AnimalResponseDTO(animalAtualizado)
@@ -93,7 +93,7 @@ public class AnimalController {
     ) {
 
         Animal animalAtualizado =
-                animalService.updateStatus(id, dados, usuarioLogado);
+                animalService.updateStatusAnimal(id, dados, usuarioLogado);
 
         return ResponseEntity.ok(
                 new AnimalResponseDTO(animalAtualizado)

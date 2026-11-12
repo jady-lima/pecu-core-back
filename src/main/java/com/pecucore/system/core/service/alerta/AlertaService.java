@@ -60,13 +60,13 @@ public class AlertaService {
             return;
         }
 
-        criarAlerta(animal, TipoAlerta.CUSTO_ACIMA,
+        createAlerta(animal, TipoAlerta.CUSTO_ACIMA,
                 "O animal está com custo acumulado de R$ " + custoTotal
                         + ", acima do limite estabelecido de R$ "
                         + regra.getParametro() + ".");
     }
 
-    public List<Alerta> listarAlertas() {
+    public List<Alerta> getAllAlertas() {
         Usuario usuario = usuarioAtual();
 
         return alertaRepository.findAll().stream()
@@ -81,7 +81,7 @@ public class AlertaService {
                 .toList();
     }
 
-    public Alerta atualizarStatus(Long id, StatusAlerta novoStatus) {
+    public Alerta updateStatusAlerta(Long id, StatusAlerta novoStatus) {
         if (novoStatus == null) {
             throw new RegraNegocioException("O status é obrigatório.");
         }
@@ -158,7 +158,7 @@ public class AlertaService {
         }
     }
 
-    public void criarAlerta(
+    public void createAlerta(
             Animal animal,
             TipoAlerta tipo,
             String mensagem

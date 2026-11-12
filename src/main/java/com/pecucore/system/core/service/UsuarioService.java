@@ -37,7 +37,7 @@ public class UsuarioService implements UserDetailsService {
         return usuario;
     }
 
-    public Usuario findByUsername(String username) {
+    public Usuario getUsuarioByUsername(String username) {
         return (Usuario) usuarioRepository.findByUsername(username);
     }
 
@@ -77,7 +77,7 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.save(usuarioExistente);
     }
 
-    public void alterarSenha(Usuario usuarioLogado, AlterarSenhaRequestDTO dados) {
+    public void updateSenha(Usuario usuarioLogado, AlterarSenhaRequestDTO dados) {
         Usuario usuario = getUsuarioById(usuarioLogado.getId());
 
         if (!passwordEncoder.matches(dados.senhaAtual(), usuario.getPassword())) {

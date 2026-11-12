@@ -20,7 +20,7 @@ public class VacinaService {
     @Autowired
     private VacinacaoRepository vacinacaoRepository;
 
-    public Vacina create(VacinaRequestDTO dados) {
+    public Vacina createVacina(VacinaRequestDTO dados) {
         String nome = normalizarNome(dados.nome());
         if (vacinaRepository.existsByNome(nome)) {
             throw new ConflitoNegocioException( "Já existe uma vacina com este nome.");
@@ -35,7 +35,7 @@ public class VacinaService {
         return vacinaRepository.save(vacina);
     }
 
-    public Vacina update(Long id, VacinaRequestDTO dados) {
+    public Vacina updateVacina(Long id, VacinaRequestDTO dados) {
         Vacina vacinaExistente = getVacinaById(id);
 
         String nome = normalizarNome(dados.nome());
@@ -51,7 +51,7 @@ public class VacinaService {
         return vacinaRepository.save(vacinaExistente);
     }
 
-    public void delete(Long id) {
+    public void deleteVacina(Long id) {
         Vacina vacina = getVacinaById(id);
 
         if (vacinacaoRepository.existsByVacinaId(id)) {

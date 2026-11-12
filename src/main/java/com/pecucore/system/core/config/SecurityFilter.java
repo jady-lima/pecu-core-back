@@ -41,7 +41,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         if (token != null) {
             try {
-                String username = tokenService.validateToken(token);
+                String username = tokenService.validarToken(token);
 
                 if (username == null || username.isBlank()) {
                     erroSegurancaHandler.responderTokenInvalido(request, response);
@@ -49,7 +49,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                 }
 
                 Usuario usuario =
-                        usuarioService.findByUsername(username);
+                        usuarioService.getUsuarioByUsername(username);
 
                 if (usuario == null) {
                     erroSegurancaHandler.responderTokenInvalido(request, response);

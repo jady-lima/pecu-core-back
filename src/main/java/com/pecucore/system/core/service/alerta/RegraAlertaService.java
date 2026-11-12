@@ -26,7 +26,7 @@ public class RegraAlertaService {
     @Autowired
     private PropriedadeRepository propriedadeRepository;
 
-    public RegraAlerta criarRegra(
+    public RegraAlerta createRegraAlerta(
             Long propriedadeId,
             TipoAlerta tipo,
             double parametro
@@ -48,7 +48,7 @@ public class RegraAlertaService {
         return regraAlertaRepository.save(regra);
     }
 
-    public RegraAlerta atualizarRegra(
+    public RegraAlerta updateRegraAlerta(
             Long id,
             double parametro,
             boolean ativa

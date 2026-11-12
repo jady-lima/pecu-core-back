@@ -41,13 +41,13 @@ public class PesagemService {
 
     @EventListener
     @Transactional
-    public void handlePesoAnimalAlterado(PesoAnimalAlteradoEvento evento) {
+    public void tratarPesoAnimalAlterado(PesoAnimalAlteradoEvento evento) {
         Animal animal = animalService.getAnimalAtivoById(evento.animalId());
         registrar(animal, evento.pesoKg(), evento.data());
     }
 
     @Transactional
-    public ResultadoPesagem create(PesagemRequestDTO dados, Usuario usuarioLogado) {
+    public ResultadoPesagem createPesagem(PesagemRequestDTO dados, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
         return registrar(animal, dados.pesoAtual(), dados.dataPesagem());
     }
@@ -77,7 +77,7 @@ public class PesagemService {
             }
         }
 
-        Double gmd = gmdService.calculateGmd(ultimaPesagem, pesoKg, dataPesagem);
+        Double gmd = gmdService.calcularGmd(ultimaPesagem, pesoKg, dataPesagem);
 
         Pesagem pesagem = new Pesagem();
 
@@ -87,7 +87,7 @@ public class PesagemService {
         pesagem.setAnimal(animal);
 
         pesagemRepository.save(pesagem);
-        animalService.atualizarPesoAtual(animal, pesoKg);
+        animalService.updatePesoAtual(animal, pesoKg);
         alertaPesoService.verificarGmdAbaixoMeta(animal, gmd);
         alertaPesoService.verificarQuedaPeso(animal);
 

@@ -134,7 +134,7 @@ public class ContextoComparativoService {
                 .filter(pesagens -> pesagens.size() >= MINIMO_PESAGENS)
                 .map(pesagens -> new AnimalComparado(
                         pesagens.get(0).getAnimal(),
-                        gmdService.calculateGmdHistorico(
+                        gmdService.calcularGmdHistorico(
                                 pesagens.get(0),
                                 pesagens.get(pesagens.size() - 1)
                         )
@@ -214,7 +214,7 @@ public class ContextoComparativoService {
                 .map(comparado -> comparado.animal().getId())
                 .toList();
 
-        double total = custoService.getByAnimalIds(animalIds)
+        double total = custoService.getCustosByAnimalIds(animalIds)
                 .stream()
                 .mapToDouble(Custo::getValor)
                 .sum();

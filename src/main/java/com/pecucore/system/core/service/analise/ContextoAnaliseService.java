@@ -110,7 +110,7 @@ public class ContextoAnaliseService {
         Pesagem primeiraPesagem = pesagens.get(0);
         Pesagem ultimaPesagem = pesagens.get(pesagens.size() - 1);
 
-        Double gmdPeriodo = gmdService.calculateGmdHistorico(primeiraPesagem, ultimaPesagem);
+        Double gmdPeriodo = gmdService.calcularGmdHistorico(primeiraPesagem, ultimaPesagem);
         long diasAvaliados = ChronoUnit.DAYS.between(primeiraPesagem.getData(), ultimaPesagem.getData());
 
         Double gmdMeta = metaDesempenhoService.getGmdEsperado(animal.getLote()).orElse(null);
@@ -132,7 +132,7 @@ public class ContextoAnaliseService {
             return null;
         }
 
-        return new ResumoCustoDTO(custoService.getByAnimalId(animalId));
+        return new ResumoCustoDTO(custoService.getCustosByAnimalId(animalId));
     }
 
 

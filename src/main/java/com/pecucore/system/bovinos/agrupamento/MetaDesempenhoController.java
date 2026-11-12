@@ -36,11 +36,11 @@ public class MetaDesempenhoController {
         @ApiResponse(responseCode = "403", description = "Usuário sem permissão"),
         @ApiResponse(responseCode = "409", description = "Já existe meta cadastrada para a fase", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class)))
     })
-    public ResponseEntity<MetaDesempenhoResponseDTO> create(
+    public ResponseEntity<MetaDesempenhoResponseDTO> createMetaDesempenho(
             @RequestBody @Valid MetaDesempenhoRequestDTO dados
     ) {
 
-        MetaDesempenho meta = metaDesempenhoService.create(dados);
+        MetaDesempenho meta = metaDesempenhoService.createMetaDesempenho(dados);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -57,12 +57,12 @@ public class MetaDesempenhoController {
         @ApiResponse(responseCode = "404", description = "Meta não encontrada", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class))),
         @ApiResponse(responseCode = "409", description = "Já existe meta cadastrada para a fase", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class)))
     })
-    public ResponseEntity<MetaDesempenhoResponseDTO> update(
+    public ResponseEntity<MetaDesempenhoResponseDTO> updateMetaDesempenho(
             @PathVariable Long id,
             @RequestBody @Valid MetaDesempenhoRequestDTO dados
     ) {
 
-        MetaDesempenho meta = metaDesempenhoService.update(id, dados);
+        MetaDesempenho meta = metaDesempenhoService.updateMetaDesempenho(id, dados);
 
         return ResponseEntity.ok(new MetaDesempenhoResponseDTO(meta));
     }
@@ -73,10 +73,10 @@ public class MetaDesempenhoController {
         @ApiResponse(responseCode = "200", description = "Metas listadas com sucesso"),
         @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
     })
-    public ResponseEntity<List<MetaDesempenhoResponseDTO>> getAll() {
+    public ResponseEntity<List<MetaDesempenhoResponseDTO>> getAllMetasDesempenho() {
 
         List<MetaDesempenhoResponseDTO> metas =
-                metaDesempenhoService.getAll()
+                metaDesempenhoService.getAllMetasDesempenho()
                         .stream()
                         .map(MetaDesempenhoResponseDTO::new)
                         .toList();
@@ -91,8 +91,8 @@ public class MetaDesempenhoController {
         @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
         @ApiResponse(responseCode = "404", description = "Meta não encontrada")
     })
-    public ResponseEntity<MetaDesempenhoResponseDTO> getById(@PathVariable Long id) {
-        MetaDesempenho meta = metaDesempenhoService.getById(id);
+    public ResponseEntity<MetaDesempenhoResponseDTO> getMetaDesempenhoById(@PathVariable Long id) {
+        MetaDesempenho meta = metaDesempenhoService.getMetaDesempenhoById(id);
 
         return ResponseEntity.ok(new MetaDesempenhoResponseDTO(meta));
     }
@@ -105,8 +105,8 @@ public class MetaDesempenhoController {
         @ApiResponse(responseCode = "403", description = "Usuário sem permissão"),
         @ApiResponse(responseCode = "404", description = "Meta não encontrada", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class)))
     })
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        metaDesempenhoService.delete(id);
+    public ResponseEntity<Void> deleteMetaDesempenho(@PathVariable Long id) {
+        metaDesempenhoService.deleteMetaDesempenho(id);
 
         return ResponseEntity.noContent().build();
     }

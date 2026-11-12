@@ -17,7 +17,7 @@ public class TokenService {
     @Value("${api.security.token.secret}")
     private String segredo;
 
-    public String generateToken(Usuario usuario) {
+    public String gerarToken(Usuario usuario) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(segredo);
 
@@ -33,7 +33,7 @@ public class TokenService {
         }
     }
 
-    public String validateToken(String token) {
+    public String validarToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(segredo);
 

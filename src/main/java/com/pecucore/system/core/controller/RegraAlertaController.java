@@ -30,12 +30,12 @@ public class RegraAlertaController {
             @ApiResponse(responseCode = "400", description = "Parâmetro inválido ou regra fixa do sistema"),
             @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
     })
-    public ResponseEntity<RegraAlertaResponseDTO> criarRegra(
+    public ResponseEntity<RegraAlertaResponseDTO> createRegraAlerta(
             @RequestParam Long propriedadeId,
             @RequestParam TipoAlerta tipo,
             @RequestParam double parametro
     ) {
-        RegraAlerta regra = regraAlertaService.criarRegra(propriedadeId, tipo, parametro);
+        RegraAlerta regra = regraAlertaService.createRegraAlerta(propriedadeId, tipo, parametro);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -49,12 +49,12 @@ public class RegraAlertaController {
             @ApiResponse(responseCode = "400", description = "Parâmetro inválido"),
             @ApiResponse(responseCode = "404", description = "Regra de alerta não encontrada")
     })
-    public ResponseEntity<RegraAlertaResponseDTO> atualizarRegra(
+    public ResponseEntity<RegraAlertaResponseDTO> updateRegraAlerta(
             @PathVariable Long id,
             @RequestParam double parametro,
             @RequestParam boolean ativa
     ) {
-        RegraAlerta regra = regraAlertaService.atualizarRegra(id, parametro, ativa);
+        RegraAlerta regra = regraAlertaService.updateRegraAlerta(id, parametro, ativa);
 
         return ResponseEntity.ok(new RegraAlertaResponseDTO(regra));
     }

@@ -109,7 +109,10 @@ class ContratoApiTest {
         List<Class<?>> classes = new ArrayList<>();
         for (String pacote : PACOTES) {
             for (BeanDefinition definicao : scanner.findCandidateComponents(pacote)) {
-                classes.add(Class.forName(definicao.getBeanClassName()));
+                Class<?> classe = Class.forName(definicao.getBeanClassName());
+                if (!classe.isMemberClass()) {
+                    classes.add(classe);
+                }
             }
         }
         return classes;

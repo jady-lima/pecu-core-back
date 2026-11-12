@@ -54,7 +54,7 @@ public class DesempenhoService {
         Pesagem primeiraPesagem = pesagens.get(0);
         Pesagem ultimaPesagem = pesagens.get(pesagens.size() - 1);
 
-        Double gmdAtual = gmdService.calculateGmdHistorico(
+        Double gmdAtual = gmdService.calcularGmdHistorico(
                 primeiraPesagem,
                 ultimaPesagem
         );

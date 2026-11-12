@@ -41,13 +41,13 @@ public class AlimentacaoController {
             @ApiResponse(responseCode = "404", description = "Animal não encontrado."),
             @ApiResponse(responseCode = "409", description = "Animal não está ativo, ou a data é anterior ao nascimento do animal")
     })
-    public ResponseEntity<AlimentacaoResponseDTO> create(
+    public ResponseEntity<AlimentacaoResponseDTO> createAlimentacao(
             @RequestBody @Valid AlimentacaoRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
         Alimentacao alimentacaoCriada =
-                alimentacaoService.create(dados, usuarioLogado);
+                alimentacaoService.createAlimentacao(dados, usuarioLogado);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -62,13 +62,13 @@ public class AlimentacaoController {
             @ApiResponse(responseCode = "404", description = "Lote não encontrado."),
             @ApiResponse(responseCode = "409", description = "O lote não possui animais ativos, ou a data é anterior ao nascimento de algum animal.")
     })
-    public ResponseEntity<List<AlimentacaoResponseDTO>> createEmLote(
+    public ResponseEntity<List<AlimentacaoResponseDTO>> createAlimentacaoEmLote(
             @RequestBody @Valid AlimentacaoLoteRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
         List<Alimentacao> alimentacoes =
-                alimentacaoService.createEmLote(
+                alimentacaoService.createAlimentacaoEmLote(
                         dados,
                         usuarioLogado
                 );
@@ -92,13 +92,13 @@ public class AlimentacaoController {
             @ApiResponse(responseCode = "404", description = "Alimentação não encontrada."),
             @ApiResponse(responseCode = "409", description = "A data é anterior ao nascimento do animal.")
     })
-    public ResponseEntity<AlimentacaoResponseDTO> update(
+    public ResponseEntity<AlimentacaoResponseDTO> updateAlimentacao(
             @Parameter(description = "ID da alimentação", example = "1")
             @PathVariable Long id,
             @RequestBody @Valid AlimentacaoUpdateRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
-        Alimentacao alimentacaoAtualizada = alimentacaoService.update(id, dados, usuarioLogado);
+        Alimentacao alimentacaoAtualizada = alimentacaoService.updateAlimentacao(id, dados, usuarioLogado);
 
         return ResponseEntity.ok(new AlimentacaoResponseDTO(alimentacaoAtualizada));
     }
@@ -110,12 +110,12 @@ public class AlimentacaoController {
             @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao animal."),
             @ApiResponse(responseCode = "404", description = "Alimentação não encontrada.")
     })
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<Void> deleteAlimentacao(
             @Parameter(description = "ID da alimentação", example = "1")
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
-        alimentacaoService.delete(id, usuarioLogado);
+        alimentacaoService.deleteAlimentacao(id, usuarioLogado);
 
         return ResponseEntity.noContent().build();
     }

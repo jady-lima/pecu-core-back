@@ -32,8 +32,8 @@ public class AlertaController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Alertas listados com sucesso")
     })
-    public ResponseEntity<List<AlertaResponseDTO>> listarAlertas() {
-        List<AlertaResponseDTO> alertas = alertaService.listarAlertas().stream()
+    public ResponseEntity<List<AlertaResponseDTO>> getAllAlertas() {
+        List<AlertaResponseDTO> alertas = alertaService.getAllAlertas().stream()
                 .map(AlertaResponseDTO::new)
                 .toList();
 
@@ -47,12 +47,12 @@ public class AlertaController {
             @ApiResponse(responseCode = "400", description = "Status ausente ou inválido"),
             @ApiResponse(responseCode = "404", description = "Alerta não encontrado")
     })
-    public ResponseEntity<AlertaResponseDTO> atualizarStatus(
+    public ResponseEntity<AlertaResponseDTO> updateStatusAlerta(
             @PathVariable Long id,
             @RequestParam StatusAlerta status
     ) {
         return ResponseEntity.ok(
-                new AlertaResponseDTO(alertaService.atualizarStatus(id, status))
+                new AlertaResponseDTO(alertaService.updateStatusAlerta(id, status))
         );
     }
 }

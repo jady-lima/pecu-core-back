@@ -40,8 +40,8 @@ public class VacinacaoController {
         @ApiResponse(responseCode = "404", description = "Animal ou vacina não encontrado."),
         @ApiResponse(responseCode = "409", description = "Animal não está ativo, ou a data é anterior ao nascimento do animal")
     })
-    public ResponseEntity<VacinacaoResponseDTO> create(@RequestBody @Valid VacinacaoRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
-        Vacinacao vacinacaoCriada = vacinacaoService.create(dados, usuarioLogado);
+    public ResponseEntity<VacinacaoResponseDTO> createVacinacao(@RequestBody @Valid VacinacaoRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
+        Vacinacao vacinacaoCriada = vacinacaoService.createVacinacao(dados, usuarioLogado);
         return ResponseEntity.status(HttpStatus.CREATED).body(new VacinacaoResponseDTO(vacinacaoCriada));
     }
 
@@ -54,8 +54,8 @@ public class VacinacaoController {
         @ApiResponse(responseCode = "404", description = "Vacinação, vacina ou aplicador não encontrado."),
         @ApiResponse(responseCode = "409", description = "A data é anterior ao nascimento do animal.")
     })
-    public ResponseEntity<VacinacaoResponseDTO> update(@Parameter(description = "ID da vacinação", example = "1") @PathVariable Long id, @RequestBody @Valid VacinacaoUpdateRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
-        Vacinacao vacinacaoAtualizada = vacinacaoService.update(id, dados, usuarioLogado);
+    public ResponseEntity<VacinacaoResponseDTO> updateVacinacao(@Parameter(description = "ID da vacinação", example = "1") @PathVariable Long id, @RequestBody @Valid VacinacaoUpdateRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
+        Vacinacao vacinacaoAtualizada = vacinacaoService.updateVacinacao(id, dados, usuarioLogado);
         return ResponseEntity.ok(new VacinacaoResponseDTO(vacinacaoAtualizada));
     }
 
@@ -66,8 +66,8 @@ public class VacinacaoController {
         @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao animal."),
         @ApiResponse(responseCode = "404", description = "Vacinação não encontrada.")
     })
-    public ResponseEntity<Void> delete(@Parameter(description = "ID da vacinação", example = "1") @PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
-        vacinacaoService.delete(id, usuarioLogado);
+    public ResponseEntity<Void> deleteVacinacao(@Parameter(description = "ID da vacinação", example = "1") @PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
+        vacinacaoService.deleteVacinacao(id, usuarioLogado);
         return ResponseEntity.noContent().build();
     }
 

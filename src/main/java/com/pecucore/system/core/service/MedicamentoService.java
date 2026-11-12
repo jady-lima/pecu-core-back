@@ -34,7 +34,7 @@ public class MedicamentoService {
     private CustoAutomaticoService custoAutomaticoService;
 
     @Transactional
-    public Medicamento create(MedicamentoRequestDTO dados, Usuario usuarioLogado) {
+    public Medicamento createMedicamento(MedicamentoRequestDTO dados, Usuario usuarioLogado) {
 
         Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
 
@@ -58,7 +58,7 @@ public class MedicamentoService {
     }
 
     @Transactional
-    public Medicamento update(Long id, MedicamentoUpdateRequestDTO dados, Usuario usuarioLogado) {
+    public Medicamento updateMedicamento(Long id, MedicamentoUpdateRequestDTO dados, Usuario usuarioLogado) {
 
         Medicamento medicamento = getMedicamentoById(id, usuarioLogado);
 
@@ -78,14 +78,14 @@ public class MedicamentoService {
     }
 
     @Transactional
-    public void delete(Long id, Usuario usuarioLogado) {
+    public void deleteMedicamento(Long id, Usuario usuarioLogado) {
         Medicamento medicamento = getMedicamentoById(id, usuarioLogado);
         Custo custo = medicamento.getCusto();
 
         medicamentoRepository.delete(medicamento);
 
         if (custo != null) {
-            custoAutomaticoService.excluirAutomatico(custo);
+            custoAutomaticoService.deleteCustoAutomatico(custo);
         }
     }
 
@@ -139,7 +139,7 @@ public class MedicamentoService {
         );
 
         medicamento.setCusto(
-                custoAutomaticoService.sincronizarAutomatico(
+                custoAutomaticoService.sincronizarCustoAutomatico(
                         medicamento.getCusto(),
                         TipoCusto.MEDICAMENTO,
                         valor,

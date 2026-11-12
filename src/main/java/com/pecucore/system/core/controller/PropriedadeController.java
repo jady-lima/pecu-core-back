@@ -38,13 +38,13 @@ public class PropriedadeController {
             @ApiResponse(responseCode = "201", description = "Propriedade cadastrada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos ou dono da propriedade inválido")
     })
-    public ResponseEntity<PropriedadeResponseDTO> create(
+    public ResponseEntity<PropriedadeResponseDTO> createPropriedade(
             @RequestBody @Valid PropriedadeRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
         Propriedade propriedadeCriada =
-                propriedadeService.create(dados, usuarioLogado);
+                propriedadeService.createPropriedade(dados, usuarioLogado);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -65,7 +65,7 @@ public class PropriedadeController {
     ) {
 
         Propriedade propriedadeAtualizada =
-                propriedadeService.update(
+                propriedadeService.updatePropriedade(
                         id,
                         dados,
                         usuarioLogado

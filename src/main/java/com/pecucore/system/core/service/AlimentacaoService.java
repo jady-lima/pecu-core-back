@@ -37,7 +37,7 @@ public class AlimentacaoService {
     private CustoAutomaticoService custoAutomaticoService;
 
     @Transactional
-    public Alimentacao create(AlimentacaoRequestDTO dados, Usuario usuarioLogado) {
+    public Alimentacao createAlimentacao(AlimentacaoRequestDTO dados, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
 
         return registrar(
@@ -50,7 +50,7 @@ public class AlimentacaoService {
     }
 
     @Transactional
-    public List<Alimentacao> createEmLote(AlimentacaoLoteRequestDTO dados, Usuario usuarioLogado) {
+    public List<Alimentacao> createAlimentacaoEmLote(AlimentacaoLoteRequestDTO dados, Usuario usuarioLogado) {
         loteService.getLoteById(dados.loteId(), usuarioLogado);
 
         List<Animal> animais = animalService.getAnimaisAtivosByLoteId(dados.loteId());
@@ -75,7 +75,7 @@ public class AlimentacaoService {
     }
 
     @Transactional
-    public Alimentacao update(Long id, AlimentacaoUpdateRequestDTO dados, Usuario usuarioLogado) {
+    public Alimentacao updateAlimentacao(Long id, AlimentacaoUpdateRequestDTO dados, Usuario usuarioLogado) {
         Alimentacao alimentacao = getAlimentacaoById(id, usuarioLogado);
 
         animalService.validarDataRegistro(alimentacao.getAnimal(), dados.data());
@@ -91,14 +91,14 @@ public class AlimentacaoService {
     }
 
     @Transactional
-    public void delete(Long id, Usuario usuarioLogado) {
+    public void deleteAlimentacao(Long id, Usuario usuarioLogado) {
         Alimentacao alimentacao = getAlimentacaoById(id, usuarioLogado);
         Custo custo = alimentacao.getCusto();
 
         alimentacaoRepository.delete(alimentacao);
 
         if (custo != null) {
-            custoAutomaticoService.excluirAutomatico(custo);
+            custoAutomaticoService.deleteCustoAutomatico(custo);
         }
     }
 
@@ -146,7 +146,7 @@ public class AlimentacaoService {
     }
 
     private void sincronizarCusto(Alimentacao alimentacao) {
-        alimentacao.setCusto(custoAutomaticoService.sincronizarAutomatico(
+        alimentacao.setCusto(custoAutomaticoService.sincronizarCustoAutomatico(
                 alimentacao.getCusto(),
                 TipoCusto.ALIMENTACAO,
                 alimentacao.getValor(),

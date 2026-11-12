@@ -51,7 +51,7 @@ public class AutenticacaoController {
     public ResponseEntity<TokenResponseDTO> login(@RequestBody @Valid LoginRequestDTO dadosLogin) {
         var authToken = new UsernamePasswordAuthenticationToken(dadosLogin.username(), dadosLogin.senha());
         var authentication = authenticationManager.authenticate(authToken);
-        var token = tokenService.generateToken((Usuario) authentication.getPrincipal());
+        var token = tokenService.gerarToken((Usuario) authentication.getPrincipal());
         return ResponseEntity.ok(new TokenResponseDTO(token));
     }
 
@@ -74,7 +74,7 @@ public class AutenticacaoController {
         @ApiResponse(responseCode = "200", description = "Usuário autenticado encontrado com sucesso"),
         @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
     })
-    public ResponseEntity<UsuarioResponseDTO> me(@AuthenticationPrincipal Usuario usuario) {
+    public ResponseEntity<UsuarioResponseDTO> getUsuarioLogado(@AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(new UsuarioResponseDTO(usuario));
     }
 
@@ -86,8 +86,8 @@ public class AutenticacaoController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos, senha atual incorreta ou nova senha igual à atual", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class))),
         @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
     })
-    public ResponseEntity<Void> alterarSenha(@RequestBody @Valid AlterarSenhaRequestDTO dados, @AuthenticationPrincipal Usuario usuario) {
-        usuarioService.alterarSenha(usuario, dados);
+    public ResponseEntity<Void> updateSenha(@RequestBody @Valid AlterarSenhaRequestDTO dados, @AuthenticationPrincipal Usuario usuario) {
+        usuarioService.updateSenha(usuario, dados);
         return ResponseEntity.noContent().build();
     }
 }

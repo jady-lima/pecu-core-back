@@ -64,7 +64,7 @@ public class AlertaPesoService {
             return;
         }
 
-        alertaService.criarAlerta(
+        alertaService.createAlerta(
                 animal,
                 TipoAlerta.GMD_ABAIXO_META,
                 "GMD do animal abaixo da meta estabelecida: " + gmd + "kg/dia"
@@ -107,7 +107,7 @@ public class AlertaPesoService {
             return;
         }
 
-        alertaService.criarAlerta(
+        alertaService.createAlerta(
                 animal,
                 TipoAlerta.QUEDA_PESO,
                 "Animal apresentou queda de peso em duas pesagens consecutivas."
@@ -160,7 +160,7 @@ public class AlertaPesoService {
             return;
         }
 
-        alertaService.criarAlerta(
+        alertaService.createAlerta(
                 animal,
                 TipoAlerta.PESAGEM_ATRASADA,
                 "PESAGEM DO ANIMAL ESTÁ ATRASADA: Animal está há "

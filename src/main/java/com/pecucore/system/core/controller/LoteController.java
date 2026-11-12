@@ -40,13 +40,13 @@ public class LoteController {
             @ApiResponse(responseCode = "404", description = "Propriedade não encontrada"),
             @ApiResponse(responseCode = "409", description = "Já existe um lote com esse número na propriedade")
     })
-    public ResponseEntity<LoteResponseDTO> create(
+    public ResponseEntity<LoteResponseDTO> createLote(
             @RequestBody @Valid LoteRequestDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
         Lote loteCriado =
-                loteService.create(dados, usuarioLogado);
+                loteService.createLote(dados, usuarioLogado);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -68,7 +68,7 @@ public class LoteController {
     ) {
 
         Lote loteAtualizado =
-                loteService.update(
+                loteService.updateLote(
                         id,
                         dados,
                         usuarioLogado
@@ -128,9 +128,9 @@ public class LoteController {
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "404", description = "Lote não encontrado")
     })
-    public ResponseEntity<LoteResponseDTO> atualizarMetaGmd(@PathVariable Long id, @RequestBody @Valid LoteMetaGmdRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
+    public ResponseEntity<LoteResponseDTO> updateMetaGmd(@PathVariable Long id, @RequestBody @Valid LoteMetaGmdRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        Lote loteAtualizado =loteService.atualizarMetaGmd(
+        Lote loteAtualizado =loteService.updateMetaGmd(
                 id,
                 dados,
                 usuarioLogado
@@ -145,9 +145,9 @@ public class LoteController {
             @ApiResponse(responseCode = "204", description = "Meta removida com sucesso"),
             @ApiResponse(responseCode = "404", description = "Lote não encontrado")
     })
-    public ResponseEntity<Void> removerMetaGmd(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
+    public ResponseEntity<Void> deleteMetaGmd(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        loteService.removerMetaGmd(
+        loteService.deleteMetaGmd(
                 id,
                 usuarioLogado
         );

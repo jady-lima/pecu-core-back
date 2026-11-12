@@ -30,7 +30,7 @@ public class LoteService {
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
 
-    public Lote create(
+    public Lote createLote(
             LoteRequestDTO dados,
             Usuario usuarioLogado
     ) {
@@ -58,7 +58,7 @@ public class LoteService {
         return loteRepository.save(lote);
     }
 
-    public Lote update(
+    public Lote updateLote(
             Long id,
             LoteRequestDTO dados,
             Usuario usuarioLogado
@@ -136,7 +136,7 @@ public class LoteService {
         return lote;
     }
 
-    public Lote atualizarMetaGmd(Long id, LoteMetaGmdRequestDTO dados, Usuario usuarioLogado) {
+    public Lote updateMetaGmd(Long id, LoteMetaGmdRequestDTO dados, Usuario usuarioLogado) {
         Lote lote = getLoteById(
                 id,
                 usuarioLogado
@@ -147,7 +147,7 @@ public class LoteService {
         return loteRepository.save(lote);
     }
 
-    public void removerMetaGmd(Long id,Usuario usuarioLogado) {
+    public void deleteMetaGmd(Long id, Usuario usuarioLogado) {
         Lote lote = getLoteById(
                         id,
                         usuarioLogado

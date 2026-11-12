@@ -35,8 +35,8 @@ public class VacinaController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "409", description = "Já existe uma vacina com este nome")
     })
-    public ResponseEntity<VacinaResponseDTO> create(@RequestBody @Valid VacinaRequestDTO dados) {
-        Vacina vacinaCriada = vacinaService.create(dados);
+    public ResponseEntity<VacinaResponseDTO> createVacina(@RequestBody @Valid VacinaRequestDTO dados) {
+        Vacina vacinaCriada = vacinaService.createVacina(dados);
         return ResponseEntity.status(HttpStatus.CREATED).body(new VacinaResponseDTO(vacinaCriada));
     }
 
@@ -49,7 +49,7 @@ public class VacinaController {
         @ApiResponse(responseCode = "409", description = "Já existe outra vacina com este nome")
     })
     public ResponseEntity<VacinaResponseDTO> updateVacina(@PathVariable Long id, @RequestBody @Valid VacinaRequestDTO dados) {
-        Vacina vacinaAtualizada = vacinaService.update(id, dados);
+        Vacina vacinaAtualizada = vacinaService.updateVacina(id, dados);
         return ResponseEntity.ok(new VacinaResponseDTO(vacinaAtualizada));
     }
 
@@ -61,7 +61,7 @@ public class VacinaController {
         @ApiResponse(responseCode = "409", description = "Vacina já aplicada em algum animal")
     })
     public ResponseEntity<Void> deleteVacina(@PathVariable Long id) {
-        vacinaService.delete(id);
+        vacinaService.deleteVacina(id);
         return ResponseEntity.noContent().build();
     }
 

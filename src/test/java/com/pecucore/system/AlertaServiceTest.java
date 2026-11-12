@@ -1,6 +1,9 @@
 package com.pecucore.system;
 
+import com.pecucore.system.core.exception.AcessoNegadoException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
+import com.pecucore.system.core.exception.RegraNegocioException;
+
 import com.pecucore.system.core.model.*;
 import com.pecucore.system.core.repository.AlertaRepository;
 import com.pecucore.system.core.repository.CustoRepository;
@@ -16,7 +19,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -180,7 +182,7 @@ class AlertaServiceTest {
         autenticar(veterinario);
         alertaCadastrado(alerta(TipoAlerta.CUSTO_ACIMA));
 
-        assertThrows(AccessDeniedException.class,
+        assertThrows(AcessoNegadoException.class,
                 () -> alertaService.atualizarStatus(ALERTA_ID, StatusAlerta.RESOLVIDO));
 
         verify(alertaRepository, never()).save(any());
@@ -191,7 +193,7 @@ class AlertaServiceTest {
         autenticar(usuario(300L, Perfil.PRODUTOR));
         alertaCadastrado(alerta(TipoAlerta.QUEDA_PESO));
 
-        assertThrows(AccessDeniedException.class,
+        assertThrows(AcessoNegadoException.class,
                 () -> alertaService.atualizarStatus(ALERTA_ID, StatusAlerta.RESOLVIDO));
 
         verify(alertaRepository, never()).save(any());
@@ -210,7 +212,7 @@ class AlertaServiceTest {
 
     @Test
     void deveExigirNovoStatus() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(RegraNegocioException.class,
                 () -> alertaService.atualizarStatus(ALERTA_ID, null));
 
         verifyNoInteractions(alertaRepository);

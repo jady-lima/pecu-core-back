@@ -32,6 +32,9 @@ public class SecurityConfig {
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
 
+    @Autowired
+    private ErroSegurancaHandler erroSegurancaHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         String admin = Perfil.ADMIN.name();
@@ -43,6 +46,10 @@ public class SecurityConfig {
                 .logout(logout -> logout.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(erros -> erros
+                .authenticationEntryPoint(erroSegurancaHandler)
+                .accessDeniedHandler(erroSegurancaHandler)
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/login", "/","/swagger-ui/**","/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/usuarios/**").hasAuthority(admin)

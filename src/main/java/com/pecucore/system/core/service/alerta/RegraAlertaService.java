@@ -3,6 +3,9 @@ package com.pecucore.system.core.service.alerta;
 
 import com.pecucore.system.core.model.Propriedade;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
+import com.pecucore.system.core.exception.AcessoNegadoException;
+import com.pecucore.system.core.exception.RegraNegocioException;
+
 import com.pecucore.system.core.model.RegraAlerta;
 import com.pecucore.system.core.model.TipoAlerta;
 import com.pecucore.system.core.model.Usuario;
@@ -11,7 +14,6 @@ import com.pecucore.system.core.repository.PropriedadeRepository;
 import com.pecucore.system.core.repository.RegraAlertaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -33,7 +35,7 @@ public class RegraAlertaService {
 
         Propriedade propriedade = propriedadeRepository.findById(propriedadeId)
                 .orElseThrow(() ->
-                        new RuntimeException("Propriedade nao encontrada"));
+                        new RecursoNaoEncontradoException("Propriedade não encontrada"));
 
         validarAcesso(propriedade, tipo);
 
@@ -71,7 +73,7 @@ public class RegraAlertaService {
 
         if (autenticacao == null
                 || !(autenticacao.getPrincipal() instanceof Usuario)) {
-            throw new AccessDeniedException("Usuário não autenticado.");
+            throw new AcessoNegadoException("Usuário não autenticado.");
         }
 
         Usuario usuario = (Usuario) autenticacao.getPrincipal();
@@ -82,7 +84,7 @@ public class RegraAlertaService {
 
         if (usuario.getPerfil() == Perfil.VETERINARIO
                 && tipo == TipoAlerta.CUSTO_ACIMA) {
-            throw new AccessDeniedException(
+            throw new AcessoNegadoException(
                     "Você não tem permissão para gerenciar regras financeiras.");
         }
 
@@ -96,19 +98,19 @@ public class RegraAlertaService {
                         .anyMatch(v -> v.getId().equals(usuario.getId()));
 
         if (!produtorResponsavel && !veterinarioAssociado) {
-            throw new AccessDeniedException(
+            throw new AcessoNegadoException(
                     "Você não tem acesso a esta propriedade.");
         }
     }
 
     private void validarRegra(TipoAlerta tipo, double parametro) {
         if (tipo == null) {
-            throw new IllegalArgumentException(
+            throw new RegraNegocioException(
                     "O tipo de alerta deve ser informado.");
         }
 
         if (!Double.isFinite(parametro) || parametro < 0) {
-            throw new IllegalArgumentException(
+            throw new RegraNegocioException(
                     "O parâmetro deve ser válido e não negativo.");
         }
 
@@ -117,12 +119,12 @@ public class RegraAlertaService {
             case VACINA_PROX_VENC:
             case VACINA_VENC:
             case PERIODO_CARENCIA:
-                throw new IllegalArgumentException(
+                throw new RegraNegocioException(
                         "Essa regra é fixa do sistema e não pode ser configurada.");
 
             case PESAGEM_ATRASADA:
                 if (parametro <= 0 || parametro != Math.floor(parametro)) {
-                    throw new IllegalArgumentException(
+                    throw new RegraNegocioException(
                             "O prazo para pesagem deve ser um número inteiro de dias maior que zero.");
                 }
                 break;
@@ -130,7 +132,7 @@ public class RegraAlertaService {
             case CUSTO_ACIMA:
             case GMD_ABAIXO_META:
                 if (parametro <= 0) {
-                    throw new IllegalArgumentException(
+                    throw new RegraNegocioException(
                             "O parâmetro deve ser maior que zero.");
                 }
                 break;

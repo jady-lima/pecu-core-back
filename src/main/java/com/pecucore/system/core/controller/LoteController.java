@@ -1,0 +1,131 @@
+package com.pecucore.system.core.controller;
+
+import com.pecucore.system.core.dto.lote.LoteMetaGmdRequestDTO;
+import com.pecucore.system.core.dto.lote.LoteResponseDTO;
+import com.pecucore.system.core.dto.lote.LoteRequestDTO;
+import com.pecucore.system.core.model.Lote;
+import com.pecucore.system.core.model.Usuario;
+import com.pecucore.system.core.service.LoteService;
+
+
+import jakarta.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@SecurityRequirement(name = "bearerAuth")
+@RestController
+@RequestMapping("/lotes")
+public class LoteController {
+    @Autowired
+    private LoteService loteService;
+
+    @PostMapping
+    public ResponseEntity<LoteResponseDTO> create(
+            @RequestBody @Valid LoteRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+
+        Lote loteCriado =
+                loteService.create(dados, usuarioLogado);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new LoteResponseDTO(loteCriado));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<LoteResponseDTO> updateLote(
+            @PathVariable Long id,
+            @RequestBody @Valid LoteRequestDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+
+        Lote loteAtualizado =
+                loteService.update(
+                        id,
+                        dados,
+                        usuarioLogado
+                );
+
+        return ResponseEntity.ok(
+                new LoteResponseDTO(loteAtualizado)
+        );
+    }
+
+    @GetMapping
+    public ResponseEntity<List<LoteResponseDTO>> getAllLotes(
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+
+        List<Lote> lotes =
+                loteService.getAllLotes(usuarioLogado);
+
+        List<LoteResponseDTO> dtos =
+                lotes.stream()
+                        .map(LoteResponseDTO::new)
+                        .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<LoteResponseDTO> getLoteById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+
+        Lote lote =
+                loteService.getLoteById(
+                        id,
+                        usuarioLogado
+                );
+
+        return ResponseEntity.ok(
+                new LoteResponseDTO(lote)
+        );
+    }
+
+    @PutMapping("/{id}/meta-gmd")
+    public ResponseEntity<LoteResponseDTO> atualizarMetaGmd(@PathVariable Long id, @RequestBody @Valid LoteMetaGmdRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        Lote loteAtualizado =loteService.atualizarMetaGmd(
+                id,
+                dados,
+                usuarioLogado
+        );
+
+        return ResponseEntity.ok(new LoteResponseDTO(loteAtualizado));
+    }
+
+    @DeleteMapping("/{id}/meta-gmd")
+    public ResponseEntity<Void> removerMetaGmd(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        loteService.removerMetaGmd(
+                id,
+                usuarioLogado
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLote(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+
+        loteService.deleteLote(
+                id,
+                usuarioLogado
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+}

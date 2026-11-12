@@ -1,8 +1,11 @@
 package com.pecucore.system;
 
-import com.pecucore.system.model.*;
-import com.pecucore.system.repository.CustoRepository;
-import com.pecucore.system.service.custo.CustoAutomaticoService;
+import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.Custo;
+import com.pecucore.system.core.model.OrigemCusto;
+import com.pecucore.system.core.model.TipoCusto;
+import com.pecucore.system.core.repository.CustoRepository;
+import com.pecucore.system.core.service.custo.CustoAutomaticoService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;

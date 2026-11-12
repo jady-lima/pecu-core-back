@@ -1,10 +1,10 @@
 package com.pecucore.system;
 
-import com.pecucore.system.model.FinalidadeLote;
-import com.pecucore.system.model.Lote;
-import com.pecucore.system.model.MetaDesempenho;
-import com.pecucore.system.repository.MetaDesempenhoRepository;
-import com.pecucore.system.service.MetaDesempenhoService;
+import com.pecucore.system.bovinos.agrupamento.FinalidadeLote;
+import com.pecucore.system.core.model.Lote;
+import com.pecucore.system.bovinos.agrupamento.MetaDesempenho;
+import com.pecucore.system.bovinos.agrupamento.MetaDesempenhoRepository;
+import com.pecucore.system.bovinos.agrupamento.MetaDesempenhoService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

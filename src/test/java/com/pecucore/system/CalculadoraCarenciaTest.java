@@ -1,6 +1,6 @@
 package com.pecucore.system;
 
-import com.pecucore.system.service.calculo.CalculadoraCarencia;
+import com.pecucore.system.bovinos.sanidade.CalculadoraCarencia;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;

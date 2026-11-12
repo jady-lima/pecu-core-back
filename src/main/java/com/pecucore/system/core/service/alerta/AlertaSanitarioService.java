@@ -80,7 +80,7 @@ public class AlertaSanitarioService {
             alertaService.criarAlerta(
                     animal,
                     TipoAlerta.VACINA_PROX_VENC,
-                    "Atenção: Vacinação proxima. A próxima dose da vacina está prevista para "
+                    "Atenção: vacinação próxima. A próxima dose da vacina está prevista para "
                             + vacinacao.getDataProximaDose()
             );
 
@@ -166,7 +166,7 @@ public class AlertaSanitarioService {
             alertaService.criarAlerta(
                     animal,
                     TipoAlerta.PERIODO_CARENCIA,
-                    "Animal ainda está em periodo de carencia.Animal estará em período de carência até "
+                    "Animal ainda está em período de carência. Animal estará em período de carência até "
                             + vacinacao.getDataFimCarencia()
             );
 

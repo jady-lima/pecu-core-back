@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Tag(name = "Análises com IA", description = "Análises individuais e comparativas e seu histórico")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/analises")
-@SecurityRequirement(name = "bearerAuth")
 public class AnaliseIAController {
 
     @Autowired

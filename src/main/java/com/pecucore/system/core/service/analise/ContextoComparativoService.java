@@ -4,6 +4,7 @@ import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseComparativaDTO;
 import com.pecucore.system.core.dto.analise.EstatisticasLoteDTO;
 import com.pecucore.system.core.dto.analise.ParLoteDTO;
+import com.pecucore.system.core.dto.analise.PesagemContextoDTO;
 import com.pecucore.system.core.dto.analise.PosicaoAnimalLoteDTO;
 import com.pecucore.system.core.exception.DadosInsuficientesException;
 import com.pecucore.system.core.model.Animal;
@@ -20,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -33,8 +36,19 @@ public class ContextoComparativoService {
 
     private static final int MINIMO_PESAGENS = 2;
     private static final int MINIMO_ANIMAIS_COMPARACAO = 3;
+    private static final double COBERTURA_MINIMA_JANELA = 0.5;
 
     private record AnimalComparado(Animal animal, Double gmd) {
+    }
+
+    private record JanelaComparacao(LocalDate inicio, LocalDate fim) {
+        long dias() {
+            return ChronoUnit.DAYS.between(inicio, fim);
+        }
+
+        boolean contem(LocalDate data) {
+            return !data.isBefore(inicio) && !data.isAfter(fim);
+        }
     }
 
     @Autowired
@@ -79,8 +93,10 @@ public class ContextoComparativoService {
             );
         }
 
+        JanelaComparacao janela = montarJanela(contextoAnimal);
+
         Long loteId = animal.getLote().getId();
-        List<AnimalComparado> demaisAnimais = montarDemaisAnimais(animalId, loteId);
+        List<AnimalComparado> demaisAnimais = montarDemaisAnimais(animalId, loteId, janela);
 
         if (demaisAnimais.size() + 1 < MINIMO_ANIMAIS_COMPARACAO) {
             throw new DadosInsuficientesException(
@@ -88,7 +104,11 @@ public class ContextoComparativoService {
                             + MINIMO_ANIMAIS_COMPARACAO
                             + " animais ativos com "
                             + MINIMO_PESAGENS
-                            + " pesagens ou mais para gerar a análise comparativa."
+                            + " pesagens ou mais entre "
+                            + janela.inicio()
+                            + " e "
+                            + janela.fim()
+                            + " para gerar a análise comparativa."
             );
         }
 
@@ -117,12 +137,22 @@ public class ContextoComparativoService {
         );
     }
 
-    private List<AnimalComparado> montarDemaisAnimais(Long animalId, Long loteId) {
+    private JanelaComparacao montarJanela(ContextoAnaliseAnimalDTO contextoAnimal) {
+        List<PesagemContextoDTO> pesagens = contextoAnimal.pesagens();
+
+        return new JanelaComparacao(
+                pesagens.get(0).data(),
+                pesagens.get(pesagens.size() - 1).data()
+        );
+    }
+
+    private List<AnimalComparado> montarDemaisAnimais(Long animalId, Long loteId, JanelaComparacao janela) {
         Map<Long, List<Pesagem>> pesagensPorAnimal =
                 pesagemService
                         .getPesagensAnimaisAtivosByLoteId(loteId)
                         .stream()
                         .filter(pesagem -> !pesagem.getAnimal().getId().equals(animalId))
+                        .filter(pesagem -> janela.contem(pesagem.getData()))
                         .collect(Collectors.groupingBy(
                                 pesagem -> pesagem.getAnimal().getId(),
                                 LinkedHashMap::new,
@@ -132,6 +162,7 @@ public class ContextoComparativoService {
         return pesagensPorAnimal.values()
                 .stream()
                 .filter(pesagens -> pesagens.size() >= MINIMO_PESAGENS)
+                .filter(pesagens -> cobreJanela(pesagens, janela))
                 .map(pesagens -> new AnimalComparado(
                         pesagens.get(0).getAnimal(),
                         gmdService.calcularGmdHistorico(
@@ -142,6 +173,15 @@ public class ContextoComparativoService {
                 .filter(comparado -> comparado.gmd() != null)
                 .sorted(Comparator.comparing(AnimalComparado::gmd).reversed())
                 .toList();
+    }
+
+    private boolean cobreJanela(List<Pesagem> pesagens, JanelaComparacao janela) {
+        long diasCobertos = ChronoUnit.DAYS.between(
+                pesagens.get(0).getData(),
+                pesagens.get(pesagens.size() - 1).getData()
+        );
+
+        return diasCobertos >= janela.dias() * COBERTURA_MINIMA_JANELA;
     }
 
     private EstatisticasLoteDTO montarEstatisticasLote(

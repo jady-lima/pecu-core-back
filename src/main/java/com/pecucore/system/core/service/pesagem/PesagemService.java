@@ -2,14 +2,15 @@ package com.pecucore.system.core.service.pesagem;
 
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.service.AnimalService;
-import com.pecucore.system.core.service.alerta.AlertaPesoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pecucore.system.core.dto.pesagem.PesagemRequestDTO;
+import com.pecucore.system.core.evento.PesagemRegistradaEvento;
 import com.pecucore.system.core.evento.PesoAnimalAlteradoEvento;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
@@ -34,7 +35,7 @@ public class PesagemService {
     private GmdService gmdService;
 
     @Autowired
-    private AlertaPesoService alertaPesoService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Value("${pesagem.intervalo-recomendado-dias}")
     private int intervaloRecomendadoDias;
@@ -88,8 +89,7 @@ public class PesagemService {
 
         pesagemRepository.save(pesagem);
         animalService.updatePesoAtual(animal, pesoKg);
-        alertaPesoService.verificarGmdAbaixoMeta(animal, gmd);
-        alertaPesoService.verificarQuedaPeso(animal);
+        eventPublisher.publishEvent(new PesagemRegistradaEvento(animal.getId()));
 
         return new ResultadoPesagem(pesagem, aviso);
     }

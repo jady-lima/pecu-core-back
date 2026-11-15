@@ -68,7 +68,13 @@ public class AlertaService {
 
         return alertas.stream()
                 .filter(alerta -> status == null || alerta.getStatus() == status)
-                .filter(alerta -> politicaVisibilidadeFinanceira.podeVerAlerta(alerta.getTipo(), usuarioLogado))
+                .filter(alerta -> podeVer(alerta, usuarioLogado))
+                .toList();
+    }
+
+    public List<Alerta> getHistoricoByAnimalId(Long animalId, Usuario usuarioLogado) {
+        return alertaRepository.findByAnimalIdOrderByDataCriacaoDesc(animalId).stream()
+                .filter(alerta -> podeVer(alerta, usuarioLogado))
                 .toList();
     }
 
@@ -105,9 +111,13 @@ public class AlertaService {
                 "Você não tem acesso a este alerta."
         );
 
-        if (!politicaVisibilidadeFinanceira.podeVerAlerta(alerta.getTipo(), usuarioLogado)) {
+        if (!podeVer(alerta, usuarioLogado)) {
             throw new AcessoNegadoException("Você não tem permissão para acessar alertas financeiros.");
         }
+    }
+
+    private boolean podeVer(Alerta alerta, Usuario usuarioLogado) {
+        return politicaVisibilidadeFinanceira.podeVerAlerta(alerta.getTipo(), usuarioLogado);
     }
 
     private Propriedade propriedadeDoAlerta(Alerta alerta) {

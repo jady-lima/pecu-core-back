@@ -17,8 +17,8 @@ import com.pecucore.system.core.model.Medicamento;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.model.Vacinacao;
-import com.pecucore.system.core.repository.AlertaRepository;
 import com.pecucore.system.core.service.*;
+import com.pecucore.system.core.service.alerta.AlertaService;
 import com.pecucore.system.bovinos.desempenho.GmdService;
 import com.pecucore.system.core.service.custo.CustoService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
@@ -58,7 +58,7 @@ public class ContextoAnaliseService {
     private MedicamentoService medicamentoService;
 
     @Autowired
-    private AlertaRepository alertaRepository;
+    private AlertaService alertaService;
 
     @Autowired
     private CustoService custoService;
@@ -121,8 +121,7 @@ public class ContextoAnaliseService {
     }
 
     private List<AlertaContextoDTO> montarAlertas(Long animalId, Usuario usuarioLogado) {
-        return alertaRepository.findByAnimalIdOrderByDataCriacaoDesc(animalId).stream()
-                               .filter(alerta -> politicaVisibilidadeFinanceira.podeVerAlerta(alerta.getTipo(), usuarioLogado))
+        return alertaService.getHistoricoByAnimalId(animalId, usuarioLogado).stream()
                                .map(AlertaContextoDTO::new)
                                .toList();
     }

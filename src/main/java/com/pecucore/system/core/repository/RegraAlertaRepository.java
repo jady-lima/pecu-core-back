@@ -9,4 +9,5 @@ import java.util.List;
 public interface RegraAlertaRepository extends JpaRepository<RegraAlerta, Long> {
     List<RegraAlerta> findByPropriedadeIdAndTipo(Long propriedadeId, TipoAlerta tipo);
     boolean existsByPropriedadeIdAndTipo(Long propriedadeId, TipoAlerta tipo);
+    List<RegraAlerta> findByPropriedadeIdOrderByTipo(Long propriedadeId);
 }

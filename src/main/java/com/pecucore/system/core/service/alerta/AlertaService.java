@@ -1,11 +1,13 @@
 package com.pecucore.system.core.service.alerta;
 
+import com.pecucore.system.core.dto.alerta.AlertaStatusRequestDTO;
 import com.pecucore.system.core.exception.AcessoNegadoException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.model.*;
 import com.pecucore.system.core.repository.AlertaRepository;
 import com.pecucore.system.core.repository.CustoRepository;
 import com.pecucore.system.core.service.AcessoPropriedadeService;
+import com.pecucore.system.core.service.AnimalService;
 import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,9 @@ public class AlertaService {
     @Autowired
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
+    @Autowired
+    private AnimalService animalService;
+
     public void verificarCustoAcima(Animal animal) {
         Optional<Double> limite = regraAlertaService.getParametroAtivo(animal, TipoAlerta.CUSTO_ACIMA);
 
@@ -51,26 +56,30 @@ public class AlertaService {
                 "O animal está com custo acumulado de R$ " + custoTotal + ", acima do limite estabelecido de R$ " + limite.get() + ".");
     }
 
-    public List<Alerta> getAllAlertas(Usuario usuarioLogado) {
-        return acessoPropriedadeService.filtrarPorPerfil(
+    public List<Alerta> getAllAlertas(Usuario usuarioLogado, Long animalId, StatusAlerta status) {
+        List<Alerta> alertas = animalId != null
+                ? getAlertasDoAnimal(animalId, usuarioLogado)
+                : acessoPropriedadeService.filtrarPorPerfil(
                         usuarioLogado,
                         alertaRepository::findAllByOrderByDataCriacaoDesc,
                         alertaRepository::findByAnimalLotePropriedadeUsuarioIdOrderByDataCriacaoDesc,
                         alertaRepository::findByAnimalLotePropriedadeVeterinariosIdOrderByDataCriacaoDesc
-                )
-                .stream()
+                );
+
+        return alertas.stream()
+                .filter(alerta -> status == null || alerta.getStatus() == status)
                 .filter(alerta -> politicaVisibilidadeFinanceira.podeVerAlerta(alerta.getTipo(), usuarioLogado))
                 .toList();
     }
 
     @Transactional
-    public Alerta updateStatusAlerta(Long id, StatusAlerta novoStatus, Usuario usuarioLogado) {
+    public Alerta updateStatusAlerta(Long id, AlertaStatusRequestDTO dados, Usuario usuarioLogado) {
         Alerta alerta = alertaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Alerta não encontrado"));
 
         validarAcessoAoAlerta(alerta, usuarioLogado);
 
-        alerta.alterarStatus(novoStatus);
+        alerta.alterarStatus(dados.status());
         return alertaRepository.save(alerta);
     }
 
@@ -82,6 +91,11 @@ public class AlertaService {
 
         alertaRepository.save(Alerta.abrir(animal, tipo, mensagem));
         return true;
+    }
+
+    private List<Alerta> getAlertasDoAnimal(Long animalId, Usuario usuarioLogado) {
+        animalService.getAnimalById(animalId, usuarioLogado);
+        return alertaRepository.findByAnimalIdOrderByDataCriacaoDesc(animalId);
     }
 
     private void validarAcessoAoAlerta(Alerta alerta, Usuario usuarioLogado) {

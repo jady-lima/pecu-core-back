@@ -1,5 +1,7 @@
 package com.pecucore.system.core.service.alerta;
 
+import com.pecucore.system.core.dto.alerta.RegraAlertaRequestDTO;
+import com.pecucore.system.core.dto.alerta.RegraAlertaUpdateRequestDTO;
 import com.pecucore.system.core.exception.AcessoNegadoException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.exception.RegraNegocioException;
@@ -8,9 +10,9 @@ import com.pecucore.system.core.model.Propriedade;
 import com.pecucore.system.core.model.RegraAlerta;
 import com.pecucore.system.core.model.TipoAlerta;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.repository.PropriedadeRepository;
 import com.pecucore.system.core.repository.RegraAlertaRepository;
 import com.pecucore.system.core.service.AcessoPropriedadeService;
+import com.pecucore.system.core.service.PropriedadeService;
 import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,7 @@ public class RegraAlertaService {
     private RegraAlertaRepository regraAlertaRepository;
 
     @Autowired
-    private PropriedadeRepository propriedadeRepository;
+    private PropriedadeService propriedadeService;
 
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
@@ -35,42 +37,55 @@ public class RegraAlertaService {
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
     @Transactional
-    public RegraAlerta createRegraAlerta(Long propriedadeId, TipoAlerta tipo, double parametro,
-                                         Usuario usuarioLogado) {
-        validarRegra(tipo, parametro);
+    public RegraAlerta createRegraAlerta(RegraAlertaRequestDTO dados, Usuario usuarioLogado) {
+        validarRegra(dados.tipo(), dados.parametro());
 
-        Propriedade propriedade = propriedadeRepository.findById(propriedadeId)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Propriedade não encontrada"));
+        Propriedade propriedade = propriedadeService.getPropriedadeById(dados.propriedadeId(), usuarioLogado);
 
-        validarAcesso(propriedade, tipo, usuarioLogado);
+        validarPermissaoFinanceira(dados.tipo(), usuarioLogado);
 
-        if (regraAlertaRepository.existsByPropriedadeIdAndTipo(propriedadeId, tipo)) {
-            throw new RegraNegocioException("Já existe uma regra de " + tipo + " para esta propriedade. Atualize a regra existente.");
+        if (regraAlertaRepository.existsByPropriedadeIdAndTipo(propriedade.getId(), dados.tipo())) {
+            throw new RegraNegocioException("Já existe uma regra de " + dados.tipo()
+                    + " para esta propriedade. Atualize a regra existente.");
         }
 
         RegraAlerta regra = new RegraAlerta();
         regra.setPropriedade(propriedade);
-        regra.setTipo(tipo);
-        regra.setParametro(parametro);
+        regra.setTipo(dados.tipo());
+        regra.setParametro(dados.parametro());
         regra.setAtiva(true);
 
         return regraAlertaRepository.save(regra);
     }
 
     @Transactional
-    public RegraAlerta updateRegraAlerta(Long id, double parametro, boolean ativa, Usuario usuarioLogado) {
+    public RegraAlerta updateRegraAlerta(Long id, RegraAlertaUpdateRequestDTO dados, Usuario usuarioLogado) {
         RegraAlerta regra = regraAlertaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Regra de alerta não encontrada"));
 
-        validarRegra(regra.getTipo(), parametro);
-        validarAcesso(regra.getPropriedade(), regra.getTipo(), usuarioLogado);
+        validarRegra(regra.getTipo(), dados.parametro());
 
-        regra.setParametro(parametro);
-        regra.setAtiva(ativa);
+        acessoPropriedadeService.validarAcesso(
+                regra.getPropriedade(),
+                usuarioLogado,
+                "Você não tem acesso a esta propriedade"
+        );
+        validarPermissaoFinanceira(regra.getTipo(), usuarioLogado);
+
+        regra.setParametro(dados.parametro());
+        regra.setAtiva(dados.ativa());
 
         return regraAlertaRepository.save(regra);
     }
-    
+
+    public List<RegraAlerta> getAllRegrasAlerta(Long propriedadeId, Usuario usuarioLogado) {
+        Propriedade propriedade = propriedadeService.getPropriedadeById(propriedadeId, usuarioLogado);
+
+        return regraAlertaRepository.findByPropriedadeIdOrderByTipo(propriedade.getId()).stream()
+                .filter(regra -> politicaVisibilidadeFinanceira.podeVerAlerta(regra.getTipo(), usuarioLogado))
+                .toList();
+    }
+
     public Optional<Double> getParametroAtivo(Animal animal, TipoAlerta tipo) {
         if (animal.getLote() == null || animal.getLote().getPropriedade() == null) {
             return tipo.getParametroPadrao();
@@ -89,13 +104,7 @@ public class RegraAlertaService {
                 .findFirst();
     }
 
-    private void validarAcesso(Propriedade propriedade, TipoAlerta tipo, Usuario usuarioLogado) {
-        acessoPropriedadeService.validarAcesso(
-                propriedade,
-                usuarioLogado,
-                "Você não tem acesso a esta propriedade"
-        );
-
+    private void validarPermissaoFinanceira(TipoAlerta tipo, Usuario usuarioLogado) {
         if (tipo.isFinanceiro() && !politicaVisibilidadeFinanceira.podeVerDadosFinanceiros(usuarioLogado)) {
             throw new AcessoNegadoException("Você não tem permissão para gerenciar regras financeiras.");
         }

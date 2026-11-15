@@ -10,4 +10,7 @@ import java.util.List;
 public interface AlertaRepository extends JpaRepository<Alerta, Long> {
     boolean existsByAnimalIdAndTipoAndStatusIn(Long animalId, TipoAlerta tipo, List<StatusAlerta> status);
     List<Alerta> findByAnimalIdOrderByDataCriacaoDesc(Long animalId);
+    List<Alerta> findAllByOrderByDataCriacaoDesc();
+    List<Alerta> findByAnimalLotePropriedadeUsuarioIdOrderByDataCriacaoDesc(Long usuarioId);
+    List<Alerta> findByAnimalLotePropriedadeVeterinariosIdOrderByDataCriacaoDesc(Long veterinarioId);
 }

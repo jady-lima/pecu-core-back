@@ -3,6 +3,7 @@ package com.pecucore.system.core.controller;
 import com.pecucore.system.core.dto.alerta.RegraAlertaResponseDTO;
 import com.pecucore.system.core.model.RegraAlerta;
 import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Regras de alerta", description = "Regras de alerta configuráveis por propriedade")
@@ -33,9 +35,10 @@ public class RegraAlertaController {
     public ResponseEntity<RegraAlertaResponseDTO> createRegraAlerta(
             @RequestParam Long propriedadeId,
             @RequestParam TipoAlerta tipo,
-            @RequestParam double parametro
+            @RequestParam double parametro,
+            @AuthenticationPrincipal Usuario usuarioLogado
     ) {
-        RegraAlerta regra = regraAlertaService.createRegraAlerta(propriedadeId, tipo, parametro);
+        RegraAlerta regra = regraAlertaService.createRegraAlerta(propriedadeId, tipo, parametro, usuarioLogado);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -52,9 +55,10 @@ public class RegraAlertaController {
     public ResponseEntity<RegraAlertaResponseDTO> updateRegraAlerta(
             @PathVariable Long id,
             @RequestParam double parametro,
-            @RequestParam boolean ativa
+            @RequestParam boolean ativa,
+            @AuthenticationPrincipal Usuario usuarioLogado
     ) {
-        RegraAlerta regra = regraAlertaService.updateRegraAlerta(id, parametro, ativa);
+        RegraAlerta regra = regraAlertaService.updateRegraAlerta(id, parametro, ativa, usuarioLogado);
 
         return ResponseEntity.ok(new RegraAlertaResponseDTO(regra));
     }

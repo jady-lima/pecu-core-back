@@ -1,24 +1,19 @@
 package com.pecucore.system.core.service.alerta;
 
-import com.pecucore.system.core.model.*;
-import com.pecucore.system.core.repository.AlertaRepository;
+import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.Pesagem;
+import com.pecucore.system.core.model.TipoAlerta;
 import com.pecucore.system.core.repository.PesagemRepository;
-import com.pecucore.system.core.repository.RegraAlertaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AlertaPesoService {
-
-    @Autowired
-    private AlertaRepository alertaRepository;
-
-    @Autowired
-    private RegraAlertaRepository regraAlertaRepository;
 
     @Autowired
     private PesagemRepository pesagemRepository;
@@ -26,146 +21,60 @@ public class AlertaPesoService {
     @Autowired
     private AlertaService alertaService;
 
+    @Autowired
+    private RegraAlertaService regraAlertaService;
+
     public void verificarGmdAbaixoMeta(Animal animal, Double gmd) {
         if (gmd == null) {
             return;
         }
 
-        Propriedade propriedade = animal.getLote().getPropriedade();
+        Optional<Double> meta = regraAlertaService.getParametroAtivo(animal, TipoAlerta.GMD_ABAIXO_META);
 
-        RegraAlerta regra = regraAlertaRepository
-                .findByPropriedadeIdAndTipoAndAtivaTrue(
-                        propriedade.getId(),
-                        TipoAlerta.GMD_ABAIXO_META
-                )
-                .stream()
-                .findFirst()
-                .orElse(null);
-
-        if (regra == null) {
+        if (meta.isEmpty() || gmd >= meta.get()) {
             return;
         }
 
-        if (gmd >= regra.getParametro()) {
-            return;
-        }
-
-        boolean alertaJaExiste = alertaRepository
-                .existsByAnimalIdAndTipoAndStatusIn(
-                        animal.getId(),
-                        TipoAlerta.GMD_ABAIXO_META,
-                        List.of(
-                                StatusAlerta.ABERTO,
-                                StatusAlerta.EM_ANALISE
-                        )
-                );
-
-        if (alertaJaExiste) {
-            return;
-        }
-
-        alertaService.createAlerta(
-                animal,
-                TipoAlerta.GMD_ABAIXO_META,
-                "GMD do animal abaixo da meta estabelecida: " + gmd + "kg/dia"
-        );
+        alertaService.createAlertaSeNaoExistir(animal, TipoAlerta.GMD_ABAIXO_META, "GMD do animal abaixo da meta estabelecida: " + gmd + "kg/dia");
     }
 
     public void verificarQuedaPeso(Animal animal) {
-        List<Pesagem> pesagens =
-                pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+        List<Pesagem> pesagens = pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
 
         if (pesagens.size() < 3) {
             return;
         }
 
-        Pesagem ultima = pesagens.get(pesagens.size() - 1);
-        Pesagem anterior = pesagens.get(pesagens.size() - 2);
-        Pesagem anteriorAnterior = pesagens.get(pesagens.size() - 3);
+        double ultima = pesagens.get(pesagens.size() - 1).getPesoKg();
+        double anterior = pesagens.get(pesagens.size() - 2).getPesoKg();
+        double anteriorAnterior = pesagens.get(pesagens.size() - 3).getPesoKg();
 
-        boolean primeiraQueda =
-                anterior.getPesoKg() < anteriorAnterior.getPesoKg();
-
-        boolean segundaQueda =
-                ultima.getPesoKg() < anterior.getPesoKg();
-
-        if (!primeiraQueda || !segundaQueda) {
+        if (anterior >= anteriorAnterior || ultima >= anterior) {
             return;
         }
 
-        boolean alertaJaExiste = alertaRepository
-                .existsByAnimalIdAndTipoAndStatusIn(
-                        animal.getId(),
-                        TipoAlerta.QUEDA_PESO,
-                        List.of(
-                                StatusAlerta.ABERTO,
-                                StatusAlerta.EM_ANALISE
-                        )
-                );
-
-        if (alertaJaExiste) {
-            return;
-        }
-
-        alertaService.createAlerta(
-                animal,
-                TipoAlerta.QUEDA_PESO,
-                "Animal apresentou queda de peso em duas pesagens consecutivas."
-        );
+        alertaService.createAlertaSeNaoExistir(animal, TipoAlerta.QUEDA_PESO, "Animal apresentou queda de peso em duas pesagens consecutivas.");
     }
 
     public void verificarPesagemAtrasada(Animal animal) {
-        List<Pesagem> pesagens =
-                pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+        Optional<Double> prazo = regraAlertaService.getParametroAtivo(animal, TipoAlerta.PESAGEM_ATRASADA);
+
+        if (prazo.isEmpty()) {
+            return;
+        }
+
+        List<Pesagem> pesagens = pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
 
         if (pesagens.isEmpty()) {
             return;
         }
 
-        Pesagem ultimaPesagem = pesagens.get(pesagens.size() - 1);
+        long diasSemPesagem = ChronoUnit.DAYS.between(pesagens.get(pesagens.size() - 1).getData(), LocalDate.now());
 
-        RegraAlerta regra = regraAlertaRepository
-                .findByPropriedadeIdAndTipoAndAtivaTrue(
-                        animal.getLote().getPropriedade().getId(),
-                        TipoAlerta.PESAGEM_ATRASADA
-                )
-                .stream()
-                .findFirst()
-                .orElse(null);
-
-        if (regra == null) {
+        if (diasSemPesagem <= prazo.get()) {
             return;
         }
 
-        long diasSemPesagem = ChronoUnit.DAYS.between(
-                ultimaPesagem.getData(),
-                LocalDate.now()
-        );
-
-        if (diasSemPesagem <= regra.getParametro()) {
-            return;
-        }
-
-        boolean alertaJaExiste = alertaRepository
-                .existsByAnimalIdAndTipoAndStatusIn(
-                        animal.getId(),
-                        TipoAlerta.PESAGEM_ATRASADA,
-                        List.of(
-                                StatusAlerta.ABERTO,
-                                StatusAlerta.EM_ANALISE
-                        )
-                );
-
-        if (alertaJaExiste) {
-            return;
-        }
-
-        alertaService.createAlerta(
-                animal,
-                TipoAlerta.PESAGEM_ATRASADA,
-                "PESAGEM DO ANIMAL ESTÁ ATRASADA: Animal está há "
-                        + diasSemPesagem
-                        + " dias sem nova pesagem."
-        );
+        alertaService.createAlertaSeNaoExistir(animal, TipoAlerta.PESAGEM_ATRASADA, "PESAGEM DO ANIMAL ESTÁ ATRASADA: Animal está há " + diasSemPesagem + " dias sem nova pesagem.");
     }
 }

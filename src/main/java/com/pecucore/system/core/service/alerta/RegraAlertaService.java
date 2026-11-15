@@ -1,21 +1,23 @@
 package com.pecucore.system.core.service.alerta;
 
-
-import com.pecucore.system.core.model.Propriedade;
-import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.exception.AcessoNegadoException;
+import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.exception.RegraNegocioException;
-
+import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.Perfil;
+import com.pecucore.system.core.model.Propriedade;
 import com.pecucore.system.core.model.RegraAlerta;
 import com.pecucore.system.core.model.TipoAlerta;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.model.Perfil;
 import com.pecucore.system.core.repository.PropriedadeRepository;
 import com.pecucore.system.core.repository.RegraAlertaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RegraAlertaService {
@@ -26,17 +28,17 @@ public class RegraAlertaService {
     @Autowired
     private PropriedadeRepository propriedadeRepository;
 
-    public RegraAlerta createRegraAlerta(
-            Long propriedadeId,
-            TipoAlerta tipo,
-            double parametro
-    ) {
+    public RegraAlerta createRegraAlerta(Long propriedadeId, TipoAlerta tipo, double parametro) {
         validarRegra(tipo, parametro);
 
         Propriedade propriedade = propriedadeRepository.findById(propriedadeId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Propriedade não encontrada"));
 
         validarAcesso(propriedade, tipo);
+
+        if (regraAlertaRepository.existsByPropriedadeIdAndTipo(propriedadeId, tipo)) {
+            throw new RegraNegocioException("Já existe uma regra de " + tipo + " para esta propriedade. Atualize a regra existente.");
+        }
 
         RegraAlerta regra = new RegraAlerta();
         regra.setPropriedade(propriedade);
@@ -47,11 +49,7 @@ public class RegraAlertaService {
         return regraAlertaRepository.save(regra);
     }
 
-    public RegraAlerta updateRegraAlerta(
-            Long id,
-            double parametro,
-            boolean ativa
-    ) {
+    public RegraAlerta updateRegraAlerta(Long id, double parametro, boolean ativa) {
         RegraAlerta regra = regraAlertaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Regra de alerta não encontrada"));
 
@@ -62,6 +60,24 @@ public class RegraAlertaService {
         regra.setAtiva(ativa);
 
         return regraAlertaRepository.save(regra);
+    }
+    
+    public Optional<Double> getParametroAtivo(Animal animal, TipoAlerta tipo) {
+        if (animal.getLote() == null || animal.getLote().getPropriedade() == null) {
+            return tipo.getParametroPadrao();
+        }
+
+        List<RegraAlerta> regras = regraAlertaRepository.findByPropriedadeIdAndTipo(
+                animal.getLote().getPropriedade().getId(), tipo);
+
+        if (regras.isEmpty()) {
+            return tipo.getParametroPadrao();
+        }
+
+        return regras.stream()
+                .filter(RegraAlerta::isAtiva)
+                .map(RegraAlerta::getParametro)
+                .findFirst();
     }
 
     private void validarAcesso(Propriedade propriedade, TipoAlerta tipo) {
@@ -95,29 +111,13 @@ public class RegraAlertaService {
             throw new RegraNegocioException("O tipo de alerta deve ser informado.");
         }
 
-        if (!Double.isFinite(parametro) || parametro < 0) {
-            throw new RegraNegocioException("O parâmetro deve ser válido e não negativo.");
+        if (!tipo.isConfiguravel()) {
+            throw new RegraNegocioException("Essa regra é fixa do sistema e não pode ser configurada.");
         }
 
-        switch (tipo) {
-            case QUEDA_PESO:
-            case VACINA_PROX_VENC:
-            case VACINA_VENC:
-            case PERIODO_CARENCIA:
-                throw new RegraNegocioException("Essa regra é fixa do sistema e não pode ser configurada.");
-
-            case PESAGEM_ATRASADA:
-                if (parametro <= 0 || parametro != Math.floor(parametro)) {
-                    throw new RegraNegocioException("O prazo para pesagem deve ser um número inteiro de dias maior que zero.");
-                }
-                break;
-
-            case CUSTO_ACIMA:
-            case GMD_ABAIXO_META:
-                if (parametro <= 0) {
-                    throw new RegraNegocioException("O parâmetro deve ser maior que zero.");
-                }
-                break;
+        if (!tipo.getUnidadeParametro().aceita(parametro)) {
+            throw new RegraNegocioException(
+                    "O parâmetro deve ser " + tipo.getUnidadeParametro().getRegraValor() + ".");
         }
     }
 }

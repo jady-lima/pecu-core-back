@@ -6,13 +6,13 @@ import com.pecucore.system.core.model.*;
 
 import com.pecucore.system.core.repository.AlertaRepository;
 import com.pecucore.system.core.repository.CustoRepository;
-import com.pecucore.system.core.repository.RegraAlertaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AlertaService {
@@ -21,45 +21,28 @@ public class AlertaService {
     private AlertaRepository alertaRepository;
 
     @Autowired
-    private RegraAlertaRepository regraAlertaRepository;
+    private RegraAlertaService regraAlertaService;
 
     @Autowired
     private CustoRepository custoRepository;
 
     public void verificarCustoAcima(Animal animal) {
-        List<Custo> custos = custoRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+        Optional<Double> limite = regraAlertaService.getParametroAtivo(animal, TipoAlerta.CUSTO_ACIMA);
 
-        if (custos.isEmpty() || animal.getLote() == null || animal.getLote().getPropriedade() == null) {
+        if (limite.isEmpty()) {
             return;
         }
 
-        RegraAlerta regra = regraAlertaRepository.findByPropriedadeIdAndTipoAndAtivaTrue(
-                animal.getLote().getPropriedade().getId(),
-                TipoAlerta.CUSTO_ACIMA
-            ).stream().findFirst().orElse(null);
+        double custoTotal = custoRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId()).stream()
+                .mapToDouble(Custo::getValor)
+                .sum();
 
-        if (regra == null) {
+        if (custoTotal <= limite.get()) {
             return;
         }
 
-        double custoTotal = custos.stream().mapToDouble(Custo::getValor).sum();
-
-        if (custoTotal <= regra.getParametro()) {
-            return;
-        }
-
-        if (alertaRepository.existsByAnimalIdAndTipoAndStatusIn(
-            animal.getId(), 
-            TipoAlerta.CUSTO_ACIMA,
-            List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE)
-        )) {
-            return;
-        }
-
-        createAlerta(animal, TipoAlerta.CUSTO_ACIMA,
-                "O animal está com custo acumulado de R$ " + custoTotal
-                + ", acima do limite estabelecido de R$ "
-                + regra.getParametro() + ".");
+        createAlertaSeNaoExistir(animal, TipoAlerta.CUSTO_ACIMA,
+                "O animal está com custo acumulado de R$ " + custoTotal + ", acima do limite estabelecido de R$ " + limite.get() + ".");
     }
 
     public List<Alerta> getAllAlertas() {
@@ -79,8 +62,7 @@ public class AlertaService {
     }
 
     public Alerta updateStatusAlerta(Long id, StatusAlerta novoStatus) {
-        Alerta alerta = alertaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Alerta não encontrado"));
+        Alerta alerta = alertaRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Alerta não encontrado"));
 
         validarAcessoAoAlerta(alerta, usuarioAtual());
 
@@ -125,7 +107,12 @@ public class AlertaService {
         }
     }
 
-    public void createAlerta(Animal animal, TipoAlerta tipo, String mensagem) {
+    public boolean createAlertaSeNaoExistir(Animal animal, TipoAlerta tipo, String mensagem) {
+        if (alertaRepository.existsByAnimalIdAndTipoAndStatusIn(animal.getId(), tipo, StatusAlerta.ativos())) {
+            return false;
+        }
+
         alertaRepository.save(Alerta.abrir(animal, tipo, mensagem));
+        return true;
     }
 }

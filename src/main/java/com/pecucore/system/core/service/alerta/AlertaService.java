@@ -5,7 +5,6 @@ import com.pecucore.system.core.exception.AcessoNegadoException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.model.*;
 import com.pecucore.system.core.repository.AlertaRepository;
-import com.pecucore.system.core.repository.CustoRepository;
 import com.pecucore.system.core.service.AcessoPropriedadeService;
 import com.pecucore.system.core.service.AnimalService;
 import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
@@ -14,19 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AlertaService {
 
     @Autowired
     private AlertaRepository alertaRepository;
-
-    @Autowired
-    private RegraAlertaService regraAlertaService;
-
-    @Autowired
-    private CustoRepository custoRepository;
 
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
@@ -36,25 +28,6 @@ public class AlertaService {
 
     @Autowired
     private AnimalService animalService;
-
-    public void verificarCustoAcima(Animal animal) {
-        Optional<Double> limite = regraAlertaService.getParametroAtivo(animal, TipoAlerta.CUSTO_ACIMA);
-
-        if (limite.isEmpty()) {
-            return;
-        }
-
-        double custoTotal = custoRepository.findByAnimalIdOrderByDataAscIdAsc(animal.getId()).stream()
-                .mapToDouble(Custo::getValor)
-                .sum();
-
-        if (custoTotal <= limite.get()) {
-            return;
-        }
-
-        createAlertaSeNaoExistir(animal, TipoAlerta.CUSTO_ACIMA,
-                "O animal está com custo acumulado de R$ " + custoTotal + ", acima do limite estabelecido de R$ " + limite.get() + ".");
-    }
 
     public List<Alerta> getAllAlertas(Usuario usuarioLogado, Long animalId, StatusAlerta status) {
         List<Alerta> alertas = animalId != null

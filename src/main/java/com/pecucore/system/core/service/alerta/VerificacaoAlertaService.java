@@ -1,5 +1,6 @@
 package com.pecucore.system.core.service.alerta;
 
+import com.pecucore.system.core.evento.CustoRegistradoEvento;
 import com.pecucore.system.core.evento.PesagemRegistradaEvento;
 import com.pecucore.system.core.evento.VacinacaoRegistradaEvento;
 import com.pecucore.system.core.model.Animal;
@@ -29,6 +30,11 @@ public class VerificacaoAlertaService {
     @EventListener
     public void tratarVacinacaoRegistrada(VacinacaoRegistradaEvento evento) {
         verificar(animalService.getAnimalById(evento.animalId()), GatilhoAlerta.VACINACAO_REGISTRADA);
+    }
+
+    @EventListener
+    public void tratarCustoRegistrado(CustoRegistradoEvento evento) {
+        verificar(animalService.getAnimalById(evento.animalId()), GatilhoAlerta.CUSTO_REGISTRADO);
     }
 
     public void verificar(Animal animal, GatilhoAlerta gatilho) {

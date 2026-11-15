@@ -1,6 +1,7 @@
 package com.pecucore.system.core.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -17,6 +18,7 @@ import com.pecucore.system.core.dto.animal.AnimalStatusRequestDTO;
 import com.pecucore.system.core.evento.PesoAnimalAlteradoEvento;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Lote;
+import com.pecucore.system.core.model.SituacaoGeralAnimal;
 import com.pecucore.system.core.model.StatusAnimal;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.repository.AnimalRepository;
@@ -209,6 +211,17 @@ public class AnimalService {
     ) {
 
         animal.setPesoAtual(pesoKg);
+
+        return animalRepository.save(animal);
+    }
+
+    @Transactional
+    public Animal updateAvaliacao(
+            Animal animal,
+            SituacaoGeralAnimal situacaoGeral
+    ) {
+        animal.setSituacaoGeral(situacaoGeral);
+        animal.setDataUltimaAvaliacao(LocalDateTime.now());
 
         return animalRepository.save(animal);
     }

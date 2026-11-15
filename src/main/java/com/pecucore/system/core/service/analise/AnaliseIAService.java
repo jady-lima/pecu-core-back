@@ -48,7 +48,10 @@ public class AnaliseIAService {
         ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montarIndividual(animalId, usuarioLogado);
         ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarIndividual(contexto);
 
-        return salvar(TipoAnalise.INDIVIDUAL, animalId, resultado, contexto.custos() != null, usuarioLogado);
+        AnaliseIA analise = salvar(TipoAnalise.INDIVIDUAL, animalId, resultado, contexto.custos() != null, usuarioLogado);
+        registrarAvaliacao(analise.getAnimal(), resultado);
+
+        return analise;
     }
 
     public AnaliseIA gerarComparativa(Long animalId, Usuario usuarioLogado) {
@@ -97,6 +100,14 @@ public class AnaliseIAService {
         analise.setIncluiDadosFinanceiros(incluiDadosFinanceiros);
 
         return analiseIARepository.save(analise);
+    }
+
+    private void registrarAvaliacao(Animal animal, ResultadoAnaliseIA resultado) {
+        if (resultado.relatorio() == null || resultado.relatorio().situacaoGeral() == null) {
+            return;
+        }
+
+        animalService.updateAvaliacao(animal, resultado.relatorio().situacaoGeral());
     }
 
     private boolean podeVisualizar(AnaliseIA analise, Usuario usuarioLogado) {

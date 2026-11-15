@@ -1,9 +1,11 @@
 package com.pecucore.system.core.dto.animal;
 
 import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.SituacaoGeralAnimal;
 import com.pecucore.system.core.model.StatusAnimal;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record AnimalResponseDTO(
         Long id,
@@ -11,7 +13,9 @@ public record AnimalResponseDTO(
         LocalDate dataNascimento,
         double pesoAtual,
         String sexo,
-        Long loteId, StatusAnimal status
+        Long loteId, StatusAnimal status,
+        SituacaoGeralAnimal situacaoGeral,
+        LocalDateTime dataUltimaAvaliacao
 ) {
 
     public AnimalResponseDTO(Animal animal) {
@@ -23,7 +27,9 @@ public record AnimalResponseDTO(
                 animal.getPesoAtual(),
                 animal.getSexo(),
                 animal.getLote().getId(),
-                animal.getStatus()
+                animal.getStatus(),
+                animal.getSituacaoGeral(),
+                animal.getDataUltimaAvaliacao()
     );
     }
 }

@@ -34,8 +34,7 @@ public class RegraAlertaService {
         validarRegra(tipo, parametro);
 
         Propriedade propriedade = propriedadeRepository.findById(propriedadeId)
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Propriedade não encontrada"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Propriedade não encontrada"));
 
         validarAcesso(propriedade, tipo);
 
@@ -54,9 +53,7 @@ public class RegraAlertaService {
             boolean ativa
     ) {
         RegraAlerta regra = regraAlertaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Regra de alerta não encontrada"
-                ));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Regra de alerta não encontrada"));
 
         validarRegra(regra.getTipo(), parametro);
         validarAcesso(regra.getPropriedade(), regra.getTipo());
@@ -68,11 +65,9 @@ public class RegraAlertaService {
     }
 
     private void validarAcesso(Propriedade propriedade, TipoAlerta tipo) {
-        Authentication autenticacao =
-                SecurityContextHolder.getContext().getAuthentication();
+        Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
 
-        if (autenticacao == null
-                || !(autenticacao.getPrincipal() instanceof Usuario)) {
+        if (autenticacao == null || !(autenticacao.getPrincipal() instanceof Usuario)) {
             throw new AcessoNegadoException("Usuário não autenticado.");
         }
 
@@ -82,36 +77,26 @@ public class RegraAlertaService {
             return;
         }
 
-        if (usuario.getPerfil() == Perfil.VETERINARIO
-                && tipo == TipoAlerta.CUSTO_ACIMA) {
-            throw new AcessoNegadoException(
-                    "Você não tem permissão para gerenciar regras financeiras.");
+        if (usuario.getPerfil() == Perfil.VETERINARIO && tipo.isFinanceiro()) {
+            throw new AcessoNegadoException("Você não tem permissão para gerenciar regras financeiras.");
         }
 
-        boolean produtorResponsavel =
-                propriedade.getUsuario() != null
-                        && propriedade.getUsuario().getId().equals(usuario.getId());
+        boolean produtorResponsavel = propriedade.getUsuario() != null && propriedade.getUsuario().getId().equals(usuario.getId());
 
-        boolean veterinarioAssociado =
-                propriedade.getVeterinarios() != null
-                        && propriedade.getVeterinarios().stream()
-                        .anyMatch(v -> v.getId().equals(usuario.getId()));
+        boolean veterinarioAssociado = propriedade.getVeterinarios() != null && propriedade.getVeterinarios().stream().anyMatch(v -> v.getId().equals(usuario.getId()));
 
         if (!produtorResponsavel && !veterinarioAssociado) {
-            throw new AcessoNegadoException(
-                    "Você não tem acesso a esta propriedade.");
+            throw new AcessoNegadoException("Você não tem acesso a esta propriedade");
         }
     }
 
     private void validarRegra(TipoAlerta tipo, double parametro) {
         if (tipo == null) {
-            throw new RegraNegocioException(
-                    "O tipo de alerta deve ser informado.");
+            throw new RegraNegocioException("O tipo de alerta deve ser informado.");
         }
 
         if (!Double.isFinite(parametro) || parametro < 0) {
-            throw new RegraNegocioException(
-                    "O parâmetro deve ser válido e não negativo.");
+            throw new RegraNegocioException("O parâmetro deve ser válido e não negativo.");
         }
 
         switch (tipo) {
@@ -119,21 +104,18 @@ public class RegraAlertaService {
             case VACINA_PROX_VENC:
             case VACINA_VENC:
             case PERIODO_CARENCIA:
-                throw new RegraNegocioException(
-                        "Essa regra é fixa do sistema e não pode ser configurada.");
+                throw new RegraNegocioException("Essa regra é fixa do sistema e não pode ser configurada.");
 
             case PESAGEM_ATRASADA:
                 if (parametro <= 0 || parametro != Math.floor(parametro)) {
-                    throw new RegraNegocioException(
-                            "O prazo para pesagem deve ser um número inteiro de dias maior que zero.");
+                    throw new RegraNegocioException("O prazo para pesagem deve ser um número inteiro de dias maior que zero.");
                 }
                 break;
 
             case CUSTO_ACIMA:
             case GMD_ABAIXO_META:
                 if (parametro <= 0) {
-                    throw new RegraNegocioException(
-                            "O parâmetro deve ser maior que zero.");
+                    throw new RegraNegocioException("O parâmetro deve ser maior que zero.");
                 }
                 break;
         }

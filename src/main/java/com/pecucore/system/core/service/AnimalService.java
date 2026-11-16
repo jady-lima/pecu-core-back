@@ -238,6 +238,10 @@ public class AnimalService {
         );
     }
 
+    public List<Long> getIdsAtivosComLote() {
+        return animalRepository.findIdsByStatusComLote(StatusAnimal.ATIVO);
+    }
+
     public Animal getAnimalById(Long id) {
 
         return animalRepository.findById(id)

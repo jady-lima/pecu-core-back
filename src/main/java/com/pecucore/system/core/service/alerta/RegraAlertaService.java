@@ -1,21 +1,25 @@
 package com.pecucore.system.core.service.alerta;
 
-
-import com.pecucore.system.core.model.Propriedade;
-import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
+import com.pecucore.system.core.dto.alerta.RegraAlertaRequestDTO;
+import com.pecucore.system.core.dto.alerta.RegraAlertaUpdateRequestDTO;
 import com.pecucore.system.core.exception.AcessoNegadoException;
+import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.exception.RegraNegocioException;
-
+import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.Propriedade;
 import com.pecucore.system.core.model.RegraAlerta;
 import com.pecucore.system.core.model.TipoAlerta;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.model.Perfil;
-import com.pecucore.system.core.repository.PropriedadeRepository;
 import com.pecucore.system.core.repository.RegraAlertaRepository;
+import com.pecucore.system.core.service.AcessoPropriedadeService;
+import com.pecucore.system.core.service.PropriedadeService;
+import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RegraAlertaService {
@@ -24,118 +28,82 @@ public class RegraAlertaService {
     private RegraAlertaRepository regraAlertaRepository;
 
     @Autowired
-    private PropriedadeRepository propriedadeRepository;
+    private PropriedadeService propriedadeService;
 
-    public RegraAlerta createRegraAlerta(
-            Long propriedadeId,
-            TipoAlerta tipo,
-            double parametro
-    ) {
-        validarRegra(tipo, parametro);
+    @Autowired
+    private AcessoPropriedadeService acessoPropriedadeService;
 
-        Propriedade propriedade = propriedadeRepository.findById(propriedadeId)
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Propriedade não encontrada"));
+    @Autowired
+    private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
-        validarAcesso(propriedade, tipo);
+    @Transactional
+    public RegraAlerta createRegraAlerta(RegraAlertaRequestDTO dados, Usuario usuarioLogado) {
+        Propriedade propriedade = propriedadeService.getPropriedadeById(dados.propriedadeId(), usuarioLogado);
 
-        RegraAlerta regra = new RegraAlerta();
-        regra.setPropriedade(propriedade);
-        regra.setTipo(tipo);
-        regra.setParametro(parametro);
-        regra.setAtiva(true);
+        validarPermissaoFinanceira(dados.tipo(), usuarioLogado);
 
-        return regraAlertaRepository.save(regra);
+        if (regraAlertaRepository.existsByPropriedadeIdAndTipo(propriedade.getId(), dados.tipo())) {
+            throw new RegraNegocioException("Já existe uma regra de " + dados.tipo()
+                    + " para esta propriedade. Atualize a regra existente.");
+        }
+
+        return regraAlertaRepository.save(RegraAlerta.criar(propriedade, dados.tipo(), dados.parametro()));
     }
 
-    public RegraAlerta updateRegraAlerta(
-            Long id,
-            double parametro,
-            boolean ativa
-    ) {
+    @Transactional
+    public RegraAlerta updateRegraAlerta(Long id, RegraAlertaUpdateRequestDTO dados, Usuario usuarioLogado) {
         RegraAlerta regra = regraAlertaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Regra de alerta não encontrada"
-                ));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Regra de alerta não encontrada"));
 
-        validarRegra(regra.getTipo(), parametro);
-        validarAcesso(regra.getPropriedade(), regra.getTipo());
+        acessoPropriedadeService.validarAcesso(
+                regra.getPropriedade(),
+                usuarioLogado,
+                "Você não tem acesso a esta propriedade"
+        );
+        validarPermissaoFinanceira(regra.getTipo(), usuarioLogado);
 
-        regra.setParametro(parametro);
-        regra.setAtiva(ativa);
+        regra.atualizar(dados.parametro(), dados.ativa());
 
         return regraAlertaRepository.save(regra);
     }
 
-    private void validarAcesso(Propriedade propriedade, TipoAlerta tipo) {
-        Authentication autenticacao =
-                SecurityContextHolder.getContext().getAuthentication();
+    public List<RegraAlerta> getAllRegrasAlerta(Long propriedadeId, Usuario usuarioLogado) {
+        Propriedade propriedade = propriedadeService.getPropriedadeById(propriedadeId, usuarioLogado);
 
-        if (autenticacao == null
-                || !(autenticacao.getPrincipal() instanceof Usuario)) {
-            throw new AcessoNegadoException("Usuário não autenticado.");
-        }
-
-        Usuario usuario = (Usuario) autenticacao.getPrincipal();
-
-        if (usuario.getPerfil() == Perfil.ADMIN) {
-            return;
-        }
-
-        if (usuario.getPerfil() == Perfil.VETERINARIO
-                && tipo == TipoAlerta.CUSTO_ACIMA) {
-            throw new AcessoNegadoException(
-                    "Você não tem permissão para gerenciar regras financeiras.");
-        }
-
-        boolean produtorResponsavel =
-                propriedade.getUsuario() != null
-                        && propriedade.getUsuario().getId().equals(usuario.getId());
-
-        boolean veterinarioAssociado =
-                propriedade.getVeterinarios() != null
-                        && propriedade.getVeterinarios().stream()
-                        .anyMatch(v -> v.getId().equals(usuario.getId()));
-
-        if (!produtorResponsavel && !veterinarioAssociado) {
-            throw new AcessoNegadoException(
-                    "Você não tem acesso a esta propriedade.");
-        }
+        return regraAlertaRepository.findByPropriedadeIdOrderByTipo(propriedade.getId()).stream()
+                .filter(regra -> politicaVisibilidadeFinanceira.podeVerAlerta(regra.getTipo(), usuarioLogado))
+                .toList();
     }
 
-    private void validarRegra(TipoAlerta tipo, double parametro) {
-        if (tipo == null) {
-            throw new RegraNegocioException(
-                    "O tipo de alerta deve ser informado.");
+    public Optional<Double> getParametroAtivo(Animal animal, TipoAlerta tipo) {
+        List<RegraAlerta> regras = getRegrasDoAnimal(animal, tipo);
+
+        if (regras.isEmpty()) {
+            return tipo.getParametroPadrao();
         }
 
-        if (!Double.isFinite(parametro) || parametro < 0) {
-            throw new RegraNegocioException(
-                    "O parâmetro deve ser válido e não negativo.");
+        return regras.stream()
+                .filter(RegraAlerta::isAtiva)
+                .map(RegraAlerta::getParametro)
+                .findFirst();
+    }
+
+    public boolean isAlertaDesativado(Animal animal, TipoAlerta tipo) {
+        List<RegraAlerta> regras = getRegrasDoAnimal(animal, tipo);
+        return !regras.isEmpty() && regras.stream().noneMatch(RegraAlerta::isAtiva);
+    }
+
+    private List<RegraAlerta> getRegrasDoAnimal(Animal animal, TipoAlerta tipo) {
+        if (animal.getLote() == null || animal.getLote().getPropriedade() == null) {
+            return List.of();
         }
 
-        switch (tipo) {
-            case QUEDA_PESO:
-            case VACINA_PROX_VENC:
-            case VACINA_VENC:
-            case PERIODO_CARENCIA:
-                throw new RegraNegocioException(
-                        "Essa regra é fixa do sistema e não pode ser configurada.");
+        return regraAlertaRepository.findByPropriedadeIdAndTipo(animal.getLote().getPropriedade().getId(), tipo);
+    }
 
-            case PESAGEM_ATRASADA:
-                if (parametro <= 0 || parametro != Math.floor(parametro)) {
-                    throw new RegraNegocioException(
-                            "O prazo para pesagem deve ser um número inteiro de dias maior que zero.");
-                }
-                break;
-
-            case CUSTO_ACIMA:
-            case GMD_ABAIXO_META:
-                if (parametro <= 0) {
-                    throw new RegraNegocioException(
-                            "O parâmetro deve ser maior que zero.");
-                }
-                break;
+    private void validarPermissaoFinanceira(TipoAlerta tipo, Usuario usuarioLogado) {
+        if (tipo.isFinanceiro() && !politicaVisibilidadeFinanceira.podeVerDadosFinanceiros(usuarioLogado)) {
+            throw new AcessoNegadoException("Você não tem permissão para gerenciar regras financeiras.");
         }
     }
 }

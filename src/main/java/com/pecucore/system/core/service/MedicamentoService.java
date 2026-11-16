@@ -2,6 +2,7 @@ package com.pecucore.system.core.service;
 
 import com.pecucore.system.core.dto.medicamento.MedicamentoRequestDTO;
 import com.pecucore.system.core.dto.medicamento.MedicamentoUpdateRequestDTO;
+import com.pecucore.system.core.evento.MedicamentoRegistradoEvento;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Custo;
@@ -13,6 +14,7 @@ import com.pecucore.system.bovinos.sanidade.CalculadoraCarencia;
 import com.pecucore.system.core.service.custo.CustoAutomaticoService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -32,6 +34,9 @@ public class MedicamentoService {
 
     @Autowired
     private CustoAutomaticoService custoAutomaticoService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Medicamento createMedicamento(MedicamentoRequestDTO dados, Usuario usuarioLogado) {
@@ -54,7 +59,9 @@ public class MedicamentoService {
                 dados.valor()
         );
 
-        return medicamentoRepository.save(medicamento);
+        Medicamento salvo = medicamentoRepository.save(medicamento);
+        eventPublisher.publishEvent(new MedicamentoRegistradoEvento(salvo.getAnimal().getId()));
+        return salvo;
     }
 
     @Transactional
@@ -74,7 +81,9 @@ public class MedicamentoService {
                 dados.valor()
         );
 
-        return medicamentoRepository.save(medicamento);
+        Medicamento salvo = medicamentoRepository.save(medicamento);
+        eventPublisher.publishEvent(new MedicamentoRegistradoEvento(salvo.getAnimal().getId()));
+        return salvo;
     }
 
     @Transactional

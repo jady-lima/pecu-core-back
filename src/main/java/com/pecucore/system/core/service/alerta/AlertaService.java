@@ -1,19 +1,17 @@
 package com.pecucore.system.core.service.alerta;
 
+import com.pecucore.system.core.dto.alerta.AlertaStatusRequestDTO;
 import com.pecucore.system.core.exception.AcessoNegadoException;
-import com.pecucore.system.core.exception.RegraNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.model.*;
-
 import com.pecucore.system.core.repository.AlertaRepository;
-import com.pecucore.system.core.repository.CustoRepository;
-import com.pecucore.system.core.repository.RegraAlertaRepository;
+import com.pecucore.system.core.service.AcessoPropriedadeService;
+import com.pecucore.system.core.service.AnimalService;
+import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,154 +21,70 @@ public class AlertaService {
     private AlertaRepository alertaRepository;
 
     @Autowired
-    private RegraAlertaRepository regraAlertaRepository;
+    private AcessoPropriedadeService acessoPropriedadeService;
 
     @Autowired
-    private CustoRepository custoRepository;
+    private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
-    public void verificarCustoAcima(Animal animal) {
-        List<Custo> custos = custoRepository
-                .findByAnimalIdOrderByDataAscIdAsc(animal.getId());
+    @Autowired
+    private AnimalService animalService;
 
-        if (custos.isEmpty() || animal.getLote() == null
-                || animal.getLote().getPropriedade() == null) {
-            return;
-        }
+    public List<Alerta> getAllAlertas(Usuario usuarioLogado, Long animalId, StatusAlerta status) {
+        List<Alerta> alertas = animalId != null
+                ? getAlertasDoAnimal(animalId, usuarioLogado)
+                : acessoPropriedadeService.filtrarPorPerfil(
+                        usuarioLogado,
+                        alertaRepository::findAllByOrderByDataCriacaoDesc,
+                        alertaRepository::findByAnimalLotePropriedadeUsuarioIdOrderByDataCriacaoDesc,
+                        alertaRepository::findByAnimalLotePropriedadeVeterinariosIdOrderByDataCriacaoDesc
+                );
 
-        RegraAlerta regra = regraAlertaRepository
-                .findByPropriedadeIdAndTipoAndAtivaTrue(
-                        animal.getLote().getPropriedade().getId(),
-                        TipoAlerta.CUSTO_ACIMA)
-                .stream().findFirst().orElse(null);
-
-        if (regra == null) {
-            return;
-        }
-
-        double custoTotal = custos.stream()
-                .mapToDouble(Custo::getValor).sum();
-
-        if (custoTotal <= regra.getParametro()) {
-            return;
-        }
-
-        if (alertaRepository.existsByAnimalIdAndTipoAndStatusIn(
-                animal.getId(), TipoAlerta.CUSTO_ACIMA,
-                List.of(StatusAlerta.ABERTO, StatusAlerta.EM_ANALISE))) {
-            return;
-        }
-
-        createAlerta(animal, TipoAlerta.CUSTO_ACIMA,
-                "O animal está com custo acumulado de R$ " + custoTotal
-                        + ", acima do limite estabelecido de R$ "
-                        + regra.getParametro() + ".");
-    }
-
-    public List<Alerta> getAllAlertas() {
-        Usuario usuario = usuarioAtual();
-
-        return alertaRepository.findAll().stream()
-                .filter(alerta -> {
-                    try {
-                        validarAcessoAoAlerta(alerta, usuario);
-                        return true;
-                    } catch (AcessoNegadoException e) {
-                        return false;
-                    }
-                })
+        return alertas.stream()
+                .filter(alerta -> status == null || alerta.getStatus() == status)
+                .filter(alerta -> podeVer(alerta, usuarioLogado))
                 .toList();
     }
 
-    public Alerta updateStatusAlerta(Long id, StatusAlerta novoStatus) {
-        if (novoStatus == null) {
-            throw new RegraNegocioException("O status é obrigatório.");
-        }
+    public List<Alerta> getHistoricoByAnimalId(Long animalId, Usuario usuarioLogado) {
+        return alertaRepository.findByAnimalIdOrderByDataCriacaoDesc(animalId).stream()
+                .filter(alerta -> podeVer(alerta, usuarioLogado))
+                .toList();
+    }
 
+    @Transactional
+    public Alerta updateStatusAlerta(Long id, AlertaStatusRequestDTO dados, Usuario usuarioLogado) {
         Alerta alerta = alertaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Alerta não encontrado"
-                ));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Alerta não encontrado"));
 
-        validarAcessoAoAlerta(alerta, usuarioAtual());
+        validarAcessoAoAlerta(alerta, usuarioLogado);
 
-        alerta.setStatus(novoStatus);
+        alerta.alterarStatus(dados.status());
         return alertaRepository.save(alerta);
     }
 
-    private Usuario usuarioAtual() {
-        Authentication autenticacao =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        if (autenticacao == null
-                || !(autenticacao.getPrincipal() instanceof Usuario)) {
-            throw new AcessoNegadoException("Usuário não autenticado.");
-        }
-
-        return (Usuario) autenticacao.getPrincipal();
+    private List<Alerta> getAlertasDoAnimal(Long animalId, Usuario usuarioLogado) {
+        animalService.getAnimalById(animalId, usuarioLogado);
+        return alertaRepository.findByAnimalIdOrderByDataCriacaoDesc(animalId);
     }
 
-    private boolean temAcesso(Propriedade propriedade, Usuario usuario) {
-        if (usuario.getPerfil() == Perfil.ADMIN) {
-            return true;
-        }
+    private void validarAcessoAoAlerta(Alerta alerta, Usuario usuarioLogado) {
+        acessoPropriedadeService.validarAcesso(
+                propriedadeDoAlerta(alerta),
+                usuarioLogado,
+                "Você não tem acesso a este alerta."
+        );
 
-        boolean produtorResponsavel = propriedade.getUsuario() != null
-                && propriedade.getUsuario().getId().equals(usuario.getId());
-
-        boolean veterinarioAssociado = propriedade.getVeterinarios().stream()
-                .anyMatch(v -> v.getId().equals(usuario.getId()));
-
-        return produtorResponsavel || veterinarioAssociado;
-    }
-
-    private void validarAcessoAoAlerta(Alerta alerta, Usuario usuario) {
-        if (alerta.getAnimal() == null
-                || alerta.getAnimal().getLote() == null
-                || alerta.getAnimal().getLote().getPropriedade() == null
-                || !temAcesso(
-                alerta.getAnimal().getLote().getPropriedade(), usuario)) {
-            throw new AcessoNegadoException(
-                    "Você não tem acesso a este alerta.");
-        }
-
-        if (usuario.getPerfil() == Perfil.VETERINARIO
-                && alerta.getTipo() == TipoAlerta.CUSTO_ACIMA) {
-            throw new AcessoNegadoException(
-                    "Você não tem permissão para acessar alertas financeiros.");
+        if (!podeVer(alerta, usuarioLogado)) {
+            throw new AcessoNegadoException("Você não tem permissão para acessar alertas financeiros.");
         }
     }
 
-    private SeveridadeAlerta definirSeveridade(TipoAlerta tipo) {
-        switch (tipo) {
-            case QUEDA_PESO:
-            case VACINA_VENC:
-            case GMD_ABAIXO_META:
-            case CUSTO_ACIMA:
-                return SeveridadeAlerta.ALTA;
-
-            case VACINA_PROX_VENC:
-                return SeveridadeAlerta.BAIXA;
-
-            case PERIODO_CARENCIA:
-            case PESAGEM_ATRASADA:
-            default:
-                return SeveridadeAlerta.MEDIA;
-        }
+    private boolean podeVer(Alerta alerta, Usuario usuarioLogado) {
+        return politicaVisibilidadeFinanceira.podeVerAlerta(alerta.getTipo(), usuarioLogado);
     }
 
-    public void createAlerta(
-            Animal animal,
-            TipoAlerta tipo,
-            String mensagem
-    ) {
-        Alerta alerta = new Alerta();
-        alerta.setAnimal(animal);
-        alerta.setTipo(tipo);
-        alerta.setSeveridade(definirSeveridade(tipo));
-        alerta.setMensagem(mensagem);
-        alerta.setStatus(StatusAlerta.ABERTO);
-        alerta.setDataCriacao(LocalDateTime.now());
-
-        alertaRepository.save(alerta);
+    private Propriedade propriedadeDoAlerta(Alerta alerta) {
+        Lote lote = alerta.getAnimal().getLote();
+        return lote != null ? lote.getPropriedade() : null;
     }
 }

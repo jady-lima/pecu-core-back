@@ -7,5 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface RegraAlertaRepository extends JpaRepository<RegraAlerta, Long> {
-    List<RegraAlerta> findByPropriedadeIdAndTipoAndAtivaTrue(Long propriedadeId, TipoAlerta tipo);
+    List<RegraAlerta> findByPropriedadeIdAndTipo(Long propriedadeId, TipoAlerta tipo);
+    boolean existsByPropriedadeIdAndTipo(Long propriedadeId, TipoAlerta tipo);
+    List<RegraAlerta> findByPropriedadeIdOrderByTipo(Long propriedadeId);
 }

@@ -2,8 +2,10 @@ package com.pecucore.system.core.service;
 
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.model.*;
+import com.pecucore.system.core.evento.VacinacaoRegistradaEvento;
 import com.pecucore.system.core.service.custo.CustoAutomaticoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,7 +14,9 @@ import com.pecucore.system.core.dto.vacinacao.VacinacaoUpdateRequestDTO;
 import com.pecucore.system.core.repository.VacinacaoRepository;
 import com.pecucore.system.bovinos.sanidade.CalculadoraCarencia;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class VacinacaoService {
@@ -35,6 +39,9 @@ public class VacinacaoService {
     @Autowired
     private CustoAutomaticoService custoAutomaticoService;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @Transactional
     public Vacinacao createVacinacao(VacinacaoRequestDTO dados, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
@@ -50,7 +57,9 @@ public class VacinacaoService {
 
         preencherDados(vacinacao, vacina, aplicador, dados.data(), dados.loteVacina(), dados.doseAplicada(), dados.observacoes(), dados.valor());
 
-        return vacinacaoRepository.save(vacinacao);
+        Vacinacao salva = vacinacaoRepository.save(vacinacao);
+        eventPublisher.publishEvent(new VacinacaoRegistradaEvento(salva.getAnimal().getId()));
+        return salva;
     }
 
     @Transactional
@@ -63,7 +72,9 @@ public class VacinacaoService {
 
         preencherDados(vacinacao, vacina, aplicador, dados.data(), dados.loteVacina(), dados.doseAplicada(), dados.observacoes(), dados.valor());
 
-        return vacinacaoRepository.save(vacinacao);
+        Vacinacao salva = vacinacaoRepository.save(vacinacao);
+        eventPublisher.publishEvent(new VacinacaoRegistradaEvento(salva.getAnimal().getId()));
+        return salva;
     }
 
     @Transactional
@@ -91,6 +102,18 @@ public class VacinacaoService {
 
     public List<Vacinacao> getHistoricoByAnimalId(Long animalId) {
         return vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
+    }
+
+    /**
+     * Última vacinação de cada vacina aplicada no animal: é ela que define a próxima dose em vigor.
+     */
+    public List<Vacinacao> getUltimasVacinacoesByAnimalId(Long animalId) {
+        Map<Long, Vacinacao> ultimaPorVacina = new LinkedHashMap<>();
+
+        getHistoricoByAnimalId(animalId)
+                .forEach(vacinacao -> ultimaPorVacina.put(vacinacao.getVacina().getId(), vacinacao));
+
+        return List.copyOf(ultimaPorVacina.values());
     }
 
     private void preencherDados(Vacinacao vacinacao, Vacina vacina, Usuario aplicador, LocalDate data, String loteVacina, Double doseAplicada, String observacoes, Double valor) {

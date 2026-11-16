@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,20 +35,19 @@ public class VerificadorPesagemAtrasada implements VerificadorAlerta {
     @Override
     public Optional<OcorrenciaAlerta> avaliar(Animal animal) {
         Optional<Double> prazo = regraAlertaService.getParametroAtivo(animal, getTipo());
-        List<Pesagem> pesagens = pesagemService.getHistoricoByAnimalId(animal.getId());
+        Optional<Pesagem> ultima = pesagemService.getUltimaPesagem(animal.getId());
 
-        if (prazo.isEmpty() || pesagens.isEmpty()) {
+        if (prazo.isEmpty() || ultima.isEmpty()) {
             return Optional.empty();
         }
 
-        Pesagem ultima = pesagens.get(pesagens.size() - 1);
-        long diasSemPesagem = ChronoUnit.DAYS.between(ultima.getData(), LocalDate.now());
+        long diasSemPesagem = ChronoUnit.DAYS.between(ultima.get().getData(), LocalDate.now());
 
         if (diasSemPesagem <= prazo.get()) {
             return Optional.empty();
         }
 
-        return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.getId(),
-                "PESAGEM DO ANIMAL ESTÁ ATRASADA: Animal está há " + diasSemPesagem + " dias sem nova pesagem."));
+        return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.get().getId(),
+                "Pesagem atrasada: o animal está há " + diasSemPesagem + " dias sem nova pesagem."));
     }
 }

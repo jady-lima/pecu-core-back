@@ -49,8 +49,7 @@ public class VerificadorVacinaProximaVencimento implements VerificadorAlerta {
                 })
                 .findFirst()
                 .map(vacinacao -> new OcorrenciaAlerta("vacinacao:" + vacinacao.getId(),
-                        "Atenção: vacinação próxima. A próxima dose da vacina "
-                                + vacinacao.getVacina().getNome() + " está prevista para "
-                                + vacinacao.getDataProximaDose()));
+                        "Vacinação próxima: a próxima dose da vacina " + vacinacao.getVacina().getNome()
+                                + " está prevista para " + FormatadorAlerta.data(vacinacao.getDataProximaDose()) + "."));
     }
 }

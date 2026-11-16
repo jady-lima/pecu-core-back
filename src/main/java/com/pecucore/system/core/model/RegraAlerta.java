@@ -1,10 +1,14 @@
 package com.pecucore.system.core.model;
 
+import com.pecucore.system.core.exception.RegraNegocioException;
 import jakarta.persistence.*;
+
+import java.util.Objects;
 
 @Entity
 @Table(name = "regra_alerta")
-public class RegraAlerta{
+public class RegraAlerta {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -23,12 +27,47 @@ public class RegraAlerta{
     @JoinColumn(name = "propriedade_id", nullable = false)
     private Propriedade propriedade;
 
+    protected RegraAlerta() {
+    }
 
-    public Long getId(){
+    public static RegraAlerta criar(Propriedade propriedade, TipoAlerta tipo, double parametro) {
+        Objects.requireNonNull(propriedade, "A propriedade da regra é obrigatória.");
+        validarParametro(tipo, parametro);
+
+        RegraAlerta regra = new RegraAlerta();
+        regra.propriedade = propriedade;
+        regra.tipo = tipo;
+        regra.parametro = parametro;
+        regra.ativa = true;
+        return regra;
+    }
+
+    public void atualizar(double parametro, boolean ativa) {
+        validarParametro(tipo, parametro);
+
+        this.parametro = parametro;
+        this.ativa = ativa;
+    }
+
+    private static void validarParametro(TipoAlerta tipo, double parametro) {
+        if (tipo == null) {
+            throw new RegraNegocioException("O tipo de alerta deve ser informado.");
+        }
+
+        if (!tipo.isConfiguravel()) {
+            throw new RegraNegocioException("Essa regra é fixa do sistema e não pode ser configurada.");
+        }
+
+        if (!tipo.getUnidadeParametro().aceita(parametro)) {
+            throw new RegraNegocioException("O parâmetro deve ser " + tipo.getUnidadeParametro().getRegraValor() + ".");
+        }
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public TipoAlerta getTipo(){
+    public TipoAlerta getTipo() {
         return tipo;
     }
 
@@ -43,29 +82,4 @@ public class RegraAlerta{
     public Propriedade getPropriedade() {
         return propriedade;
     }
-
-    public void setTipo(TipoAlerta tipo) {
-        this.tipo = tipo;
-    }
-
-    public void setParametro(double parametro) {
-        this.parametro = parametro;
-    }
-
-    public void setAtiva(boolean ativa) {
-        this.ativa = ativa;
-    }
-
-    public void setPropriedade(Propriedade propriedade) {
-        this.propriedade = propriedade;
-    }
 }
-
-
-
-
-
-
-
-
-

@@ -35,8 +35,7 @@ public class VerificadorVacinaVencida implements VerificadorAlerta {
                 .filter(vacinacao -> vacinacao.getDataProximaDose().isBefore(hoje))
                 .findFirst()
                 .map(vacinacao -> new OcorrenciaAlerta("vacinacao:" + vacinacao.getId(),
-                        "A vacina " + vacinacao.getVacina().getNome()
-                                + " do animal está vencida. A próxima dose estava prevista para "
-                                + vacinacao.getDataProximaDose()));
+                        "Vacina vencida: a próxima dose da vacina " + vacinacao.getVacina().getNome()
+                                + " estava prevista para " + FormatadorAlerta.data(vacinacao.getDataProximaDose()) + "."));
     }
 }

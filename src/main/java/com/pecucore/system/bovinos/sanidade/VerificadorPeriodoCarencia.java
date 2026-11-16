@@ -3,6 +3,7 @@ package com.pecucore.system.bovinos.sanidade;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.TipoAlerta;
 import com.pecucore.system.core.service.alerta.verificador.GatilhoAlerta;
+import com.pecucore.system.core.service.alerta.verificador.FormatadorAlerta;
 import com.pecucore.system.core.service.alerta.verificador.OcorrenciaAlerta;
 import com.pecucore.system.core.service.alerta.verificador.VerificadorAlerta;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ public class VerificadorPeriodoCarencia implements VerificadorAlerta {
     public Optional<OcorrenciaAlerta> avaliar(Animal animal) {
         return carenciaService.getDataFimCarencia(animal.getId())
                 .map(dataFim -> new OcorrenciaAlerta("carencia-ate:" + dataFim,
-                    "Animal ainda está em período de carência (vacinas ou medicamentos). " + "Animal estará em período de carência até " + dataFim));
+                        "Período de carência: o animal está em carência (vacinas ou medicamentos) até "
+                                + FormatadorAlerta.data(dataFim) + "."));
     }
 }

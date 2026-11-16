@@ -29,21 +29,21 @@ public class VerificadorQuedaPeso implements VerificadorAlerta {
 
     @Override
     public Optional<OcorrenciaAlerta> avaliar(Animal animal) {
-        List<Pesagem> pesagens = pesagemService.getHistoricoByAnimalId(animal.getId());
+        List<Pesagem> ultimas = pesagemService.getUltimasPesagens(animal.getId(), 3);
 
-        if (pesagens.size() < 3) {
+        if (ultimas.size() < 3) {
             return Optional.empty();
         }
 
-        Pesagem ultima = pesagens.get(pesagens.size() - 1);
-        double anterior = pesagens.get(pesagens.size() - 2).getPesoKg();
-        double anteriorAnterior = pesagens.get(pesagens.size() - 3).getPesoKg();
+        Pesagem ultima = ultimas.get(0);
+        double anterior = ultimas.get(1).getPesoKg();
+        double anteriorAnterior = ultimas.get(2).getPesoKg();
 
         if (anterior >= anteriorAnterior || ultima.getPesoKg() >= anterior) {
             return Optional.empty();
         }
 
         return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.getId(),
-                "Animal apresentou queda de peso em duas pesagens consecutivas."));
+                "Queda de peso: o animal perdeu peso em duas pesagens consecutivas."));
     }
 }

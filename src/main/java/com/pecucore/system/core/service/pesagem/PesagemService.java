@@ -5,6 +5,7 @@ import com.pecucore.system.core.service.AnimalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Limit;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import com.pecucore.system.bovinos.desempenho.GmdService;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PesagemService {
@@ -103,6 +105,14 @@ public class PesagemService {
 
     public List<Pesagem> getHistoricoByAnimalId(Long animalId) {
         return pesagemRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
+    }
+
+    public Optional<Pesagem> getUltimaPesagem(Long animalId) {
+        return pesagemRepository.findTopByAnimalIdOrderByDataDescIdDesc(animalId);
+    }
+
+    public List<Pesagem> getUltimasPesagens(Long animalId, int quantidade) {
+        return pesagemRepository.findByAnimalIdOrderByDataDescIdDesc(animalId, Limit.of(quantidade));
     }
 
     public List<Pesagem> getPesagensAnimaisAtivosByLoteId(Long loteId) {

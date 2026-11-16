@@ -38,8 +38,6 @@ public class RegraAlertaService {
 
     @Transactional
     public RegraAlerta createRegraAlerta(RegraAlertaRequestDTO dados, Usuario usuarioLogado) {
-        validarRegra(dados.tipo(), dados.parametro());
-
         Propriedade propriedade = propriedadeService.getPropriedadeById(dados.propriedadeId(), usuarioLogado);
 
         validarPermissaoFinanceira(dados.tipo(), usuarioLogado);
@@ -49,21 +47,13 @@ public class RegraAlertaService {
                     + " para esta propriedade. Atualize a regra existente.");
         }
 
-        RegraAlerta regra = new RegraAlerta();
-        regra.setPropriedade(propriedade);
-        regra.setTipo(dados.tipo());
-        regra.setParametro(dados.parametro());
-        regra.setAtiva(true);
-
-        return regraAlertaRepository.save(regra);
+        return regraAlertaRepository.save(RegraAlerta.criar(propriedade, dados.tipo(), dados.parametro()));
     }
 
     @Transactional
     public RegraAlerta updateRegraAlerta(Long id, RegraAlertaUpdateRequestDTO dados, Usuario usuarioLogado) {
         RegraAlerta regra = regraAlertaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Regra de alerta não encontrada"));
-
-        validarRegra(regra.getTipo(), dados.parametro());
 
         acessoPropriedadeService.validarAcesso(
                 regra.getPropriedade(),
@@ -72,8 +62,7 @@ public class RegraAlertaService {
         );
         validarPermissaoFinanceira(regra.getTipo(), usuarioLogado);
 
-        regra.setParametro(dados.parametro());
-        regra.setAtiva(dados.ativa());
+        regra.atualizar(dados.parametro(), dados.ativa());
 
         return regraAlertaRepository.save(regra);
     }
@@ -115,20 +104,6 @@ public class RegraAlertaService {
     private void validarPermissaoFinanceira(TipoAlerta tipo, Usuario usuarioLogado) {
         if (tipo.isFinanceiro() && !politicaVisibilidadeFinanceira.podeVerDadosFinanceiros(usuarioLogado)) {
             throw new AcessoNegadoException("Você não tem permissão para gerenciar regras financeiras.");
-        }
-    }
-
-    private void validarRegra(TipoAlerta tipo, double parametro) {
-        if (tipo == null) {
-            throw new RegraNegocioException("O tipo de alerta deve ser informado.");
-        }
-
-        if (!tipo.isConfiguravel()) {
-            throw new RegraNegocioException("Essa regra é fixa do sistema e não pode ser configurada.");
-        }
-
-        if (!tipo.getUnidadeParametro().aceita(parametro)) {
-            throw new RegraNegocioException("O parâmetro deve ser " + tipo.getUnidadeParametro().getRegraValor() + ".");
         }
     }
 }

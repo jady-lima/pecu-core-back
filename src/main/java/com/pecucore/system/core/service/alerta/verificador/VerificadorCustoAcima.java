@@ -44,7 +44,7 @@ public class VerificadorCustoAcima implements VerificadorAlerta {
         }
 
         return Optional.of(new OcorrenciaAlerta("limite:" + limite.get(),
-                "O animal está com custo acumulado de R$ " + custoTotal
-                        + ", acima do limite estabelecido de R$ " + limite.get() + "."));
+                "Custo acima do limite: o animal acumula " + FormatadorAlerta.moeda(custoTotal)
+                        + ", acima do limite de " + FormatadorAlerta.moeda(limite.get()) + "."));
     }
 }

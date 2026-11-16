@@ -1,8 +1,13 @@
 package com.pecucore.system.core.service.alerta;
 
+import com.pecucore.system.core.model.Alerta;
 import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.StatusAlerta;
+import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.repository.AlertaRepository;
 import com.pecucore.system.core.service.AnimalService;
 import com.pecucore.system.core.service.alerta.verificador.GatilhoAlerta;
+import com.pecucore.system.core.service.alerta.verificador.OcorrenciaAlerta;
 import com.pecucore.system.core.service.alerta.verificador.VerificadorAlerta;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +25,7 @@ public class VerificacaoAlertaService {
     private AnimalService animalService;
 
     @Autowired
-    private AlertaService alertaService;
+    private AlertaRepository alertaRepository;
 
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void verificar(Long animalId, GatilhoAlerta gatilho) {
@@ -29,8 +34,27 @@ public class VerificacaoAlertaService {
         verificadores.stream()
                 .filter(verificador -> verificador.getGatilhos().contains(gatilho))
                 .forEach(verificador -> verificador.avaliar(animal).ifPresentOrElse(
-                        ocorrencia -> alertaService.createAlertaSeNaoExistir(animal, verificador.getTipo(), ocorrencia),
-                        () -> alertaService.resolverAlertasAutomaticamente(animal, verificador.getTipo())
+                        ocorrencia -> abrirSeNecessario(animal, verificador.getTipo(), ocorrencia),
+                        () -> resolverAbertos(animal, verificador.getTipo())
                 ));
+    }
+
+    private void abrirSeNecessario(Animal animal, TipoAlerta tipo, OcorrenciaAlerta ocorrencia) {
+        boolean existeAtivo = alertaRepository.existsByAnimalIdAndTipoAndStatusIn(
+                animal.getId(), tipo, StatusAlerta.ativos());
+
+        boolean usuarioJaFechou = alertaRepository.existsFechadoPeloUsuario(
+                animal.getId(), tipo, ocorrencia.referencia(), StatusAlerta.encerrados());
+
+        if (existeAtivo || usuarioJaFechou) {
+            return;
+        }
+
+        alertaRepository.save(Alerta.abrir(animal, tipo, ocorrencia.referencia(), ocorrencia.mensagem()));
+    }
+
+    private void resolverAbertos(Animal animal, TipoAlerta tipo) {
+        alertaRepository.findByAnimalIdAndTipoAndStatusIn(animal.getId(), tipo, StatusAlerta.ativos())
+                .forEach(Alerta::resolverAutomaticamente);
     }
 }

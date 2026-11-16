@@ -87,12 +87,7 @@ public class RegraAlertaService {
     }
 
     public Optional<Double> getParametroAtivo(Animal animal, TipoAlerta tipo) {
-        if (animal.getLote() == null || animal.getLote().getPropriedade() == null) {
-            return tipo.getParametroPadrao();
-        }
-
-        List<RegraAlerta> regras = regraAlertaRepository.findByPropriedadeIdAndTipo(
-                animal.getLote().getPropriedade().getId(), tipo);
+        List<RegraAlerta> regras = getRegrasDoAnimal(animal, tipo);
 
         if (regras.isEmpty()) {
             return tipo.getParametroPadrao();
@@ -102,6 +97,19 @@ public class RegraAlertaService {
                 .filter(RegraAlerta::isAtiva)
                 .map(RegraAlerta::getParametro)
                 .findFirst();
+    }
+
+    public boolean isAlertaDesativado(Animal animal, TipoAlerta tipo) {
+        List<RegraAlerta> regras = getRegrasDoAnimal(animal, tipo);
+        return !regras.isEmpty() && regras.stream().noneMatch(RegraAlerta::isAtiva);
+    }
+
+    private List<RegraAlerta> getRegrasDoAnimal(Animal animal, TipoAlerta tipo) {
+        if (animal.getLote() == null || animal.getLote().getPropriedade() == null) {
+            return List.of();
+        }
+
+        return regraAlertaRepository.findByPropriedadeIdAndTipo(animal.getLote().getPropriedade().getId(), tipo);
     }
 
     private void validarPermissaoFinanceira(TipoAlerta tipo, Usuario usuarioLogado) {

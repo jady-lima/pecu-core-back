@@ -19,12 +19,18 @@ public class VerificacaoAlertaService {
     @Autowired
     private AnimalService animalService;
 
+    @Autowired
+    private AlertaService alertaService;
+
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void verificar(Long animalId, GatilhoAlerta gatilho) {
         Animal animal = animalService.getAnimalById(animalId);
 
         verificadores.stream()
                 .filter(verificador -> verificador.getGatilhos().contains(gatilho))
-                .forEach(verificador -> verificador.verificar(animal));
+                .forEach(verificador -> verificador.avaliar(animal).ifPresentOrElse(
+                        ocorrencia -> alertaService.createAlertaSeNaoExistir(animal, verificador.getTipo(), ocorrencia),
+                        () -> alertaService.resolverAlertasAutomaticamente(animal, verificador.getTipo())
+                ));
     }
 }

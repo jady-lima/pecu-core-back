@@ -16,6 +16,7 @@ public record AlertaResponseDTO(
     StatusAlerta status,
     LocalDateTime dataCriacao,
     LocalDateTime dataResolucao,
+    boolean resolvidoAutomaticamente,
     AnimalResumoDTO animal
 ) {
 
@@ -31,6 +32,7 @@ public record AlertaResponseDTO(
             alerta.getStatus(),
             alerta.getDataCriacao(),
             alerta.getDataResolucao(),
+            alerta.isResolvidoAutomaticamente(),
             resumir(alerta.getAnimal())
         );
     }

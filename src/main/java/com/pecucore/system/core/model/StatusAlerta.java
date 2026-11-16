@@ -9,9 +9,14 @@ public enum StatusAlerta {
     IGNORADO;
 
     private static final List<StatusAlerta> ATIVOS = List.of(ABERTO, EM_ANALISE);
+    private static final List<StatusAlerta> ENCERRADOS = List.of(RESOLVIDO, IGNORADO);
 
     public static List<StatusAlerta> ativos() {
         return ATIVOS;
+    }
+
+    public static List<StatusAlerta> encerrados() {
+        return ENCERRADOS;
     }
 
     public boolean isEncerrado() {

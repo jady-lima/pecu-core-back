@@ -4,9 +4,9 @@ import com.pecucore.system.bovinos.agrupamento.MetaDesempenhoService;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.TipoAlerta;
-import com.pecucore.system.core.service.alerta.AlertaService;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
 import com.pecucore.system.core.service.alerta.verificador.GatilhoAlerta;
+import com.pecucore.system.core.service.alerta.verificador.OcorrenciaAlerta;
 import com.pecucore.system.core.service.alerta.verificador.VerificadorAlerta;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +28,6 @@ public class VerificadorGmdAbaixoMeta implements VerificadorAlerta {
     @Autowired
     private RegraAlertaService regraAlertaService;
 
-    @Autowired
-    private AlertaService alertaService;
-
     @Override
     public TipoAlerta getTipo() {
         return TipoAlerta.GMD_ABAIXO_META;
@@ -42,29 +39,25 @@ public class VerificadorGmdAbaixoMeta implements VerificadorAlerta {
     }
 
     @Override
-    public void verificar(Animal animal) {
+    public Optional<OcorrenciaAlerta> avaliar(Animal animal) {
         if (regraAlertaService.isAlertaDesativado(animal, getTipo())) {
-            return;
+            return Optional.empty();
         }
 
         Optional<Double> meta = metaDesempenhoService.getGmdEsperado(animal.getLote()).or(() -> regraAlertaService.getParametroAtivo(animal, getTipo()));
-
-        if (meta.isEmpty()) {
-            return;
-        }
-
         List<Pesagem> pesagens = pesagemService.getHistoricoByAnimalId(animal.getId());
 
-        if (pesagens.isEmpty()) {
-            return;
+        if (meta.isEmpty() || pesagens.isEmpty()) {
+            return Optional.empty();
         }
 
-        Double gmd = pesagens.get(pesagens.size() - 1).getGmdCalculado();
+        Pesagem ultima = pesagens.get(pesagens.size() - 1);
+        Double gmd = ultima.getGmdCalculado();
 
         if (gmd == null || gmd >= meta.get()) {
-            return;
+            return Optional.empty();
         }
 
-        alertaService.createAlertaSeNaoExistir(animal, getTipo(), "GMD do animal (" + gmd + " kg/dia) abaixo da meta de " + meta.get() + " kg/dia.");
+        return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.getId(),"GMD do animal (" + gmd + " kg/dia) abaixo da meta de " + meta.get() + " kg/dia."));
     }
 }

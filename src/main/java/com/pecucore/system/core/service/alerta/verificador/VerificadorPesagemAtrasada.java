@@ -3,7 +3,6 @@ package com.pecucore.system.core.service.alerta.verificador;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.TipoAlerta;
-import com.pecucore.system.core.service.alerta.AlertaService;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +23,6 @@ public class VerificadorPesagemAtrasada implements VerificadorAlerta {
     @Autowired
     private RegraAlertaService regraAlertaService;
 
-    @Autowired
-    private AlertaService alertaService;
-
     @Override
     public TipoAlerta getTipo() {
         return TipoAlerta.PESAGEM_ATRASADA;
@@ -34,32 +30,26 @@ public class VerificadorPesagemAtrasada implements VerificadorAlerta {
 
     @Override
     public Set<GatilhoAlerta> getGatilhos() {
-        return Set.of(GatilhoAlerta.ROTINA_DIARIA);
+        return Set.of(GatilhoAlerta.PESAGEM_REGISTRADA, GatilhoAlerta.ROTINA_DIARIA);
     }
 
     @Override
-    public void verificar(Animal animal) {
+    public Optional<OcorrenciaAlerta> avaliar(Animal animal) {
         Optional<Double> prazo = regraAlertaService.getParametroAtivo(animal, getTipo());
-
-        if (prazo.isEmpty()) {
-            return;
-        }
-
         List<Pesagem> pesagens = pesagemService.getHistoricoByAnimalId(animal.getId());
 
-        if (pesagens.isEmpty()) {
-            return;
+        if (prazo.isEmpty() || pesagens.isEmpty()) {
+            return Optional.empty();
         }
 
-        long diasSemPesagem = ChronoUnit.DAYS.between(
-                pesagens.get(pesagens.size() - 1).getData(), LocalDate.now());
+        Pesagem ultima = pesagens.get(pesagens.size() - 1);
+        long diasSemPesagem = ChronoUnit.DAYS.between(ultima.getData(), LocalDate.now());
 
         if (diasSemPesagem <= prazo.get()) {
-            return;
+            return Optional.empty();
         }
 
-        alertaService.createAlertaSeNaoExistir(animal, getTipo(),
-                "PESAGEM DO ANIMAL ESTÁ ATRASADA: Animal está há "
-                        + diasSemPesagem + " dias sem nova pesagem.");
+        return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.getId(),
+                "PESAGEM DO ANIMAL ESTÁ ATRASADA: Animal está há " + diasSemPesagem + " dias sem nova pesagem."));
     }
 }

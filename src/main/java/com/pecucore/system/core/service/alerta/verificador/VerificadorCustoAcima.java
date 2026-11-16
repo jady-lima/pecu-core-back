@@ -2,7 +2,6 @@ package com.pecucore.system.core.service.alerta.verificador;
 
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.TipoAlerta;
-import com.pecucore.system.core.service.alerta.AlertaService;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
 import com.pecucore.system.core.service.custo.CustoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +19,6 @@ public class VerificadorCustoAcima implements VerificadorAlerta {
     @Autowired
     private RegraAlertaService regraAlertaService;
 
-    @Autowired
-    private AlertaService alertaService;
-
     @Override
     public TipoAlerta getTipo() {
         return TipoAlerta.CUSTO_ACIMA;
@@ -30,23 +26,25 @@ public class VerificadorCustoAcima implements VerificadorAlerta {
 
     @Override
     public Set<GatilhoAlerta> getGatilhos() {
-        return Set.of(GatilhoAlerta.CUSTO_REGISTRADO);
+        return Set.of(GatilhoAlerta.CUSTO_REGISTRADO, GatilhoAlerta.ROTINA_DIARIA);
     }
 
     @Override
-    public void verificar(Animal animal) {
+    public Optional<OcorrenciaAlerta> avaliar(Animal animal) {
         Optional<Double> limite = regraAlertaService.getParametroAtivo(animal, getTipo());
 
         if (limite.isEmpty()) {
-            return;
+            return Optional.empty();
         }
 
         double custoTotal = custoService.getCustoTotalByAnimalId(animal.getId());
 
         if (custoTotal <= limite.get()) {
-            return;
+            return Optional.empty();
         }
 
-        alertaService.createAlertaSeNaoExistir(animal, getTipo(), "O animal está com custo acumulado de R$ " + custoTotal + ", acima do limite estabelecido de R$ " + limite.get() + ".");
+        return Optional.of(new OcorrenciaAlerta("limite:" + limite.get(),
+                "O animal está com custo acumulado de R$ " + custoTotal
+                        + ", acima do limite estabelecido de R$ " + limite.get() + "."));
     }
 }

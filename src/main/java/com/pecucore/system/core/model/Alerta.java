@@ -2,6 +2,7 @@ package com.pecucore.system.core.model;
 
 import com.pecucore.system.core.exception.RegraNegocioException;
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -22,6 +23,9 @@ public class Alerta {
     @Column(nullable = false)
     private SeveridadeAlerta severidade;
 
+    @Column(length = 100)
+    private String referencia;
+
     @Column(nullable = false, length = 500)
     private String mensagem;
 
@@ -34,6 +38,10 @@ public class Alerta {
 
     private LocalDateTime dataResolucao;
 
+    @ColumnDefault("false")
+    @Column(nullable = false)
+    private boolean resolvidoAutomaticamente;
+
     @ManyToOne
     @JoinColumn(name = "animal_id", nullable = false)
     private Animal animal;
@@ -45,7 +53,7 @@ public class Alerta {
     protected Alerta() {
     }
 
-    public static Alerta abrir(Animal animal, TipoAlerta tipo, String mensagem) {
+    public static Alerta abrir(Animal animal, TipoAlerta tipo, String referencia, String mensagem) {
         Objects.requireNonNull(animal, "O animal do alerta é obrigatório.");
         Objects.requireNonNull(tipo, "O tipo do alerta é obrigatório.");
 
@@ -54,6 +62,7 @@ public class Alerta {
         alerta.lote = animal.getLote();
         alerta.tipo = tipo;
         alerta.severidade = tipo.getSeveridade();
+        alerta.referencia = referencia;
         alerta.mensagem = mensagem;
         alerta.status = StatusAlerta.ABERTO;
         alerta.dataCriacao = LocalDateTime.now();
@@ -73,6 +82,16 @@ public class Alerta {
         this.dataResolucao = novoStatus.isEncerrado() ? LocalDateTime.now() : null;
     }
 
+    public void resolverAutomaticamente() {
+        if (status.isEncerrado()) {
+            return;
+        }
+
+        this.status = StatusAlerta.RESOLVIDO;
+        this.dataResolucao = LocalDateTime.now();
+        this.resolvidoAutomaticamente = true;
+    }
+
     public Long getId() {
         return id;
     }
@@ -83,6 +102,10 @@ public class Alerta {
 
     public SeveridadeAlerta getSeveridade() {
         return severidade;
+    }
+
+    public String getReferencia() {
+        return referencia;
     }
 
     public String getMensagem() {
@@ -99,6 +122,10 @@ public class Alerta {
 
     public LocalDateTime getDataResolucao() {
         return dataResolucao;
+    }
+
+    public boolean isResolvidoAutomaticamente() {
+        return resolvidoAutomaticamente;
     }
 
     public Animal getAnimal() {

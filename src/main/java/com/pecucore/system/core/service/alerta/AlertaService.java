@@ -7,6 +7,7 @@ import com.pecucore.system.core.model.*;
 import com.pecucore.system.core.repository.AlertaRepository;
 import com.pecucore.system.core.service.AcessoPropriedadeService;
 import com.pecucore.system.core.service.AnimalService;
+import com.pecucore.system.core.service.alerta.verificador.OcorrenciaAlerta;
 import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,13 +64,25 @@ public class AlertaService {
     }
 
     @Transactional
-    public boolean createAlertaSeNaoExistir(Animal animal, TipoAlerta tipo, String mensagem) {
-        if (alertaRepository.existsByAnimalIdAndTipoAndStatusIn(animal.getId(), tipo, StatusAlerta.ativos())) {
-            return false;
+    public void createAlertaSeNaoExistir(Animal animal, TipoAlerta tipo, OcorrenciaAlerta ocorrencia) {
+        boolean existeAtivo = alertaRepository.existsByAnimalIdAndTipoAndStatusIn(
+                animal.getId(), tipo, StatusAlerta.ativos());
+
+        boolean usuarioJaFechou = alertaRepository
+                .existsByAnimalIdAndTipoAndReferenciaAndStatusInAndResolvidoAutomaticamenteFalse(
+                        animal.getId(), tipo, ocorrencia.referencia(), StatusAlerta.encerrados());
+
+        if (existeAtivo || usuarioJaFechou) {
+            return;
         }
 
-        alertaRepository.save(Alerta.abrir(animal, tipo, mensagem));
-        return true;
+        alertaRepository.save(Alerta.abrir(animal, tipo, ocorrencia.referencia(), ocorrencia.mensagem()));
+    }
+
+    @Transactional
+    public void resolverAlertasAutomaticamente(Animal animal, TipoAlerta tipo) {
+        alertaRepository.findByAnimalIdAndTipoAndStatusIn(animal.getId(), tipo, StatusAlerta.ativos())
+                .forEach(Alerta::resolverAutomaticamente);
     }
 
     private List<Alerta> getAlertasDoAnimal(Long animalId, Usuario usuarioLogado) {

@@ -10,6 +10,8 @@ import java.util.List;
 public interface AlertaRepository extends JpaRepository<Alerta, Long> {
     boolean existsByAnimalIdAndTipoAndStatusIn(Long animalId, TipoAlerta tipo, List<StatusAlerta> status);
     List<Alerta> findByAnimalIdOrderByDataCriacaoDesc(Long animalId);
+    List<Alerta> findByAnimalIdAndTipoAndStatusIn(Long animalId, TipoAlerta tipo, List<StatusAlerta> status);
+    boolean existsByAnimalIdAndTipoAndReferenciaAndStatusInAndResolvidoAutomaticamenteFalse(Long animalId, TipoAlerta tipo, String referencia, List<StatusAlerta> status);
     List<Alerta> findAllByOrderByDataCriacaoDesc();
     List<Alerta> findByAnimalLotePropriedadeUsuarioIdOrderByDataCriacaoDesc(Long usuarioId);
     List<Alerta> findByAnimalLotePropriedadeVeterinariosIdOrderByDataCriacaoDesc(Long veterinarioId);

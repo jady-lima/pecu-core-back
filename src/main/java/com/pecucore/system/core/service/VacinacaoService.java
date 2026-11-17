@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pecucore.system.core.dto.vacinacao.VacinacaoRequestDTO;
 import com.pecucore.system.core.dto.vacinacao.VacinacaoUpdateRequestDTO;
 import com.pecucore.system.core.repository.VacinacaoRepository;
-import com.pecucore.system.bovinos.sanidade.CalculadoraCarencia;
+import com.pecucore.system.bovinos.service.sanidade.CalculadoraCarencia;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;

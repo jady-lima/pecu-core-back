@@ -1,4 +1,4 @@
-package com.pecucore.system.bovinos.desempenho;
+package com.pecucore.system.bovinos.service.desempenho;
 
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.model.Pesagem;
@@ -39,10 +39,10 @@ public class GmdService implements IndicadorDesempenho {
         }
 
         return calcularPorDia(
-                primeiraPesagem.getPesoKg(),
-                ultimaPesagem.getPesoKg(),
-                primeiraPesagem.getData(),
-                ultimaPesagem.getData()
+            primeiraPesagem.getPesoKg(),
+            ultimaPesagem.getPesoKg(),
+            primeiraPesagem.getData(),
+            ultimaPesagem.getData()
         );
     }
 

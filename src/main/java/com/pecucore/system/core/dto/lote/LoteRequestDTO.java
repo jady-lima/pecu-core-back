@@ -1,6 +1,6 @@
 package com.pecucore.system.core.dto.lote;
 
-import com.pecucore.system.bovinos.agrupamento.FinalidadeLote;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.LocalDate;
@@ -9,8 +9,8 @@ public record LoteRequestDTO(
         @NotNull(message = "O lote precisa ter um número cadastrado!!")
         Integer numero,
 
-        @NotNull(message = "A finalidade do lote precisa ser informada!!")
-        FinalidadeLote finalidade,
+        @NotBlank(message = "A finalidade do lote precisa ser informada!!")
+        String finalidade,
 
         @NotNull(message = "A capacidade do lote precisa ser informada!!")
         @Positive(message = "A capacidade do lote precisa ser maior do que zero!!")

@@ -1,4 +1,4 @@
-package com.pecucore.system.bovinos.agrupamento;
+package com.pecucore.system.bovinos.model;
 
 import jakarta.persistence.*;
 

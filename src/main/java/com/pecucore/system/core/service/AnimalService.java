@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import com.pecucore.system.bovinos.sanidade.CarenciaService;
+import com.pecucore.system.bovinos.service.sanidade.CarenciaService;
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,6 @@ import com.pecucore.system.core.model.SituacaoGeralAnimal;
 import com.pecucore.system.core.model.StatusAnimal;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.repository.AnimalRepository;
-import com.pecucore.system.core.repository.LoteRepository;
 
 @Service
 public class AnimalService {
@@ -31,7 +30,7 @@ public class AnimalService {
     private AnimalRepository animalRepository;
 
     @Autowired
-    private LoteRepository loteRepository;
+    private LoteService loteService;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -54,16 +53,7 @@ public class AnimalService {
             );
         }
 
-        Lote lote =
-                loteRepository.findById(dados.loteId())
-                        .orElseThrow(() -> new RecursoNaoEncontradoException(
-                                "Lote não encontrado"
-                        ));
-
-        validarAcessoAoLote(
-                lote,
-                usuarioLogado
-        );
+        Lote lote = loteService.getLoteById(dados.loteId(), usuarioLogado);
 
         validarCapacidadeLote(lote);
 
@@ -96,8 +86,7 @@ public class AnimalService {
             Usuario usuarioLogado
     ) {
 
-        Animal animalExistente =
-                getAnimalById(
+        Animal animalExistente = getAnimalById(
                         id,
                         usuarioLogado
                 );
@@ -122,16 +111,7 @@ public class AnimalService {
             );
         }
 
-        Lote lote =
-                loteRepository.findById(dados.loteId())
-                        .orElseThrow(() -> new RecursoNaoEncontradoException(
-                                "Lote não encontrado"
-                        ));
-
-        validarAcessoAoLote(
-                lote,
-                usuarioLogado
-        );
+        Lote lote = loteService.getLoteById(dados.loteId(), usuarioLogado);
 
         boolean mudouDeLote = animalExistente.getLote() == null
                 || !animalExistente.getLote().getId().equals(lote.getId());
@@ -295,20 +275,6 @@ public class AnimalService {
 
     public List<Animal> getAnimaisAtivosByLoteId(Long loteId) {
         return animalRepository.findByLoteIdAndStatus(
-                loteId,
-                StatusAnimal.ATIVO
-        );
-    }
-
-    public long countAnimaisAtivosByLoteId(Long loteId) {
-        return animalRepository.countByLoteIdAndStatus(
-                loteId,
-                StatusAnimal.ATIVO
-        );
-    }
-
-    public boolean existsAnimalAtivoByLoteId(Long loteId) {
-        return animalRepository.existsByLoteIdAndStatus(
                 loteId,
                 StatusAnimal.ATIVO
         );

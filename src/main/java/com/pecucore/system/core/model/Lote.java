@@ -2,7 +2,6 @@ package com.pecucore.system.core.model;
 
 import java.time.LocalDate;
 
-import com.pecucore.system.bovinos.agrupamento.FinalidadeLote;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,8 +12,7 @@ public class Lote {
     private Long id;
 
     private int numero;
-    @Enumerated(EnumType.STRING)
-    private FinalidadeLote finalidade;
+    private String finalidade;
     private int capacidade;
     private LocalDate dataCriacao;
 
@@ -26,7 +24,7 @@ public class Lote {
     private Propriedade propriedade;
 
     public int getNumero(){return numero;}
-    public FinalidadeLote getFinalidade(){return finalidade;}
+    public String getFinalidade(){return finalidade;}
     public LocalDate getDataCriacao(){return dataCriacao;}
     public int getCapacidade(){return capacidade;}
     public Long getId(){return id;}
@@ -38,7 +36,7 @@ public class Lote {
         this.numero = numero;
     }
 
-    public void setFinalidade(FinalidadeLote finalidade) {
+    public void setFinalidade(String finalidade) {
         this.finalidade = finalidade;
     }
 

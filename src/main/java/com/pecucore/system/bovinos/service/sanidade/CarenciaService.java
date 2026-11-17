@@ -1,4 +1,4 @@
-package com.pecucore.system.bovinos.sanidade;
+package com.pecucore.system.bovinos.service.sanidade;
 
 import com.pecucore.system.core.model.Medicamento;
 import com.pecucore.system.core.model.Vacinacao;
@@ -28,8 +28,8 @@ public class CarenciaService {
         LocalDate hoje = LocalDate.now();
 
         return Stream.of(
-                        vacinacaoRepository.findFirstByAnimalIdAndDataFimCarenciaAfterOrderByDataFimCarenciaDesc(animalId, hoje).map(Vacinacao::getDataFimCarencia),
-                        medicamentoRepository.findFirstByAnimalIdAndDataFimCarenciaAfterOrderByDataFimCarenciaDesc(animalId, hoje).map(Medicamento::getDataFimCarencia)
+                    vacinacaoRepository.findFirstByAnimalIdAndDataFimCarenciaAfterOrderByDataFimCarenciaDesc(animalId, hoje).map(Vacinacao::getDataFimCarencia),
+                    medicamentoRepository.findFirstByAnimalIdAndDataFimCarenciaAfterOrderByDataFimCarenciaDesc(animalId, hoje).map(Medicamento::getDataFimCarencia)
                 )
                 .flatMap(Optional::stream)
                 .max(LocalDate::compareTo);

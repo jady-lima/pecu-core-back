@@ -4,7 +4,7 @@ import com.pecucore.system.core.evento.CustoRegistradoEvento;
 import com.pecucore.system.core.evento.MedicamentoRegistradoEvento;
 import com.pecucore.system.core.evento.PesagemRegistradaEvento;
 import com.pecucore.system.core.evento.VacinacaoRegistradaEvento;
-import com.pecucore.system.core.service.alerta.verificador.GatilhoAlerta;
+import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import com.pecucore.system.core.dto.vacinacao.VacinaRequestDTO;
 import com.pecucore.system.core.model.Vacina;
 import com.pecucore.system.core.repository.VacinaRepository;
-import com.pecucore.system.core.repository.VacinacaoRepository;
 import java.util.List;
 import java.util.Locale;
 
@@ -18,7 +17,7 @@ public class VacinaService {
     private VacinaRepository vacinaRepository;
 
     @Autowired
-    private VacinacaoRepository vacinacaoRepository;
+    private VacinacaoConsultaService vacinacaoConsultaService;
 
     public Vacina createVacina(VacinaRequestDTO dados) {
         String nome = normalizarNome(dados.nome());
@@ -54,7 +53,7 @@ public class VacinaService {
     public void deleteVacina(Long id) {
         Vacina vacina = getVacinaById(id);
 
-        if (vacinacaoRepository.existsByVacinaId(id)) {
+        if (vacinacaoConsultaService.existsVacinacaoByVacinaId(id)) {
             throw new ConflitoNegocioException( "Não é possível excluir uma vacina que já foi aplicada em algum animal");
         }
 

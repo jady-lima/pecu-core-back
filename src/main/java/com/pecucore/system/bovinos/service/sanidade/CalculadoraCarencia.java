@@ -1,4 +1,4 @@
-package com.pecucore.system.bovinos.sanidade;
+package com.pecucore.system.bovinos.service.sanidade;
 
 import org.springframework.stereotype.Service;
 

@@ -1,5 +1,9 @@
-package com.pecucore.system.bovinos.agrupamento;
+package com.pecucore.system.bovinos.controller;
 
+import com.pecucore.system.bovinos.dto.meta.MetaDesempenhoRequestDTO;
+import com.pecucore.system.bovinos.dto.meta.MetaDesempenhoResponseDTO;
+import com.pecucore.system.bovinos.model.MetaDesempenho;
+import com.pecucore.system.bovinos.service.agrupamento.MetaDesempenhoService;
 import com.pecucore.system.core.dto.erro.ErroResponseDTO;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,9 +40,7 @@ public class MetaDesempenhoController {
         @ApiResponse(responseCode = "403", description = "Usuário sem permissão"),
         @ApiResponse(responseCode = "409", description = "Já existe meta cadastrada para a fase", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class)))
     })
-    public ResponseEntity<MetaDesempenhoResponseDTO> createMetaDesempenho(
-            @RequestBody @Valid MetaDesempenhoRequestDTO dados
-    ) {
+    public ResponseEntity<MetaDesempenhoResponseDTO> createMetaDesempenho(@RequestBody @Valid MetaDesempenhoRequestDTO dados) {
 
         MetaDesempenho meta = metaDesempenhoService.createMetaDesempenho(dados);
 
@@ -57,9 +59,7 @@ public class MetaDesempenhoController {
         @ApiResponse(responseCode = "404", description = "Meta não encontrada", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class))),
         @ApiResponse(responseCode = "409", description = "Já existe meta cadastrada para a fase", content = @Content(schema = @Schema(implementation = ErroResponseDTO.class)))
     })
-    public ResponseEntity<MetaDesempenhoResponseDTO> updateMetaDesempenho(
-            @PathVariable Long id,
-            @RequestBody @Valid MetaDesempenhoRequestDTO dados
+    public ResponseEntity<MetaDesempenhoResponseDTO> updateMetaDesempenho(@PathVariable Long id, @RequestBody @Valid MetaDesempenhoRequestDTO dados
     ) {
 
         MetaDesempenho meta = metaDesempenhoService.updateMetaDesempenho(id, dados);
@@ -75,8 +75,7 @@ public class MetaDesempenhoController {
     })
     public ResponseEntity<List<MetaDesempenhoResponseDTO>> getAllMetasDesempenho() {
 
-        List<MetaDesempenhoResponseDTO> metas =
-                metaDesempenhoService.getAllMetasDesempenho()
+        List<MetaDesempenhoResponseDTO> metas = metaDesempenhoService.getAllMetasDesempenho()
                         .stream()
                         .map(MetaDesempenhoResponseDTO::new)
                         .toList();

@@ -1,7 +1,6 @@
 package com.pecucore.system.core.service.analise;
 
-import com.pecucore.system.bovinos.agrupamento.MetaDesempenhoService;
-import com.pecucore.system.bovinos.sanidade.CarenciaService;
+import com.pecucore.system.bovinos.service.sanidade.CarenciaService;
 import com.pecucore.system.core.dto.analise.AlertaContextoDTO;
 import com.pecucore.system.core.dto.analise.AlimentacaoContextoDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
@@ -68,7 +67,7 @@ public class ContextoAnaliseService {
     private CustoService custoService;
 
     @Autowired
-    private MetaDesempenhoService metaDesempenhoService;
+    private LoteService loteService;
 
     @Autowired
     private CarenciaService carenciaService;
@@ -117,7 +116,7 @@ public class ContextoAnaliseService {
         Double indicePeriodo = indicadorDesempenho.calcularHistorico(primeiraPesagem, ultimaPesagem);
         long diasAvaliados = ChronoUnit.DAYS.between(primeiraPesagem.getData(), ultimaPesagem.getData());
 
-        Double indiceMeta = metaDesempenhoService.getGmdEsperado(animal.getLote()).orElse(null);
+        Double indiceMeta = loteService.getMetaDesempenho(animal.getLote()).orElse(null);
 
         Double percentualDaMeta = calculadoraEstatisticasLote.calcularPercentualDaReferencia(indicePeriodo, indiceMeta);
 

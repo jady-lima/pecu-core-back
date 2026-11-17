@@ -27,16 +27,7 @@ class ArquiteturaPacotesTest {
             "AnimalService -> CarenciaService",
             "ContextoAnaliseService -> CarenciaService",
             "MedicamentoService -> CalculadoraCarencia",
-            "VacinacaoService -> CalculadoraCarencia",
-
-            "ContextoAnaliseService -> MetaDesempenhoService",
-            "DesempenhoService -> MetaDesempenhoService",
-            "Lote -> FinalidadeLote",
-            "LoteRequestDTO -> FinalidadeLote",
-            "LoteResponseDTO -> FinalidadeLote",
-            "DadosAnimalDTO -> FinalidadeLote",
-            "FichaAnimalResponseDTO -> FinalidadeLote",
-            "ComparacaoDesempenhoResponseDTO -> FinalidadeLote"
+            "VacinacaoService -> CalculadoraCarencia"
     );
 
     @Test

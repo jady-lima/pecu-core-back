@@ -2,9 +2,13 @@
 package com.pecucore.system.core.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
+import com.pecucore.system.core.exception.RegraNegocioException;
+import com.pecucore.system.core.extensao.agrupamento.FaseLote;
+import com.pecucore.system.core.extensao.agrupamento.PoliticaAgrupamento;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,10 +29,13 @@ public class LoteService {
     private PropriedadeService propriedadeService;
 
     @Autowired
-    private AnimalService animalService;
+    private AnimalConsultaService animalConsultaService;
 
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
+
+    @Autowired
+    private PoliticaAgrupamento politicaAgrupamento;
 
     public Lote createLote(
             LoteRequestDTO dados,
@@ -46,6 +53,8 @@ public class LoteService {
                 propriedade.getId(),
                 null
         );
+
+        validarFinalidade(dados.finalidade());
 
         Lote lote = new Lote();
 
@@ -82,7 +91,7 @@ public class LoteService {
             );
         }
 
-        long animaisAtivos = animalService.countAnimaisAtivosByLoteId(id);
+        long animaisAtivos = animalConsultaService.countAnimaisAtivosByLoteId(id);
 
         if (dados.capacidade() < animaisAtivos) {
 
@@ -90,6 +99,8 @@ public class LoteService {
                 "A capacidade não pode ser menor que a quantidade de animais ativos no lote (" + animaisAtivos + ")"
             );
         }
+
+        validarFinalidade(dados.finalidade());
 
         loteExistente.setNumero(dados.numero());
         loteExistente.setFinalidade(dados.finalidade());
@@ -147,13 +158,33 @@ public class LoteService {
                         usuarioLogado
                 );
 
-        boolean possuiAnimaisAtivos = animalService.existsAnimalAtivoByLoteId(id);
+        boolean possuiAnimaisAtivos = animalConsultaService.existsAnimalAtivoByLoteId(id);
 
         if (possuiAnimaisAtivos) {
             throw new ConflitoNegocioException("Não é possível excluir o lote porque existem animais ativos nesse lote");
         }
 
         loteRepository.delete(loteExistente);
+    }
+
+    public List<FaseLote> getAllFasesLote() {
+        return politicaAgrupamento.getFases();
+    }
+
+    public Optional<Double> getMetaDesempenho(Lote lote) {
+        if (lote == null) {
+            return Optional.empty();
+        }
+
+        if (lote.getMetaDesempenho() != null) {
+            return Optional.of(lote.getMetaDesempenho());
+        }
+
+        if (lote.getFinalidade() == null) {
+            return Optional.empty();
+        }
+
+        return politicaAgrupamento.getMetaDaFase(lote.getFinalidade());
     }
 
     private void validarNumeroLote(int numero, Long propriedadeId, Long loteIdAtual
@@ -185,5 +216,17 @@ public class LoteService {
                 usuarioLogado,
                 "Você não tem acesso a este lote"
         );
+    }
+
+    private void validarFinalidade(String finalidade) {
+        List<String> codigos = politicaAgrupamento.getFases().stream()
+                .map(FaseLote::codigo)
+                .toList();
+
+        if (!codigos.contains(finalidade)) {
+            throw new RegraNegocioException(
+                    "Finalidade inválida: " + finalidade + ". Valores aceitos: " + String.join(", ", codigos) + "."
+            );
+        }
     }
 }

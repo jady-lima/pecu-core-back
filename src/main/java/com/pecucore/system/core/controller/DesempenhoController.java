@@ -3,7 +3,7 @@ package com.pecucore.system.core.controller;
 import com.pecucore.system.core.dto.desempenho.ComparacaoDesempenhoResponseDTO;
 import com.pecucore.system.core.dto.desempenho.CurvaCrescimentoResponseDTO;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.DesempenhoService;
+import com.pecucore.system.core.service.desempenho.DesempenhoService;
 
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -41,7 +41,9 @@ public class DesempenhoController {
     ) {
 
         List<CurvaCrescimentoResponseDTO> curva =
-                desempenhoService.getCurvaCrescimento(brinco, usuarioLogado);
+                desempenhoService.getCurvaCrescimento(brinco, usuarioLogado).stream()
+                        .map(CurvaCrescimentoResponseDTO::new)
+                        .toList();
 
         return ResponseEntity.ok(curva);
     }
@@ -59,7 +61,7 @@ public class DesempenhoController {
     ) {
 
         ComparacaoDesempenhoResponseDTO resultado =
-                desempenhoService.comparar(brinco, usuarioLogado);
+                new ComparacaoDesempenhoResponseDTO(desempenhoService.comparar(brinco, usuarioLogado));
 
         return ResponseEntity.ok(resultado);
     }

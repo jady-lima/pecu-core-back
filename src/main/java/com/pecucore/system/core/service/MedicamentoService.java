@@ -10,7 +10,7 @@ import com.pecucore.system.core.model.Medicamento;
 import com.pecucore.system.core.model.TipoCusto;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.repository.MedicamentoRepository;
-import com.pecucore.system.bovinos.sanidade.CalculadoraCarencia;
+import com.pecucore.system.bovinos.service.sanidade.CalculadoraCarencia;
 import com.pecucore.system.core.service.custo.CustoAutomaticoService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;

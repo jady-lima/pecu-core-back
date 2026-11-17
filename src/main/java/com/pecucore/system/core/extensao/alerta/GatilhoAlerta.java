@@ -1,4 +1,4 @@
-package com.pecucore.system.core.service.alerta.verificador;
+package com.pecucore.system.core.extensao.alerta;
 
 public enum GatilhoAlerta {
     PESAGEM_REGISTRADA,

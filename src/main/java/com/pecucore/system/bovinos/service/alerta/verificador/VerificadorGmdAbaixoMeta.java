@@ -1,15 +1,15 @@
-package com.pecucore.system.bovinos.desempenho;
+package com.pecucore.system.bovinos.service.alerta.verificador;
 
-import com.pecucore.system.bovinos.agrupamento.MetaDesempenhoService;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.service.LoteService;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
-import com.pecucore.system.core.service.alerta.verificador.GatilhoAlerta;
+import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import com.pecucore.system.core.service.alerta.verificador.FormatadorAlerta;
-import com.pecucore.system.core.service.alerta.verificador.OcorrenciaAlerta;
-import com.pecucore.system.core.service.alerta.verificador.VerificadorAlerta;
+import com.pecucore.system.core.extensao.alerta.OcorrenciaAlerta;
+import com.pecucore.system.core.extensao.alerta.VerificadorAlerta;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,7 @@ public class VerificadorGmdAbaixoMeta implements VerificadorAlerta {
     private PesagemService pesagemService;
 
     @Autowired
-    private MetaDesempenhoService metaDesempenhoService;
+    private LoteService loteService;
 
     @Autowired
     private RegraAlertaService regraAlertaService;
@@ -48,8 +48,8 @@ public class VerificadorGmdAbaixoMeta implements VerificadorAlerta {
             return Optional.empty();
         }
 
-        Optional<Double> meta = metaDesempenhoService.getGmdEsperado(animal.getLote())
-                .or(() -> regraAlertaService.getParametroAtivo(animal, getTipo()));
+        Optional<Double> meta = loteService.getMetaDesempenho(animal.getLote()).or(() -> regraAlertaService.getParametroAtivo(animal, getTipo()));
+        
         Optional<Pesagem> ultima = pesagemService.getUltimaPesagem(animal.getId());
 
         if (meta.isEmpty() || ultima.isEmpty()) {
@@ -62,9 +62,7 @@ public class VerificadorGmdAbaixoMeta implements VerificadorAlerta {
             return Optional.empty();
         }
 
-        return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.get().getId(),
-                "GMD abaixo da meta: o animal ganhou " + formatar(gmd)
-                        + ", abaixo da meta de " + formatar(meta.get()) + "."));
+        return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.get().getId(), "GMD abaixo da meta: o animal ganhou " + formatar(gmd) + ", abaixo da meta de " + formatar(meta.get()) + "."));
     }
 
     private String formatar(double valor) {

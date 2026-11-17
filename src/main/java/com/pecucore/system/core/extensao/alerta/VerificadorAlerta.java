@@ -1,4 +1,4 @@
-package com.pecucore.system.core.service.alerta.verificador;
+package com.pecucore.system.core.extensao.alerta;
 
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.TipoAlerta;
@@ -11,7 +11,6 @@ public interface VerificadorAlerta {
     TipoAlerta getTipo();
 
     Set<GatilhoAlerta> getGatilhos();
-
 
     Optional<OcorrenciaAlerta> avaliar(Animal animal);
 }

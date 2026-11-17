@@ -11,6 +11,7 @@ import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Custo;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
+import com.pecucore.system.core.service.AnimalConsultaService;
 import com.pecucore.system.core.service.AnimalService;
 import com.pecucore.system.core.service.custo.CustoService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
@@ -53,6 +54,9 @@ public class ContextoComparativoService {
 
     @Autowired
     private AnimalService animalService;
+
+    @Autowired
+    private AnimalConsultaService animalConsultaService;
 
     @Autowired
     private ContextoAnaliseService contextoAnaliseService;
@@ -200,7 +204,7 @@ public class ContextoComparativoService {
                 .toList();
 
         return new EstatisticasLoteDTO(
-                (int) animalService.countAnimaisAtivosByLoteId(loteId),
+                (int) animalConsultaService.countAnimaisAtivosByLoteId(loteId),
                 comparados.size(),
                 calculadoraEstatisticasLote.calcularMedia(indices),
                 calculadoraEstatisticasLote.calcularMediana(indices),

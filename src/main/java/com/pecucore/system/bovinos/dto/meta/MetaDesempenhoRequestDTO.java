@@ -1,5 +1,6 @@
-package com.pecucore.system.bovinos.agrupamento;
+package com.pecucore.system.bovinos.dto.meta;
 
+import com.pecucore.system.bovinos.model.FinalidadeLote;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 

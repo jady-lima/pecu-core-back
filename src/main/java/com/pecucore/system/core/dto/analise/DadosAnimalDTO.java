@@ -1,7 +1,6 @@
 package com.pecucore.system.core.dto.analise;
 
 import com.pecucore.system.core.model.Animal;
-import com.pecucore.system.bovinos.agrupamento.FinalidadeLote;
 import com.pecucore.system.core.model.StatusAnimal;
 
 import java.time.LocalDate;
@@ -13,19 +12,19 @@ public record DadosAnimalDTO(
         Long idadeMeses,
         double pesoAtualKg,
         StatusAnimal status,
-        FinalidadeLote finalidadeLote,
+        String finalidadeLote,
         boolean emCarencia
 ) {
 
     public DadosAnimalDTO(Animal animal, boolean emCarencia, LocalDate dataReferencia) {
         this(
-                animal.getSexo(),
-                animal.getDataNascimento(),
-                animal.getDataNascimento() != null ? ChronoUnit.MONTHS.between(animal.getDataNascimento(), dataReferencia) : null,
-                animal.getPesoAtual(),
-                animal.getStatus(),
-                animal.getLote() != null ? animal.getLote().getFinalidade() : null,
-                emCarencia
+            animal.getSexo(),
+            animal.getDataNascimento(),
+            animal.getDataNascimento() != null ? ChronoUnit.MONTHS.between(animal.getDataNascimento(), dataReferencia) : null,
+            animal.getPesoAtual(),
+            animal.getStatus(),
+            animal.getLote() != null ? animal.getLote().getFinalidade() : null,
+            emCarencia
         );
     }
 }

@@ -15,6 +15,10 @@ public class AnimalConsultaService {
         return animalRepository.countByLoteIdAndStatus(loteId, StatusAnimal.ATIVO);
     }
 
+    public long countAnimaisAtivosByPropriedadeId(Long propriedadeId) {
+        return animalRepository.countByLotePropriedadeIdAndStatus(propriedadeId, StatusAnimal.ATIVO);
+    }
+
     public boolean existsAnimalAtivoByLoteId(Long loteId) {
         return animalRepository.existsByLoteIdAndStatus(loteId, StatusAnimal.ATIVO);
     }

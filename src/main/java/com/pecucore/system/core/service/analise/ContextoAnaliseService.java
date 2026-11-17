@@ -24,7 +24,7 @@ import com.pecucore.system.core.model.Vacinacao;
 import com.pecucore.system.core.service.alerta.AlertaService;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;
-import com.pecucore.system.core.service.custo.CustoService;
+import com.pecucore.system.core.service.custo.RateioCustoService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +68,7 @@ public class ContextoAnaliseService {
     private AlertaService alertaService;
 
     @Autowired
-    private CustoService custoService;
+    private RateioCustoService rateioCustoService;
 
     @Autowired
     private LoteService loteService;
@@ -109,7 +109,7 @@ public class ContextoAnaliseService {
             vacinacoes.stream().map(VacinacaoContextoDTO::new).toList(),
             medicamentos.stream().map(MedicamentoContextoDTO::new).toList(),
             montarAlertas(animalId, usuarioLogado),
-            montarCustos(animalId, usuarioLogado)
+            montarCustos(animal, usuarioLogado)
         );
     }
 
@@ -140,12 +140,12 @@ public class ContextoAnaliseService {
                     .toList();
     }
 
-    private ResumoCustoDTO montarCustos(Long animalId, Usuario usuarioLogado) {
+    private ResumoCustoDTO montarCustos(Animal animal, Usuario usuarioLogado) {
         if (!politicaVisibilidadeFinanceira.podeVerDadosFinanceiros(usuarioLogado)) {
             return null;
         }
 
-        return new ResumoCustoDTO(custoService.getCustosByAnimalId(animalId));
+        return new ResumoCustoDTO(rateioCustoService.calcularRateio(animal));
     }
 
 

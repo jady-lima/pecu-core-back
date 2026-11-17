@@ -8,12 +8,11 @@ import com.pecucore.system.core.dto.analise.PesagemContextoDTO;
 import com.pecucore.system.core.dto.analise.PosicaoAnimalLoteDTO;
 import com.pecucore.system.core.exception.DadosInsuficientesException;
 import com.pecucore.system.core.model.Animal;
-import com.pecucore.system.core.model.Custo;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.service.animal.AnimalConsultaService;
 import com.pecucore.system.core.service.animal.AnimalService;
-import com.pecucore.system.core.service.custo.CustoService;
+import com.pecucore.system.core.service.custo.RateioCustoService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
@@ -74,7 +73,7 @@ public class ContextoComparativoService {
     private PesagemService pesagemService;
 
     @Autowired
-    private CustoService custoService;
+    private RateioCustoService rateioCustoService;
 
     @Transactional(readOnly = true)
     public ContextoAnaliseComparativaDTO montarComparativo(Long animalId, Usuario usuarioLogado) {
@@ -255,15 +254,10 @@ public class ContextoComparativoService {
             return null;
         }
 
-        List<Long> animalIds = comparados.stream()
-                .map(comparado -> comparado.animal().getId())
+        List<Animal> animais = comparados.stream()
+                .map(AnimalComparado::animal)
                 .toList();
 
-        double total = custoService.getCustosByAnimalIds(animalIds)
-                .stream()
-                .mapToDouble(Custo::getValor)
-                .sum();
-
-        return total / animalIds.size();
+        return rateioCustoService.calcularCustoMedio(animais);
     }
 }

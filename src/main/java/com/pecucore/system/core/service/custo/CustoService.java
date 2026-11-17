@@ -17,7 +17,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -159,19 +158,5 @@ public class CustoService {
 
     public List<Custo> getAllCustos(Usuario usuarioLogado) {
         return custoRepository.findByProdutor(usuarioLogado.getId());
-    }
-
-    public List<Custo> getCustosByAnimalId(Long animalId) {
-        return custoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
-    }
-
-    public double getCustoTotalByAnimalId(Long animalId) {
-        return getCustosByAnimalId(animalId).stream()
-                .mapToDouble(Custo::getValor)
-                .sum();
-    }
-
-    public List<Custo> getCustosByAnimalIds(Collection<Long> animalIds) {
-        return custoRepository.findByAnimalIdIn(animalIds);
     }
 }

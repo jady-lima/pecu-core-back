@@ -2,9 +2,11 @@ package com.pecucore.system.core.controller;
 
 import com.pecucore.system.core.dto.custo.CustoRequestDTO;
 import com.pecucore.system.core.dto.custo.CustoResponseDTO;
+import com.pecucore.system.core.dto.custo.RateioCustoResponseDTO;
 import com.pecucore.system.core.model.Custo;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.service.custo.CustoService;
+import com.pecucore.system.core.service.custo.RateioCustoService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +31,9 @@ public class CustoController {
 
     @Autowired
     private CustoService custoService;
+
+    @Autowired
+    private RateioCustoService rateioCustoService;
 
     @Operation(
             summary = "Registra um custo manual"
@@ -118,5 +123,21 @@ public class CustoController {
                 .toList();
 
         return ResponseEntity.ok(custos);
+    }
+
+    @Operation(summary = "Consultar o custo do animal com o rateio dos custos do lote e da propriedade")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Rateio calculado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao animal"),
+            @ApiResponse(responseCode = "404", description = "Animal não encontrado")
+    })
+    @GetMapping("/animais/{animalId}/rateio")
+    public ResponseEntity<RateioCustoResponseDTO> getRateioCustoByAnimalId(
+            @PathVariable Long animalId,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        return ResponseEntity.ok(
+                new RateioCustoResponseDTO(rateioCustoService.getRateioCustoByAnimalId(animalId, usuarioLogado))
+        );
     }
 }

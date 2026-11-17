@@ -3,6 +3,7 @@ package com.pecucore.system.core.ia.prompt;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseComparativaDTO;
 import com.pecucore.system.core.extensao.aplicacao.DescricaoAplicacao;
+import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.extensao.sanitario.PoliticaRestricaoSanitaria;
 import com.pecucore.system.core.ia.provedor.PromptIA;
 import com.pecucore.system.core.model.StatusAnimal;
@@ -84,6 +85,7 @@ public class PromptAnaliseBuilder {
             - desempenho.indiceMeta: meta do indicador definida pelo produtor para o lote; sem meta própria do lote, é a meta da finalidade (nulo quando não há nenhuma meta cadastrada).
             - desempenho.percentualDaMeta: quanto da meta o animal atingiu (100 = exatamente na meta).
             - pesagens[].indiceDesempenho: indicador calculado em cada pesagem em relação à pesagem anterior (nulo na primeira).
+            - pesagens[].escoreCorporal: escore de condição corporal (ECC) avaliado na pesagem, na escala {ESCALA_ECC}; valores baixos indicam animal magro e altos, animal gordo (nulo quando não foi avaliado).
             - animal.emCarencia: verdadeiro quando o animal está em carência de vacina ou medicamento; nesse período ele não pode mudar para os status {STATUS_BLOQUEADOS}.
             - alertas: alertas gerados pelo sistema, com status (ABERTO, EM_ANALISE, RESOLVIDO, IGNORADO).
             - custos.total: custo total do animal = custoDireto (lançado no próprio animal) + custoRateadoLote + custoRateadoPropriedade (custos do lote e da propriedade divididos igualmente entre os animais ativos).
@@ -162,6 +164,9 @@ public class PromptAnaliseBuilder {
     @Autowired
     private PoliticaRestricaoSanitaria politicaRestricaoSanitaria;
 
+    @Autowired
+    private IndicadorDesempenho indicadorDesempenho;
+
     private String instrucoesIndividual;
     private String instrucoesComparativa;
 
@@ -172,7 +177,8 @@ public class PromptAnaliseBuilder {
                 .replace("{ESPECIE}", descricaoAplicacao.getEspecie());
 
         String significadoCampos = SIGNIFICADO_CAMPOS
-                .replace("{STATUS_BLOQUEADOS}", listarStatusBloqueados());
+                .replace("{STATUS_BLOQUEADOS}", listarStatusBloqueados())
+                .replace("{ESCALA_ECC}", indicadorDesempenho.getEscalaCondicaoCorporal().descrever());
 
         instrucoesIndividual = String.join("\n",
                 apresentacao + TAREFA_INDIVIDUAL,

@@ -1,5 +1,6 @@
 package com.pecucore.system.bovinos.service.desempenho;
 
+import com.pecucore.system.core.extensao.desempenho.EscalaCondicaoCorporal;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.model.Pesagem;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ public class GmdService implements IndicadorDesempenho {
 
     private static final String NOME = "GMD";
     private static final String UNIDADE = "kg/dia";
+    private static final EscalaCondicaoCorporal ESCALA_ECC = new EscalaCondicaoCorporal(1, 5, 0.5);
 
     @Override
     public String getNome() {
@@ -21,6 +23,11 @@ public class GmdService implements IndicadorDesempenho {
     @Override
     public String getUnidade() {
         return UNIDADE;
+    }
+
+    @Override
+    public EscalaCondicaoCorporal getEscalaCondicaoCorporal() {
+        return ESCALA_ECC;
     }
 
     @Override

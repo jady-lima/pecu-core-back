@@ -1,6 +1,7 @@
 package com.pecucore.system.core.service.pesagem;
 
 import com.pecucore.system.core.exception.ConflitoNegocioException;
+import com.pecucore.system.core.exception.RegraNegocioException;
 import com.pecucore.system.core.service.animal.AnimalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.StatusAnimal;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.repository.PesagemRepository;
+import com.pecucore.system.core.extensao.desempenho.EscalaCondicaoCorporal;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -46,17 +48,31 @@ public class PesagemService {
     @Transactional
     public void tratarPesoAnimalAlterado(PesoAnimalAlteradoEvento evento) {
         Animal animal = animalService.getAnimalAtivoById(evento.animalId());
-        registrar(animal, evento.pesoKg(), evento.data());
+        registrar(animal, evento.pesoKg(), evento.data(), null);
     }
 
     @Transactional
     public ResultadoPesagem createPesagem(PesagemRequestDTO dados, Usuario usuarioLogado) {
         Animal animal = animalService.getAnimalAtivoByBrinco(dados.brinco(), usuarioLogado);
-        return registrar(animal, dados.pesoAtual(), dados.dataPesagem());
+        return registrar(animal, dados.pesoAtual(), dados.dataPesagem(), dados.escoreCorporal());
     }
 
     public int getIntervaloRecomendadoDias(Animal animal) {
         return getFrequenciaPesagemDaPropriedade(animal).orElse(intervaloRecomendadoDias);
+    }
+
+    private void validarEscoreCorporal(Double escoreCorporal) {
+        if (escoreCorporal == null) {
+            return;
+        }
+
+        EscalaCondicaoCorporal escala = indicadorDesempenho.getEscalaCondicaoCorporal();
+
+        if (!escala.aceita(escoreCorporal)) {
+            throw new RegraNegocioException(
+                    "O escore de condição corporal deve seguir a escala " + escala.descrever() + "."
+            );
+        }
     }
 
     private Optional<Integer> getFrequenciaPesagemDaPropriedade(Animal animal) {
@@ -67,9 +83,10 @@ public class PesagemService {
         return Optional.ofNullable(animal.getLote().getPropriedade().getFrequenciaPesagemDias());
     }
 
-    private ResultadoPesagem registrar(Animal animal, double pesoKg, LocalDate dataPesagem) {
+    private ResultadoPesagem registrar(Animal animal, double pesoKg, LocalDate dataPesagem, Double escoreCorporal) {
 
         animalService.validarDataRegistro(animal, dataPesagem);
+        validarEscoreCorporal(escoreCorporal);
 
         Pesagem ultimaPesagem = pesagemRepository.findTopByAnimalIdOrderByDataDescIdDesc(animal.getId()).orElse(null);
 
@@ -99,6 +116,7 @@ public class PesagemService {
 
         pesagem.setPesoKg(pesoKg);
         pesagem.setIndiceDesempenho(indiceDesempenho);
+        pesagem.setEscoreCorporal(escoreCorporal);
         pesagem.setData(dataPesagem);
         pesagem.setAnimal(animal);
 

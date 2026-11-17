@@ -11,6 +11,8 @@ public class Pesagem extends RegistroAnimal {
     @Column(name = "gmd_calculado")
     private Double indiceDesempenho;
 
+    private Double escoreCorporal;
+
     public double getPesoKg() {
         return pesoKg;
     }
@@ -19,11 +21,19 @@ public class Pesagem extends RegistroAnimal {
         return indiceDesempenho;
     }
 
+    public Double getEscoreCorporal() {
+        return escoreCorporal;
+    }
+
     public void setPesoKg(double pesoKg) {
         this.pesoKg = pesoKg;
     }
 
     public void setIndiceDesempenho(Double indiceDesempenho) {
         this.indiceDesempenho = indiceDesempenho;
+    }
+
+    public void setEscoreCorporal(Double escoreCorporal) {
+        this.escoreCorporal = escoreCorporal;
     }
 }

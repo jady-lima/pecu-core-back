@@ -7,14 +7,16 @@ import java.time.LocalDate;
 public record PesagemContextoDTO(
         LocalDate data,
         double pesoKg,
-        Double indiceDesempenho
+        Double indiceDesempenho,
+        Double escoreCorporal
 ) {
 
     public PesagemContextoDTO(Pesagem pesagem) {
         this(
                 pesagem.getData(),
                 pesagem.getPesoKg(),
-                pesagem.getIndiceDesempenho()
+                pesagem.getIndiceDesempenho(),
+                pesagem.getEscoreCorporal()
         );
     }
 }

@@ -10,6 +10,7 @@ public record PesagemResponseDTO(
         double peso,
         LocalDate dataPesagem,
         Double indiceDesempenho,
+        Double escoreCorporal,
         String aviso
 ) {
 
@@ -24,6 +25,7 @@ public record PesagemResponseDTO(
                 pesagem.getPesoKg(),
                 pesagem.getData(),
                 pesagem.getIndiceDesempenho(),
+                pesagem.getEscoreCorporal(),
                 aviso
         );
     }

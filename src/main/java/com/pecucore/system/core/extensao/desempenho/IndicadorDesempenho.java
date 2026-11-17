@@ -15,4 +15,6 @@ public interface IndicadorDesempenho {
     Double calcular(Pesagem pesagemAnterior, double pesoAtualKg, LocalDate dataAtual);
 
     Double calcularHistorico(Pesagem primeiraPesagem, Pesagem ultimaPesagem);
+
+    EscalaCondicaoCorporal getEscalaCondicaoCorporal();
 }

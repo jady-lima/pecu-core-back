@@ -1,6 +1,9 @@
 
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.lote;
 
+import com.pecucore.system.core.service.animal.AnimalConsultaService;
+import com.pecucore.system.core.service.propriedade.AcessoPropriedadeService;
+import com.pecucore.system.core.service.propriedade.PropriedadeService;
 import java.util.List;
 import java.util.Optional;
 

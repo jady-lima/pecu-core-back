@@ -1,5 +1,6 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.medicamento;
 
+import com.pecucore.system.core.service.animal.AnimalService;
 import com.pecucore.system.core.dto.medicamento.MedicamentoRequestDTO;
 import com.pecucore.system.core.dto.medicamento.MedicamentoUpdateRequestDTO;
 import com.pecucore.system.core.evento.MedicamentoRegistradoEvento;
@@ -10,7 +11,7 @@ import com.pecucore.system.core.model.Medicamento;
 import com.pecucore.system.core.model.TipoCusto;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.repository.MedicamentoRepository;
-import com.pecucore.system.bovinos.service.sanidade.CalculadoraCarencia;
+import com.pecucore.system.core.extensao.sanitario.PoliticaRestricaoSanitaria;
 import com.pecucore.system.core.service.custo.CustoAutomaticoService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class MedicamentoService {
     private AnimalService animalService;
 
     @Autowired
-    private CalculadoraCarencia calculadoraCarencia;
+    private PoliticaRestricaoSanitaria politicaRestricaoSanitaria;
 
     @Autowired
     private CustoAutomaticoService custoAutomaticoService;
@@ -141,7 +142,7 @@ public class MedicamentoService {
         medicamento.setValor(valor);
 
         medicamento.setDataFimCarencia(
-                calculadoraCarencia.calcularDataFimCarencia(
+                politicaRestricaoSanitaria.calcularFimCarencia(
                         data,
                         carenciaDias
                 )

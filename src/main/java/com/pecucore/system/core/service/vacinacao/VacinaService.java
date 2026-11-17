@@ -1,4 +1,4 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.vacinacao;
 
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;

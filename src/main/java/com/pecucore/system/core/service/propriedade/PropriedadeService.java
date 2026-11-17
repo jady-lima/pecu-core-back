@@ -1,5 +1,6 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.propriedade;
 
+import com.pecucore.system.core.service.usuario.UsuarioService;
 import com.pecucore.system.core.dto.propriedade.PropriedadeRequestDTO;
 import com.pecucore.system.core.exception.AcessoNegadoException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;

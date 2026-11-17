@@ -1,5 +1,7 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.alimentacao;
 
+import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.lote.LoteService;
 import com.pecucore.system.core.dto.alimentacao.AlimentacaoLoteRequestDTO;
 import com.pecucore.system.core.dto.alimentacao.AlimentacaoRequestDTO;
 import com.pecucore.system.core.exception.ConflitoNegocioException;

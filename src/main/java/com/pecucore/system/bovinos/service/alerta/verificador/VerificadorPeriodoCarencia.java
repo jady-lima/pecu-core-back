@@ -1,6 +1,6 @@
 package com.pecucore.system.bovinos.service.alerta.verificador;
 
-import com.pecucore.system.bovinos.service.sanidade.CarenciaService;
+import com.pecucore.system.core.service.sanidade.CarenciaService;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.TipoAlerta;
 import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;

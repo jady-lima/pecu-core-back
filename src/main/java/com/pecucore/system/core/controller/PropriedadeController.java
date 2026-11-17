@@ -5,7 +5,7 @@ import com.pecucore.system.core.dto.propriedade.PropriedadeResponseDTO;
 import com.pecucore.system.core.dto.usuario.UsuarioResponseDTO;
 import com.pecucore.system.core.model.Propriedade;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.PropriedadeService;
+import com.pecucore.system.core.service.propriedade.PropriedadeService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

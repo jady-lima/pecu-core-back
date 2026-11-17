@@ -23,12 +23,8 @@ class ArquiteturaPacotesTest {
 
     private static final Pattern IMPORT_BOVINOS = Pattern.compile(
             "^import\\s+com\\.pecucore\\.system\\.bovinos\\.([\\w.*]+);", Pattern.MULTILINE);
-    private static final Set<String> DEPENDENCIAS_CONHECIDAS = Set.of(
-            "AnimalService -> CarenciaService",
-            "ContextoAnaliseService -> CarenciaService",
-            "MedicamentoService -> CalculadoraCarencia",
-            "VacinacaoService -> CalculadoraCarencia"
-    );
+
+    private static final Set<String> DEPENDENCIAS_CONHECIDAS = Set.of();
 
     @Test
     void todaClasseFicaNoNucleoOuNaAplicacao() throws IOException {

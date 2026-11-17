@@ -1,5 +1,7 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.vacinacao;
 
+import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.usuario.UsuarioService;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.model.*;
 import com.pecucore.system.core.evento.VacinacaoRegistradaEvento;
@@ -12,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pecucore.system.core.dto.vacinacao.VacinacaoRequestDTO;
 import com.pecucore.system.core.dto.vacinacao.VacinacaoUpdateRequestDTO;
 import com.pecucore.system.core.repository.VacinacaoRepository;
-import com.pecucore.system.bovinos.service.sanidade.CalculadoraCarencia;
+import com.pecucore.system.core.extensao.sanitario.PoliticaRestricaoSanitaria;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,7 +36,7 @@ public class VacinacaoService {
     private UsuarioService usuarioService;
 
     @Autowired
-    private CalculadoraCarencia calculadoraCarencia;
+    private PoliticaRestricaoSanitaria politicaRestricaoSanitaria;
 
     @Autowired
     private CustoAutomaticoService custoAutomaticoService;
@@ -124,7 +126,7 @@ public class VacinacaoService {
         vacinacao.setObservacoes(observacoes == null || observacoes.isBlank() ? null : observacoes.trim());
         vacinacao.setUsuarioAplicador(aplicador);
         vacinacao.setValor(valor);
-        vacinacao.setDataFimCarencia(calculadoraCarencia.calcularDataFimCarencia(data, vacina.getCarenciaDias()));
+        vacinacao.setDataFimCarencia(politicaRestricaoSanitaria.calcularFimCarencia(data, vacina.getCarenciaDias()));
         vacinacao.setDataProximaDose(vacina.getIntervaloDoseDias() != null ? data.plusDays(vacina.getIntervaloDoseDias()) : null);
 
         vacinacao.setCusto(custoAutomaticoService.sincronizarCustoAutomatico(vacinacao.getCusto(), TipoCusto.VACINA, valor, data, vacinacao.getAnimal()));

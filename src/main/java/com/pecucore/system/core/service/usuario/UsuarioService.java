@@ -1,4 +1,4 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.usuario;
 
 import java.util.List;
 

@@ -4,7 +4,7 @@ import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.TipoAlerta;
-import com.pecucore.system.core.service.LoteService;
+import com.pecucore.system.core.service.lote.LoteService;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
 import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import com.pecucore.system.core.service.alerta.verificador.FormatadorAlerta;

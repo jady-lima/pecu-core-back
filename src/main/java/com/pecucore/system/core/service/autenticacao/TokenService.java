@@ -1,4 +1,4 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.autenticacao;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

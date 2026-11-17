@@ -1,5 +1,7 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.alimentacao;
 
+import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.lote.LoteService;
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.model.TipoCusto;

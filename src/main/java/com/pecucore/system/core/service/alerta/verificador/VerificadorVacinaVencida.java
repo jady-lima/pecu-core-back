@@ -5,7 +5,7 @@ import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import com.pecucore.system.core.extensao.alerta.OcorrenciaAlerta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.TipoAlerta;
-import com.pecucore.system.core.service.VacinacaoService;
+import com.pecucore.system.core.service.vacinacao.VacinacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

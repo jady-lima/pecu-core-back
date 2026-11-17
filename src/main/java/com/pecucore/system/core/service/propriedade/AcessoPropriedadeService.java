@@ -1,4 +1,4 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.propriedade;
 
 import com.pecucore.system.core.exception.AcessoNegadoException;
 import com.pecucore.system.core.model.Perfil;

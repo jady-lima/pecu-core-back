@@ -1,11 +1,13 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.animal;
 
+import com.pecucore.system.core.service.lote.LoteService;
+import com.pecucore.system.core.service.propriedade.AcessoPropriedadeService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import com.pecucore.system.bovinos.service.sanidade.CarenciaService;
+import com.pecucore.system.core.service.sanidade.CarenciaService;
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,13 +173,7 @@ public class AnimalService {
             );
         }
 
-        if ((dados.status() == StatusAnimal.ABATIDO || dados.status() == StatusAnimal.VENDIDO)
-                && carenciaService.estaEmCarencia(id)) {
-
-            throw new ConflitoNegocioException(
-                    "O animal está em período de carência e não pode ser vendido ou abatido"
-            );
-        }
+        carenciaService.validarMudancaStatus(id, dados.status());
 
         animal.setStatus(dados.status());
 

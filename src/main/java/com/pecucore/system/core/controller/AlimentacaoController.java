@@ -6,7 +6,7 @@ import com.pecucore.system.core.dto.alimentacao.AlimentacaoResponseDTO;
 import com.pecucore.system.core.dto.alimentacao.AlimentacaoUpdateRequestDTO;
 import com.pecucore.system.core.model.Alimentacao;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.AlimentacaoService;
+import com.pecucore.system.core.service.alimentacao.AlimentacaoService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;

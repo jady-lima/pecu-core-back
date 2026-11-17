@@ -1,7 +1,7 @@
 package com.pecucore.system.core.service.pesagem;
 
 import com.pecucore.system.core.exception.ConflitoNegocioException;
-import com.pecucore.system.core.service.AnimalService;
+import com.pecucore.system.core.service.animal.AnimalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;

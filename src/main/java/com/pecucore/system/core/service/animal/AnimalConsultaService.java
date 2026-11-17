@@ -1,4 +1,4 @@
-package com.pecucore.system.core.service;
+package com.pecucore.system.core.service.animal;
 
 import com.pecucore.system.core.model.StatusAnimal;
 import com.pecucore.system.core.repository.AnimalRepository;

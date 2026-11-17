@@ -5,7 +5,7 @@ import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.StatusAlerta;
 import com.pecucore.system.core.model.TipoAlerta;
 import com.pecucore.system.core.repository.AlertaRepository;
-import com.pecucore.system.core.service.AnimalService;
+import com.pecucore.system.core.service.animal.AnimalService;
 import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import com.pecucore.system.core.extensao.alerta.OcorrenciaAlerta;
 import com.pecucore.system.core.extensao.alerta.VerificadorAlerta;

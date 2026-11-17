@@ -1,8 +1,8 @@
 package com.pecucore.system.core.config;
 
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.UsuarioService;
-import com.pecucore.system.core.service.TokenService;
+import com.pecucore.system.core.service.usuario.UsuarioService;
+import com.pecucore.system.core.service.autenticacao.TokenService;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 
 import jakarta.servlet.FilterChain;

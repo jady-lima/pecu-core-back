@@ -6,7 +6,7 @@ import com.pecucore.system.core.dto.lote.LoteResponseDTO;
 import com.pecucore.system.core.dto.lote.LoteRequestDTO;
 import com.pecucore.system.core.model.Lote;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.LoteService;
+import com.pecucore.system.core.service.lote.LoteService;
 
 
 import jakarta.validation.Valid;

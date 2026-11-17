@@ -5,7 +5,7 @@ import com.pecucore.system.core.dto.vacinacao.VacinacaoResponseDTO;
 import com.pecucore.system.core.dto.vacinacao.VacinacaoUpdateRequestDTO;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.model.Vacinacao;
-import com.pecucore.system.core.service.VacinacaoService;
+import com.pecucore.system.core.service.vacinacao.VacinacaoService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;

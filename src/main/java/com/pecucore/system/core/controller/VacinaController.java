@@ -3,7 +3,7 @@ package com.pecucore.system.core.controller;
 import com.pecucore.system.core.dto.vacinacao.VacinaRequestDTO;
 import com.pecucore.system.core.dto.vacinacao.VacinaResponseDTO;
 import com.pecucore.system.core.model.Vacina;
-import com.pecucore.system.core.service.VacinaService;
+import com.pecucore.system.core.service.vacinacao.VacinaService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;

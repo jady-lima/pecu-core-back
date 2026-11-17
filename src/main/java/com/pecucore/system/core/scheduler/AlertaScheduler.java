@@ -1,6 +1,6 @@
 package com.pecucore.system.core.scheduler;
 
-import com.pecucore.system.core.service.AnimalService;
+import com.pecucore.system.core.service.animal.AnimalService;
 import com.pecucore.system.core.service.alerta.VerificacaoAlertaService;
 import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import org.slf4j.Logger;

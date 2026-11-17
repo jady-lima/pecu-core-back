@@ -1,6 +1,11 @@
 package com.pecucore.system.core.service.analise;
 
-import com.pecucore.system.bovinos.service.sanidade.CarenciaService;
+import com.pecucore.system.core.service.alimentacao.AlimentacaoService;
+import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.lote.LoteService;
+import com.pecucore.system.core.service.medicamento.MedicamentoService;
+import com.pecucore.system.core.service.vacinacao.VacinacaoService;
+import com.pecucore.system.core.service.sanidade.CarenciaService;
 import com.pecucore.system.core.dto.analise.AlertaContextoDTO;
 import com.pecucore.system.core.dto.analise.AlimentacaoContextoDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
@@ -16,7 +21,6 @@ import com.pecucore.system.core.model.Medicamento;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.model.Vacinacao;
-import com.pecucore.system.core.service.*;
 import com.pecucore.system.core.service.alerta.AlertaService;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;

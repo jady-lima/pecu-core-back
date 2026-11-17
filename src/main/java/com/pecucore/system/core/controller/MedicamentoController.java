@@ -5,7 +5,7 @@ import com.pecucore.system.core.dto.medicamento.MedicamentoResponseDTO;
 import com.pecucore.system.core.dto.medicamento.MedicamentoUpdateRequestDTO;
 import com.pecucore.system.core.model.Medicamento;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.MedicamentoService;
+import com.pecucore.system.core.service.medicamento.MedicamentoService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;

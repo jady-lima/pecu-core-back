@@ -123,6 +123,10 @@ public class LoteService {
         );
     }
 
+    public List<Lote> getLotesByPropriedadeId(Long propriedadeId) {
+        return loteRepository.findByPropriedadeIdOrderByNumero(propriedadeId);
+    }
+
     public Lote getLoteById(Long id, Usuario usuarioLogado) {
 
         Lote lote = loteRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Lote não encontrado"));

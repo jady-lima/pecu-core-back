@@ -43,6 +43,8 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
 
     List<Animal> findByLotePropriedadeVeterinariosId(Long veterinarioId);
 
+    List<Animal> findByLotePropriedadeIdAndStatusOrderByBrinco(Long propriedadeId, StatusAnimal status);
+
     @Query("select a.id from Animal a where a.status = :status and a.lote is not null")
     List<Long> findIdsByStatusComLote(@Param("status") StatusAnimal status);
 }

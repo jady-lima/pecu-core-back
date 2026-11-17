@@ -9,6 +9,7 @@ import java.util.List;
 public interface LoteRepository extends JpaRepository<Lote, Long> {
 
     List<Lote> findByPropriedadeUsuarioId(Long usuarioId);
+    List<Lote> findByPropriedadeIdOrderByNumero(Long propriedadeId);
 
     List<Lote> findByPropriedadeVeterinariosId(Long veterinarioId);
 

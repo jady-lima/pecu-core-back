@@ -18,7 +18,7 @@ import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.StatusAnimal;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.repository.PesagemRepository;
-import com.pecucore.system.bovinos.desempenho.GmdService;
+import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -34,7 +34,7 @@ public class PesagemService {
     private AnimalService animalService;
 
     @Autowired
-    private GmdService gmdService;
+    private IndicadorDesempenho indicadorDesempenho;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -80,12 +80,12 @@ public class PesagemService {
             }
         }
 
-        Double gmd = gmdService.calcularGmd(ultimaPesagem, pesoKg, dataPesagem);
+        Double indiceDesempenho = indicadorDesempenho.calcular(ultimaPesagem, pesoKg, dataPesagem);
 
         Pesagem pesagem = new Pesagem();
 
         pesagem.setPesoKg(pesoKg);
-        pesagem.setGmdCalculado(gmd);
+        pesagem.setIndiceDesempenho(indiceDesempenho);
         pesagem.setData(dataPesagem);
         pesagem.setAnimal(animal);
 

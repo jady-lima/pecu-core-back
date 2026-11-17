@@ -3,7 +3,7 @@ package com.pecucore.system.core.model;
 import java.util.Optional;
 
 public enum TipoAlerta {
-    GMD_ABAIXO_META(SeveridadeAlerta.ALTA, false, UnidadeParametro.KG_POR_DIA, null),
+    GMD_ABAIXO_META(SeveridadeAlerta.ALTA, false, UnidadeParametro.INDICE_DESEMPENHO, null),
     QUEDA_PESO(SeveridadeAlerta.ALTA, false, UnidadeParametro.NENHUM, null),
     PESAGEM_ATRASADA(SeveridadeAlerta.MEDIA, false, UnidadeParametro.DIAS, null),
     VACINA_PROX_VENC(SeveridadeAlerta.BAIXA, false, UnidadeParametro.DIAS, 7.0),

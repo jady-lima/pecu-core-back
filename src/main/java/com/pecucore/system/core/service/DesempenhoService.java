@@ -8,7 +8,8 @@ import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.bovinos.desempenho.GmdService;
+import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,10 @@ public class DesempenhoService {
     private PesagemService pesagemService;
 
     @Autowired
-    private GmdService gmdService;
+    private IndicadorDesempenho indicadorDesempenho;
+
+    @Autowired
+    private CalculadoraEstatisticasLote calculadoraEstatisticasLote;
 
     @Autowired
     private MetaDesempenhoService metaDesempenhoService;
@@ -47,45 +51,41 @@ public class DesempenhoService {
 
         if (pesagens.size() < 2) {
             throw new ConflitoNegocioException(
-                    "O animal precisa possuir pelo menos duas pesagens para avaliação de desempenho."
+                "O animal precisa possuir pelo menos duas pesagens para avaliação de desempenho."
             );
         }
 
         Pesagem primeiraPesagem = pesagens.get(0);
         Pesagem ultimaPesagem = pesagens.get(pesagens.size() - 1);
 
-        Double gmdAtual = gmdService.calcularGmdHistorico(
+        Double indiceAtual = indicadorDesempenho.calcularHistorico(
                 primeiraPesagem,
                 ultimaPesagem
         );
 
-        if (gmdAtual == null) {
+        if (indiceAtual == null) {
             throw new ConflitoNegocioException(
-                    "Não foi possível calcular o GMD do animal. As pesagens precisam ter datas diferentes."
+                "Não foi possível calcular o " + indicadorDesempenho.getNome() + " do animal. As pesagens precisam ter datas diferentes."
             );
         }
 
-        double gmdEsperado = metaDesempenhoService.getGmdEsperado(animal.getLote())
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Meta de desempenho não encontrada para o lote nem para a fase."
-                ));
+        double indiceEsperado = metaDesempenhoService.getGmdEsperado(animal.getLote()).orElseThrow(() -> new RecursoNaoEncontradoException("Meta de desempenho não encontrada para o lote nem para a fase."));
 
-        double diferenca = gmdAtual - gmdEsperado;
+        double diferenca = indiceAtual - indiceEsperado;
 
-        double percentualDaMeta =
-                gmdService.calcularPercentualDaMeta(gmdAtual, gmdEsperado);
+        double percentualDaMeta = calculadoraEstatisticasLote.calcularPercentualDaReferencia(indiceAtual, indiceEsperado);
 
-        double percentualAbaixoDaMeta =
-                100 - percentualDaMeta;
+        double percentualAbaixoDaMeta = 100 - percentualDaMeta;
 
-        boolean abaixoDaMeta =
-                gmdAtual < gmdEsperado;
+        boolean abaixoDaMeta = indiceAtual < indiceEsperado;
 
         return new ComparacaoDesempenhoResponseDTO(
                 animal.getBrinco(),
                 animal.getLote().getFinalidade(),
-                gmdAtual,
-                gmdEsperado,
+                indicadorDesempenho.getNome(),
+                indicadorDesempenho.getUnidade(),
+                indiceAtual,
+                indiceEsperado,
                 diferenca,
                 percentualDaMeta,
                 percentualAbaixoDaMeta,

@@ -16,8 +16,8 @@ public final class FormatadorAlerta {
         return String.format(PT_BR, "R$ %,.2f", valor);
     }
 
-    public static String gmd(double kgPorDia) {
-        return String.format(PT_BR, "%.2f kg/dia", kgPorDia);
+    public static String indice(double valor, String unidade) {
+        return String.format(PT_BR, "%.2f %s", valor, unidade);
     }
 
     public static String data(LocalDate data) {

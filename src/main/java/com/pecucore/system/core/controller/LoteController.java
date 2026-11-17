@@ -1,6 +1,6 @@
 package com.pecucore.system.core.controller;
 
-import com.pecucore.system.core.dto.lote.LoteMetaGmdRequestDTO;
+import com.pecucore.system.core.dto.lote.LoteMetaDesempenhoRequestDTO;
 import com.pecucore.system.core.dto.lote.LoteResponseDTO;
 import com.pecucore.system.core.dto.lote.LoteRequestDTO;
 import com.pecucore.system.core.model.Lote;
@@ -121,16 +121,16 @@ public class LoteController {
         );
     }
 
-    @PutMapping("/{id}/meta-gmd")
-    @Operation(summary = "Definir a meta de GMD do lote")
+    @PutMapping("/{id}/meta-desempenho")
+    @Operation(summary = "Definir a meta de desempenho do lote")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Meta definida com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "404", description = "Lote não encontrado")
     })
-    public ResponseEntity<LoteResponseDTO> updateMetaGmd(@PathVariable Long id, @RequestBody @Valid LoteMetaGmdRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
+    public ResponseEntity<LoteResponseDTO> updateMetaDesempenho(@PathVariable Long id, @RequestBody @Valid LoteMetaDesempenhoRequestDTO dados, @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        Lote loteAtualizado =loteService.updateMetaGmd(
+        Lote loteAtualizado =loteService.updateMetaDesempenho(
                 id,
                 dados,
                 usuarioLogado
@@ -139,15 +139,15 @@ public class LoteController {
         return ResponseEntity.ok(new LoteResponseDTO(loteAtualizado));
     }
 
-    @DeleteMapping("/{id}/meta-gmd")
-    @Operation(summary = "Remover a meta de GMD do lote")
+    @DeleteMapping("/{id}/meta-desempenho")
+    @Operation(summary = "Remover a meta de desempenho do lote")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Meta removida com sucesso"),
             @ApiResponse(responseCode = "404", description = "Lote não encontrado")
     })
-    public ResponseEntity<Void> deleteMetaGmd(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
+    public ResponseEntity<Void> deleteMetaDesempenho(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        loteService.deleteMetaGmd(
+        loteService.deleteMetaDesempenho(
                 id,
                 usuarioLogado
         );

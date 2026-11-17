@@ -23,26 +23,12 @@ class ArquiteturaPacotesTest {
 
     private static final Pattern IMPORT_BOVINOS = Pattern.compile(
             "^import\\s+com\\.pecucore\\.system\\.bovinos\\.([\\w.*]+);", Pattern.MULTILINE);
-
-    /*
-     * Dependências do núcleo para a aplicação bovinos que ainda existem.
-     * Cada uma é eliminada numa refatoração da semana 2 (R1, R2 ou R3).
-     * A lista só pode diminuir: ao resolver uma dependência, apague a linha dela.
-     */
     private static final Set<String> DEPENDENCIAS_CONHECIDAS = Set.of(
-            // R1 - Estratégia de desempenho
-            "ContextoAnaliseService -> GmdService",
-            "ContextoComparativoService -> GmdService",
-            "DesempenhoService -> GmdService",
-            "PesagemService -> GmdService",
-
-            // R2 - Restrição sanitária
             "AnimalService -> CarenciaService",
             "ContextoAnaliseService -> CarenciaService",
             "MedicamentoService -> CalculadoraCarencia",
             "VacinacaoService -> CalculadoraCarencia",
 
-            // R3 - Agrupamento
             "ContextoAnaliseService -> MetaDesempenhoService",
             "DesempenhoService -> MetaDesempenhoService",
             "Lote -> FinalidadeLote",

@@ -19,7 +19,8 @@ import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.model.Vacinacao;
 import com.pecucore.system.core.service.*;
 import com.pecucore.system.core.service.alerta.AlertaService;
-import com.pecucore.system.bovinos.desempenho.GmdService;
+import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;
 import com.pecucore.system.core.service.custo.CustoService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
@@ -40,7 +41,10 @@ public class ContextoAnaliseService {
     private AnimalService animalService;
 
     @Autowired
-    private GmdService gmdService;
+    private IndicadorDesempenho indicadorDesempenho;
+
+    @Autowired
+    private CalculadoraEstatisticasLote calculadoraEstatisticasLote;
 
     @Autowired
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
@@ -110,20 +114,27 @@ public class ContextoAnaliseService {
         Pesagem primeiraPesagem = pesagens.get(0);
         Pesagem ultimaPesagem = pesagens.get(pesagens.size() - 1);
 
-        Double gmdPeriodo = gmdService.calcularGmdHistorico(primeiraPesagem, ultimaPesagem);
+        Double indicePeriodo = indicadorDesempenho.calcularHistorico(primeiraPesagem, ultimaPesagem);
         long diasAvaliados = ChronoUnit.DAYS.between(primeiraPesagem.getData(), ultimaPesagem.getData());
 
-        Double gmdMeta = metaDesempenhoService.getGmdEsperado(animal.getLote()).orElse(null);
+        Double indiceMeta = metaDesempenhoService.getGmdEsperado(animal.getLote()).orElse(null);
 
-        Double percentualDaMeta = gmdService.calcularPercentualDaMeta(gmdPeriodo, gmdMeta);
+        Double percentualDaMeta = calculadoraEstatisticasLote.calcularPercentualDaReferencia(indicePeriodo, indiceMeta);
 
-        return new DesempenhoContextoDTO(gmdPeriodo, diasAvaliados, gmdMeta, percentualDaMeta);
+        return new DesempenhoContextoDTO(
+                indicadorDesempenho.getNome(),
+                indicadorDesempenho.getUnidade(),
+                indicePeriodo,
+                diasAvaliados,
+                indiceMeta,
+                percentualDaMeta
+        );
     }
 
     private List<AlertaContextoDTO> montarAlertas(Long animalId, Usuario usuarioLogado) {
         return alertaService.getHistoricoByAnimalId(animalId, usuarioLogado).stream()
-                               .map(AlertaContextoDTO::new)
-                               .toList();
+                    .map(AlertaContextoDTO::new)
+                    .toList();
     }
 
     private ResumoCustoDTO montarCustos(Long animalId, Usuario usuarioLogado) {

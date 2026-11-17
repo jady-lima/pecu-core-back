@@ -73,8 +73,8 @@ public class MetaDesempenhoService {
             return Optional.empty();
         }
 
-        if (lote.getGmdMeta() != null) {
-            return Optional.of(lote.getGmdMeta());
+        if (lote.getMetaDesempenho() != null) {
+            return Optional.of(lote.getMetaDesempenho());
         }
 
         if (lote.getFinalidade() == null) {

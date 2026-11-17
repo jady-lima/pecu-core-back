@@ -1,5 +1,6 @@
 package com.pecucore.system.bovinos.desempenho;
 
+import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.model.Pesagem;
 import org.springframework.stereotype.Service;
 
@@ -7,55 +8,51 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 @Service
-public class GmdService {
+public class GmdService implements IndicadorDesempenho {
 
-    public Double calcularGmd(Pesagem pesagemAnterior, double pesoAtualKg, LocalDate dataAtual) {
+    private static final String NOME = "GMD";
+    private static final String UNIDADE = "kg/dia";
 
+    @Override
+    public String getNome() {
+        return NOME;
+    }
+
+    @Override
+    public String getUnidade() {
+        return UNIDADE;
+    }
+
+    @Override
+    public Double calcular(Pesagem pesagemAnterior, double pesoAtualKg, LocalDate dataAtual) {
         if (pesagemAnterior == null) {
             return null;
         }
 
-        long dias = ChronoUnit.DAYS.between(
-                pesagemAnterior.getData(),
-                dataAtual
-        );
-
-        if (dias <= 0) {
-            return null;
-        }
-
-        double variacaoKg = pesoAtualKg - pesagemAnterior.getPesoKg();
-
-        return variacaoKg / dias;
+        return calcularPorDia(pesagemAnterior.getPesoKg(), pesoAtualKg, pesagemAnterior.getData(), dataAtual);
     }
 
-    public Double calcularGmdHistorico(Pesagem primeiraPesagem, Pesagem ultimaPesagem) {
-
+    @Override
+    public Double calcularHistorico(Pesagem primeiraPesagem, Pesagem ultimaPesagem) {
         if (primeiraPesagem == null || ultimaPesagem == null) {
             return null;
         }
 
-        long dias = ChronoUnit.DAYS.between(
+        return calcularPorDia(
+                primeiraPesagem.getPesoKg(),
+                ultimaPesagem.getPesoKg(),
                 primeiraPesagem.getData(),
                 ultimaPesagem.getData()
         );
+    }
+
+    private Double calcularPorDia(double pesoInicialKg, double pesoFinalKg, LocalDate dataInicial, LocalDate dataFinal) {
+        long dias = ChronoUnit.DAYS.between(dataInicial, dataFinal);
 
         if (dias <= 0) {
             return null;
         }
 
-        double variacaoKg =
-                ultimaPesagem.getPesoKg() - primeiraPesagem.getPesoKg();
-
-        return variacaoKg / dias;
-    }
-
-    public Double calcularPercentualDaMeta(Double gmd, Double gmdMeta) {
-
-        if (gmd == null || gmdMeta == null || gmdMeta <= 0) {
-            return null;
-        }
-
-        return (gmd / gmdMeta) * 100;
+        return (pesoFinalKg - pesoInicialKg) / dias;
     }
 }

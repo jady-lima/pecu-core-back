@@ -3,7 +3,7 @@ package com.pecucore.system.core.model;
 public enum UnidadeParametro {
     NENHUM(false, null),
     DIAS(true, "um número inteiro de dias maior que zero"),
-    KG_POR_DIA(false, "um valor em kg/dia maior que zero"),
+    INDICE_DESEMPENHO(false, "um índice de desempenho maior que zero"),
     REAIS(false, "um valor em reais maior que zero");
 
     private final boolean inteiro;

@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Pesagens", description = "Registros de pesagem e cálculo de GMD")
+@Tag(name = "Pesagens", description = "Registros de pesagem e cálculo do índice de desempenho")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/pesagens")

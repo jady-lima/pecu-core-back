@@ -1,11 +1,11 @@
 package com.pecucore.system.core.dto.analise;
 
 public record PosicaoAnimalLoteDTO(
-        int posicaoGmd,
+        int posicaoIndice,
         int totalComparados,
-        Double percentilGmd,
-        Double diferencaGmdMediaKgDia,
-        Double percentualDaMediaGmd,
+        Double percentilIndice,
+        Double diferencaIndiceMedia,
+        Double percentualDaMediaIndice,
         double diferencaPesoMedioKg
 ) {
 }

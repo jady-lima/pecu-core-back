@@ -1,6 +1,7 @@
 package com.pecucore.system.bovinos.desempenho;
 
 import com.pecucore.system.bovinos.agrupamento.MetaDesempenhoService;
+import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.TipoAlerta;
@@ -28,6 +29,9 @@ public class VerificadorGmdAbaixoMeta implements VerificadorAlerta {
     @Autowired
     private RegraAlertaService regraAlertaService;
 
+    @Autowired
+    private IndicadorDesempenho indicadorDesempenho;
+
     @Override
     public TipoAlerta getTipo() {
         return TipoAlerta.GMD_ABAIXO_META;
@@ -52,14 +56,18 @@ public class VerificadorGmdAbaixoMeta implements VerificadorAlerta {
             return Optional.empty();
         }
 
-        Double gmd = ultima.get().getGmdCalculado();
+        Double gmd = ultima.get().getIndiceDesempenho();
 
         if (gmd == null || gmd >= meta.get()) {
             return Optional.empty();
         }
 
         return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.get().getId(),
-                "GMD abaixo da meta: o animal ganhou " + FormatadorAlerta.gmd(gmd)
-                        + ", abaixo da meta de " + FormatadorAlerta.gmd(meta.get()) + "."));
+                "GMD abaixo da meta: o animal ganhou " + formatar(gmd)
+                        + ", abaixo da meta de " + formatar(meta.get()) + "."));
+    }
+
+    private String formatar(double valor) {
+        return FormatadorAlerta.indice(valor, indicadorDesempenho.getUnidade());
     }
 }

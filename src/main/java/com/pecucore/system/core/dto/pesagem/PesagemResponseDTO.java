@@ -9,7 +9,7 @@ public record PesagemResponseDTO(
         int brinco,
         double peso,
         LocalDate dataPesagem,
-        Double gmdCalculado,
+        Double indiceDesempenho,
         String aviso
 ) {
 
@@ -23,7 +23,7 @@ public record PesagemResponseDTO(
                 pesagem.getAnimal().getBrinco(),
                 pesagem.getPesoKg(),
                 pesagem.getData(),
-                pesagem.getGmdCalculado(),
+                pesagem.getIndiceDesempenho(),
                 aviso
         );
     }

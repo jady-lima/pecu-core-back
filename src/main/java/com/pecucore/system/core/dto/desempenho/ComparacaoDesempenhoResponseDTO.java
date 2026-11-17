@@ -5,8 +5,10 @@ import com.pecucore.system.bovinos.agrupamento.FinalidadeLote;
 public record ComparacaoDesempenhoResponseDTO(
         int brinco,
         FinalidadeLote fase,
-        Double gmdAtual,
-        double gmdEsperado,
+        String indicador,
+        String unidade,
+        Double indiceAtual,
+        double indiceEsperado,
         double diferenca,
         double percentualDaMeta,
         double percentualAbaixoDaMeta,

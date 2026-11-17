@@ -8,7 +8,7 @@ import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.pecucore.system.core.dto.lote.LoteMetaGmdRequestDTO;
+import com.pecucore.system.core.dto.lote.LoteMetaDesempenhoRequestDTO;
 import com.pecucore.system.core.dto.lote.LoteRequestDTO;
 import com.pecucore.system.core.model.Lote;
 import com.pecucore.system.core.model.Propriedade;
@@ -64,35 +64,30 @@ public class LoteService {
             Usuario usuarioLogado
     ) {
 
-        Lote loteExistente =
-                getLoteById(
+        Lote loteExistente = getLoteById(
                         id,
                         usuarioLogado
                 );
 
-        Propriedade propriedade =
-                propriedadeService.getPropriedadeById(
+        Propriedade propriedade = propriedadeService.getPropriedadeById(
                         dados.propriedadeId(),
                         usuarioLogado
                 );
 
-        if (loteExistente.getNumero() != dados.numero()
-                || !loteExistente.getPropriedade().getId().equals(propriedade.getId())) {
-
+        if (loteExistente.getNumero() != dados.numero() || !loteExistente.getPropriedade().getId().equals(propriedade.getId())) {
             validarNumeroLote(
-                    dados.numero(),
-                    propriedade.getId(),
-                    id
+                dados.numero(),
+                propriedade.getId(),
+                id
             );
         }
 
-        long animaisAtivos =
-                animalService.countAnimaisAtivosByLoteId(id);
+        long animaisAtivos = animalService.countAnimaisAtivosByLoteId(id);
 
         if (dados.capacidade() < animaisAtivos) {
 
             throw new ConflitoNegocioException(
-                    "A capacidade não pode ser menor que a quantidade de animais ativos no lote (" + animaisAtivos + ")"
+                "A capacidade não pode ser menor que a quantidade de animais ativos no lote (" + animaisAtivos + ")"
             );
         }
 
@@ -105,10 +100,7 @@ public class LoteService {
         return loteRepository.save(loteExistente);
     }
 
-    public List<Lote> getAllLotes(
-            Usuario usuarioLogado
-    ) {
-
+    public List<Lote> getAllLotes(Usuario usuarioLogado) {
         return acessoPropriedadeService.filtrarPorPerfil(
                 usuarioLogado,
                 loteRepository::findAll,
@@ -117,106 +109,77 @@ public class LoteService {
         );
     }
 
-    public Lote getLoteById(
-            Long id,
-            Usuario usuarioLogado
-    ) {
+    public Lote getLoteById(Long id, Usuario usuarioLogado) {
 
-        Lote lote =
-                loteRepository.findById(id)
-                        .orElseThrow(() -> new RecursoNaoEncontradoException(
-                                "Lote não encontrado"
-                        ));
+        Lote lote = loteRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Lote não encontrado"));
 
-        validarAcessoLote(
-                lote,
-                usuarioLogado
-        );
+        validarAcessoLote(lote, usuarioLogado);
 
         return lote;
     }
 
-    public Lote updateMetaGmd(Long id, LoteMetaGmdRequestDTO dados, Usuario usuarioLogado) {
+    public Lote updateMetaDesempenho(Long id, LoteMetaDesempenhoRequestDTO dados, Usuario usuarioLogado) {
         Lote lote = getLoteById(
                 id,
                 usuarioLogado
         );
 
-        lote.setGmdMeta(dados.gmdEsperado());
+        lote.setMetaDesempenho(dados.metaDesempenho());
 
         return loteRepository.save(lote);
     }
 
-    public void deleteMetaGmd(Long id, Usuario usuarioLogado) {
+    public void deleteMetaDesempenho(Long id, Usuario usuarioLogado) {
         Lote lote = getLoteById(
-                        id,
-                        usuarioLogado
-                );
+                id,
+                usuarioLogado
+        );
 
-        lote.setGmdMeta(null);
+        lote.setMetaDesempenho(null);
 
         loteRepository.save(lote);
     }
 
-    public void deleteLote(
-            Long id,
-            Usuario usuarioLogado
-    ) {
+    public void deleteLote(Long id, Usuario usuarioLogado) {
 
-        Lote loteExistente =
-                getLoteById(
+        Lote loteExistente = getLoteById(
                         id,
                         usuarioLogado
                 );
 
-        boolean possuiAnimaisAtivos =
-                animalService.existsAnimalAtivoByLoteId(id);
+        boolean possuiAnimaisAtivos = animalService.existsAnimalAtivoByLoteId(id);
 
         if (possuiAnimaisAtivos) {
-
-            throw new ConflitoNegocioException(
-                    "Não é possível excluir o lote porque existem animais ativos nesse lote"
-            );
+            throw new ConflitoNegocioException("Não é possível excluir o lote porque existem animais ativos nesse lote");
         }
 
         loteRepository.delete(loteExistente);
     }
 
-    private void validarNumeroLote(
-            int numero,
-            Long propriedadeId,
-            Long loteIdAtual
+    private void validarNumeroLote(int numero, Long propriedadeId, Long loteIdAtual
     ) {
 
         boolean numeroJaExiste;
 
         if (loteIdAtual == null) {
-            numeroJaExiste =
-                    loteRepository.existsByNumeroAndPropriedade_Id(
-                            numero,
-                            propriedadeId
-                    );
+            numeroJaExiste = loteRepository.existsByNumeroAndPropriedade_Id(
+                        numero,
+                        propriedadeId
+                );
         } else {
-            numeroJaExiste =
-                    loteRepository.existsByNumeroAndPropriedade_IdAndIdNot(
-                            numero,
-                            propriedadeId,
-                            loteIdAtual
-                    );
+            numeroJaExiste = loteRepository.existsByNumeroAndPropriedade_IdAndIdNot(
+                        numero,
+                        propriedadeId,
+                        loteIdAtual
+                );
         }
 
         if (numeroJaExiste) {
-            throw new ConflitoNegocioException(
-                    "Já existe um lote com esse número nesta propriedade"
-            );
+            throw new ConflitoNegocioException("Já existe um lote com esse número nesta propriedade");
         }
     }
 
-    private void validarAcessoLote(
-            Lote lote,
-            Usuario usuarioLogado
-    ) {
-
+    private void validarAcessoLote(Lote lote, Usuario usuarioLogado) {
         acessoPropriedadeService.validarAcesso(
                 lote.getPropriedade(),
                 usuarioLogado,

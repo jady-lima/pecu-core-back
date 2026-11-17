@@ -34,8 +34,8 @@ public class CalculadoraEstatisticasLote {
         return (valoresMenores * 100.0) / demaisValores.size();
     }
 
-    public Double calcularPercentualDaReferencia(double valor, double referencia) {
-        if (referencia <= 0) {
+    public Double calcularPercentualDaReferencia(Double valor, Double referencia) {
+        if (valor == null || referencia == null || referencia <= 0) {
             return null;
         }
 

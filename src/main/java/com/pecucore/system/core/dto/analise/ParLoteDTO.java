@@ -10,16 +10,16 @@ public record ParLoteDTO(
         String sexo,
         Long idadeMeses,
         double pesoAtualKg,
-        Double gmdPeriodoKgDia
+        Double indicePeriodo
 ) {
 
-    public ParLoteDTO(Animal animal, Double gmdPeriodo, LocalDate dataReferencia) {
+    public ParLoteDTO(Animal animal, Double indicePeriodo, LocalDate dataReferencia) {
         this(
             animal.getBrinco(),
             animal.getSexo(),
             animal.getDataNascimento() != null ? ChronoUnit.MONTHS.between(animal.getDataNascimento(), dataReferencia) : null,
             animal.getPesoAtual(),
-            gmdPeriodo
+            indicePeriodo
         );
     }
 }

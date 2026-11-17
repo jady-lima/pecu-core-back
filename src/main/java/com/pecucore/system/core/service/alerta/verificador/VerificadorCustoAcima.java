@@ -7,7 +7,7 @@ import com.pecucore.system.core.extensao.alerta.OcorrenciaAlerta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
-import com.pecucore.system.core.service.custo.CustoService;
+import com.pecucore.system.core.service.custo.RateioCustoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ import java.util.Set;
 public class VerificadorCustoAcima implements VerificadorAlerta {
 
     @Autowired
-    private CustoService custoService;
+    private RateioCustoService rateioCustoService;
 
     @Autowired
     private RegraAlertaService regraAlertaService;
@@ -41,7 +41,7 @@ public class VerificadorCustoAcima implements VerificadorAlerta {
             return Optional.empty();
         }
 
-        double custoTotal = custoService.getCustoTotalByAnimalId(animal.getId());
+        double custoTotal = rateioCustoService.calcularRateio(animal).total();
 
         if (custoTotal <= limite.get()) {
             return Optional.empty();

@@ -2,21 +2,29 @@ package com.pecucore.system.core.ia.prompt;
 
 import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseComparativaDTO;
+import com.pecucore.system.core.extensao.aplicacao.DescricaoAplicacao;
+import com.pecucore.system.core.extensao.sanitario.PoliticaRestricaoSanitaria;
 import com.pecucore.system.core.ia.provedor.PromptIA;
+import com.pecucore.system.core.model.StatusAnimal;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.util.stream.Collectors;
+
 @Component
 public class PromptAnaliseBuilder {
 
-    private static final String CABECALHO_INDIVIDUAL = """
-            Você é um assistente zootécnico do sistema PecuCore, especializado em bovinos.
+    private static final String APRESENTACAO = """
+            Você é um assistente zootécnico do sistema {SISTEMA}, especializado em {ESPECIE}.
+            """;
+
+    private static final String TAREFA_INDIVIDUAL = """
             Sua tarefa é analisar os dados de UM animal e produzir um relatório para o produtor ou veterinário.
             """;
 
-    private static final String CABECALHO_COMPARATIVA = """
-            Você é um assistente zootécnico do sistema PecuCore, especializado em bovinos.
+    private static final String TAREFA_COMPARATIVA = """
             Sua tarefa é analisar UM animal comparando-o com os demais animais do mesmo lote e produzir um relatório para o produtor ou veterinário.
             """;
 
@@ -57,7 +65,7 @@ public class PromptAnaliseBuilder {
             - estatisticasLote.indiceMedio, indiceMediano, indiceMinimo e indiceMaximo: estatísticas do indicador de desempenho no período dos animais comparados.
             - estatisticasLote.indiceMeta: meta do indicador de desempenho do lote (mesma regra de desempenho.indiceMeta).
             - estatisticasLote.pesoMedioKg: peso atual médio dos animais comparados.
-            - estatisticasLote.custoMedioPorAnimal: média dos custos lançados diretamente nos animais comparados (animais sem custo contam como zero).
+            - estatisticasLote.custoMedioPorAnimal: média do custo total dos animais comparados, somando os custos lançados em cada animal e a parte rateada dos custos do lote e da propriedade.
             - demaisAnimais: resumo dos outros animais comparados, do maior para o menor indicePeriodo.
             """;
 
@@ -76,9 +84,10 @@ public class PromptAnaliseBuilder {
             - desempenho.indiceMeta: meta do indicador definida pelo produtor para o lote; sem meta própria do lote, é a meta da finalidade (nulo quando não há nenhuma meta cadastrada).
             - desempenho.percentualDaMeta: quanto da meta o animal atingiu (100 = exatamente na meta).
             - pesagens[].indiceDesempenho: indicador calculado em cada pesagem em relação à pesagem anterior (nulo na primeira).
-            - animal.emCarencia: verdadeiro quando o animal está em carência de vacina ou medicamento e não está apto para venda ou abate.
+            - animal.emCarencia: verdadeiro quando o animal está em carência de vacina ou medicamento; nesse período ele não pode mudar para os status {STATUS_BLOQUEADOS}.
             - alertas: alertas gerados pelo sistema, com status (ABERTO, EM_ANALISE, RESOLVIDO, IGNORADO).
-            - custos: apenas custos lançados diretamente no animal (custos de lote ou propriedade não estão incluídos).
+            - custos.total: custo total do animal = custoDireto (lançado no próprio animal) + custoRateadoLote + custoRateadoPropriedade (custos do lote e da propriedade divididos igualmente entre os animais ativos).
+            - custos.totalPorTipo: o custo total separado por tipo, já incluindo a parte rateada.
             """;
 
     private static final String CLASSIFICACAO = """
@@ -87,23 +96,6 @@ public class PromptAnaliseBuilder {
             - ATENCAO: há pontos que merecem acompanhamento.
             - CRITICO: há indícios de problema que exige ação rápida.
             """;
-
-    private static final String INSTRUCOES_INDIVIDUAL = String.join("\n",
-            CABECALHO_INDIVIDUAL,
-            REGRAS,
-            SIGNIFICADO_CAMPOS,
-            CLASSIFICACAO
-    );
-
-    private static final String INSTRUCOES_COMPARATIVA = String.join("\n",
-            CABECALHO_COMPARATIVA,
-            REGRAS,
-            REGRAS_COMPARACAO,
-            SIGNIFICADO_CAMPOS_COMPARACAO,
-            SIGNIFICADO_CAMPOS,
-            PREENCHIMENTO_COMPARACAO,
-            CLASSIFICACAO
-    );
 
     private static final String ESQUEMA = """
             {
@@ -164,15 +156,58 @@ public class PromptAnaliseBuilder {
     @Autowired
     private JsonMapper jsonMapper;
 
+    @Autowired
+    private DescricaoAplicacao descricaoAplicacao;
+
+    @Autowired
+    private PoliticaRestricaoSanitaria politicaRestricaoSanitaria;
+
+    private String instrucoesIndividual;
+    private String instrucoesComparativa;
+
+    @PostConstruct
+    void montarInstrucoes() {
+        String apresentacao = APRESENTACAO
+                .replace("{SISTEMA}", descricaoAplicacao.getNomeSistema())
+                .replace("{ESPECIE}", descricaoAplicacao.getEspecie());
+
+        String significadoCampos = SIGNIFICADO_CAMPOS
+                .replace("{STATUS_BLOQUEADOS}", listarStatusBloqueados());
+
+        instrucoesIndividual = String.join("\n",
+                apresentacao + TAREFA_INDIVIDUAL,
+                REGRAS,
+                significadoCampos,
+                CLASSIFICACAO
+        );
+
+        instrucoesComparativa = String.join("\n",
+                apresentacao + TAREFA_COMPARATIVA,
+                REGRAS,
+                REGRAS_COMPARACAO,
+                SIGNIFICADO_CAMPOS_COMPARACAO,
+                significadoCampos,
+                PREENCHIMENTO_COMPARACAO,
+                CLASSIFICACAO
+        );
+    }
+
     public PromptIA montarIndividual(ContextoAnaliseAnimalDTO contexto) {
         String conteudo = "Dados do animal para análise (JSON):\n" + jsonMapper.writeValueAsString(contexto);
 
-        return new PromptIA(INSTRUCOES_INDIVIDUAL, conteudo, ESQUEMA);
+        return new PromptIA(instrucoesIndividual, conteudo, ESQUEMA);
     }
 
     public PromptIA montarComparativo(ContextoAnaliseComparativaDTO contexto) {
         String conteudo = "Dados do animal e do lote para análise comparativa (JSON):\n" + jsonMapper.writeValueAsString(contexto);
 
-        return new PromptIA(INSTRUCOES_COMPARATIVA, conteudo, ESQUEMA);
+        return new PromptIA(instrucoesComparativa, conteudo, ESQUEMA);
+    }
+
+    private String listarStatusBloqueados() {
+        return politicaRestricaoSanitaria.getStatusBloqueadosNaCarencia().stream()
+                .map(StatusAnimal::name)
+                .sorted()
+                .collect(Collectors.joining(", "));
     }
 }

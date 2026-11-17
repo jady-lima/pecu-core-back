@@ -1,6 +1,7 @@
 package com.pecucore.system.core.config;
 
 import com.pecucore.system.core.dto.erro.ErroResponseDTO;
+import com.pecucore.system.core.extensao.aplicacao.DescricaoAplicacao;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -23,8 +24,7 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "AgroCore API",
                 version = "1.0.0",
-                description = "API do AgroCore, framework para gestão e acompanhamento de rebanhos. "
-                        + "Aplicação ativa: PecuCore (bovinos de corte)."
+                description = OpenAPIConfig.DESCRICAO_API
         )
 )
 @SecurityScheme(
@@ -35,7 +35,17 @@ import org.springframework.context.annotation.Configuration;
 )
 public class OpenAPIConfig {
 
+    static final String DESCRICAO_API = "API do AgroCore, framework para gestão e acompanhamento de rebanhos.";
+
     private static final String SCHEMA_ERRO = "#/components/schemas/ErroResponseDTO";
+
+    @Bean
+    public OpenApiCustomizer descricaoAplicacaoAtiva(DescricaoAplicacao descricaoAplicacao) {
+        return openApi -> openApi.getInfo().setDescription(
+                DESCRICAO_API + " Aplicação ativa: " + descricaoAplicacao.getNomeSistema()
+                        + " (" + descricaoAplicacao.getEspecie() + ")."
+        );
+    }
 
     @Bean
     public OpenApiCustomizer errosNoFormatoPadrao() {

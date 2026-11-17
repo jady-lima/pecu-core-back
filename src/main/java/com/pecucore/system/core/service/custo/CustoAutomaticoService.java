@@ -17,6 +17,9 @@ public class CustoAutomaticoService {
     @Autowired
     private CustoRepository custoRepository;
 
+    @Autowired
+    private CustoEventoPublisher custoEventoPublisher;
+
     @Transactional
     public Custo createCustoAutomatico(
             TipoCusto tipo,
@@ -32,7 +35,9 @@ public class CustoAutomaticoService {
         custo.setData(data);
         custo.setAnimal(animal);
 
-        return custoRepository.save(custo);
+        Custo custoSalvo = custoRepository.save(custo);
+        custoEventoPublisher.publicarCustoRegistrado(custoSalvo);
+        return custoSalvo;
     }
 
     @Transactional
@@ -44,7 +49,9 @@ public class CustoAutomaticoService {
         custo.setValor(valor);
         custo.setData(data);
 
-        return custoRepository.save(custo);
+        Custo custoSalvo = custoRepository.save(custo);
+        custoEventoPublisher.publicarCustoRegistrado(custoSalvo);
+        return custoSalvo;
     }
 
     @Transactional

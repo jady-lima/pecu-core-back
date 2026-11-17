@@ -4,18 +4,19 @@ import com.pecucore.system.core.model.Alerta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.SeveridadeAlerta;
 import com.pecucore.system.core.model.StatusAlerta;
-import com.pecucore.system.core.model.TipoAlerta;
 
 import java.time.LocalDateTime;
 
 public record AlertaResponseDTO(
-        Long id,
-        TipoAlerta tipo,
-        SeveridadeAlerta severidade,
-        String mensagem,
-        StatusAlerta status,
-        LocalDateTime dataCriacao,
-        AnimalResumoDTO animal
+    Long id,
+    String tipo,
+    SeveridadeAlerta severidade,
+    String mensagem,
+    StatusAlerta status,
+    LocalDateTime dataCriacao,
+    LocalDateTime dataResolucao,
+    boolean resolvidoAutomaticamente,
+    AnimalResumoDTO animal
 ) {
 
     public record AnimalResumoDTO(Long id, int brinco) {
@@ -23,13 +24,15 @@ public record AlertaResponseDTO(
 
     public AlertaResponseDTO(Alerta alerta) {
         this(
-                alerta.getId(),
-                alerta.getTipo(),
-                alerta.getSeveridade(),
-                alerta.getMensagem(),
-                alerta.getStatus(),
-                alerta.getDataCriacao(),
-                resumir(alerta.getAnimal())
+            alerta.getId(),
+            alerta.getTipo().getCodigo(),
+            alerta.getSeveridade(),
+            alerta.getMensagem(),
+            alerta.getStatus(),
+            alerta.getDataCriacao(),
+            alerta.getDataResolucao(),
+            alerta.isResolvidoAutomaticamente(),
+            resumir(alerta.getAnimal())
         );
     }
 

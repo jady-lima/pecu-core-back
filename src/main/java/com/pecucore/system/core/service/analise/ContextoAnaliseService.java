@@ -1,7 +1,11 @@
 package com.pecucore.system.core.service.analise;
 
-import com.pecucore.system.bovinos.agrupamento.MetaDesempenhoService;
-import com.pecucore.system.bovinos.sanidade.CarenciaService;
+import com.pecucore.system.core.service.alimentacao.AlimentacaoService;
+import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.lote.LoteService;
+import com.pecucore.system.core.service.medicamento.MedicamentoService;
+import com.pecucore.system.core.service.vacinacao.VacinacaoService;
+import com.pecucore.system.core.service.sanidade.CarenciaService;
 import com.pecucore.system.core.dto.analise.AlertaContextoDTO;
 import com.pecucore.system.core.dto.analise.AlimentacaoContextoDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
@@ -17,10 +21,10 @@ import com.pecucore.system.core.model.Medicamento;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.model.Vacinacao;
-import com.pecucore.system.core.repository.AlertaRepository;
-import com.pecucore.system.core.service.*;
-import com.pecucore.system.bovinos.desempenho.GmdService;
-import com.pecucore.system.core.service.custo.CustoService;
+import com.pecucore.system.core.service.alerta.AlertaService;
+import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;
+import com.pecucore.system.core.service.custo.RateioCustoService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +38,15 @@ import java.util.List;
 @Service
 public class ContextoAnaliseService {
 
-    private static final int MINIMO_PESAGENS = 2;
 
     @Autowired
     private AnimalService animalService;
 
     @Autowired
-    private GmdService gmdService;
+    private IndicadorDesempenho indicadorDesempenho;
+
+    @Autowired
+    private CalculadoraEstatisticasLote calculadoraEstatisticasLote;
 
     @Autowired
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
@@ -58,13 +64,13 @@ public class ContextoAnaliseService {
     private MedicamentoService medicamentoService;
 
     @Autowired
-    private AlertaRepository alertaRepository;
+    private AlertaService alertaService;
 
     @Autowired
-    private CustoService custoService;
+    private RateioCustoService rateioCustoService;
 
     @Autowired
-    private MetaDesempenhoService metaDesempenhoService;
+    private LoteService loteService;
 
     @Autowired
     private CarenciaService carenciaService;
@@ -83,9 +89,9 @@ public class ContextoAnaliseService {
 
         List<Pesagem> pesagens = pesagemService.getHistoricoByAnimalId(animalId);
 
-        if (pesagens.size() < MINIMO_PESAGENS) {
+        if (pesagens.size() < RequisitosAnalise.MINIMO_PESAGENS) {
             throw new DadosInsuficientesException(
-                "O animal precisa possuir pelo menos " + MINIMO_PESAGENS + " pesagens para gerar a análise."
+                "O animal precisa possuir pelo menos " + RequisitosAnalise.MINIMO_PESAGENS + " pesagens para gerar a análise."
             );
         }
 
@@ -102,7 +108,7 @@ public class ContextoAnaliseService {
             vacinacoes.stream().map(VacinacaoContextoDTO::new).toList(),
             medicamentos.stream().map(MedicamentoContextoDTO::new).toList(),
             montarAlertas(animalId, usuarioLogado),
-            montarCustos(animalId, usuarioLogado)
+            montarCustos(animal, usuarioLogado)
         );
     }
 
@@ -110,29 +116,35 @@ public class ContextoAnaliseService {
         Pesagem primeiraPesagem = pesagens.get(0);
         Pesagem ultimaPesagem = pesagens.get(pesagens.size() - 1);
 
-        Double gmdPeriodo = gmdService.calcularGmdHistorico(primeiraPesagem, ultimaPesagem);
+        Double indicePeriodo = indicadorDesempenho.calcularHistorico(primeiraPesagem, ultimaPesagem);
         long diasAvaliados = ChronoUnit.DAYS.between(primeiraPesagem.getData(), ultimaPesagem.getData());
 
-        Double gmdMeta = metaDesempenhoService.getGmdEsperado(animal.getLote()).orElse(null);
+        Double indiceMeta = loteService.getMetaDesempenho(animal.getLote()).orElse(null);
 
-        Double percentualDaMeta = gmdService.calcularPercentualDaMeta(gmdPeriodo, gmdMeta);
+        Double percentualDaMeta = calculadoraEstatisticasLote.calcularPercentualDaReferencia(indicePeriodo, indiceMeta);
 
-        return new DesempenhoContextoDTO(gmdPeriodo, diasAvaliados, gmdMeta, percentualDaMeta);
+        return new DesempenhoContextoDTO(
+                indicadorDesempenho.getNome(),
+                indicadorDesempenho.getUnidade(),
+                indicePeriodo,
+                diasAvaliados,
+                indiceMeta,
+                percentualDaMeta
+        );
     }
 
     private List<AlertaContextoDTO> montarAlertas(Long animalId, Usuario usuarioLogado) {
-        return alertaRepository.findByAnimalIdOrderByDataCriacaoDesc(animalId).stream()
-                               .filter(alerta -> politicaVisibilidadeFinanceira.podeVerAlerta(alerta.getTipo(), usuarioLogado))
-                               .map(AlertaContextoDTO::new)
-                               .toList();
+        return alertaService.getHistoricoByAnimalId(animalId, usuarioLogado).stream()
+                    .map(AlertaContextoDTO::new)
+                    .toList();
     }
 
-    private ResumoCustoDTO montarCustos(Long animalId, Usuario usuarioLogado) {
+    private ResumoCustoDTO montarCustos(Animal animal, Usuario usuarioLogado) {
         if (!politicaVisibilidadeFinanceira.podeVerDadosFinanceiros(usuarioLogado)) {
             return null;
         }
 
-        return new ResumoCustoDTO(custoService.getCustosByAnimalId(animalId));
+        return new ResumoCustoDTO(rateioCustoService.calcularRateio(animal));
     }
 
 

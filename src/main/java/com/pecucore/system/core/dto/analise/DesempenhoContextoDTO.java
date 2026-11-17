@@ -1,9 +1,11 @@
 package com.pecucore.system.core.dto.analise;
 
 public record DesempenhoContextoDTO(
-        Double gmdPeriodoKgDia,
+        String indicador,
+        String unidade,
+        Double indicePeriodo,
         Long diasAvaliados,
-        Double gmdMetaKgDia,
+        Double indiceMeta,
         Double percentualDaMeta
 ) {
 }

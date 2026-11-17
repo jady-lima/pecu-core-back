@@ -1,36 +1,42 @@
 package com.pecucore.system.core.scheduler;
 
-import com.pecucore.system.core.service.alerta.AlertaPesoService;
-import com.pecucore.system.core.service.alerta.AlertaSanitarioService;
-import com.pecucore.system.core.repository.AnimalRepository;
-import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.alerta.VerificacaoAlertaService;
+import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class AlertaScheduler {
 
-    @Autowired
-    private AnimalRepository animalRepository;
+    private static final Logger log = LoggerFactory.getLogger(AlertaScheduler.class);
 
     @Autowired
-    private AlertaSanitarioService alertaSanitarioService;
+    private AnimalService animalService;
 
     @Autowired
-    private AlertaPesoService alertaPesoService;
+    private VerificacaoAlertaService verificacaoAlertaService;
 
-    @Scheduled(cron = "0 0 7 * * *")
+    @Scheduled(cron = "${alerta.rotina-diaria.cron:0 0 7 * * *}")
     public void verificarAlertas() {
+        List<Long> animalIds = animalService.getIdsAtivosComLote();
+        int falhas = 0;
 
-        for (Animal animal : animalRepository.findAll()) {
-            alertaPesoService.verificarPesagemAtrasada(animal);
-
-            alertaSanitarioService.verificarVacinaProximaVencimento(animal);
-
-            alertaSanitarioService.verificarVacinaVencida(animal);
-
-            alertaSanitarioService.verificarPeriodoCarencia(animal);
+        for (Long animalId : animalIds) {
+            try {
+                verificacaoAlertaService.verificar(animalId, GatilhoAlerta.ROTINA_DIARIA);
+            } catch (RuntimeException e) {
+                falhas++;
+                log.error("Falha ao verificar alertas do animal {} na rotina diária", animalId, e);
+            }
         }
+
+        log.info("Rotina diária de alertas concluída: {} animais verificados, {} com falha",
+                animalIds.size(), falhas);
     }
 }

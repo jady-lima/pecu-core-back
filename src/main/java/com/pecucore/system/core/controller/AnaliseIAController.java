@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Análises com IA", description = "Análises individuais e comparativas e seu histórico")
+@Tag(name = "Análises com IA", description = "Análises individuais, comparativas e de lote e seu histórico")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/analises")
@@ -68,6 +68,37 @@ public class AnaliseIAController {
     public ResponseEntity<List<AnaliseIAResponseDTO>> getHistoricoByAnimal(@PathVariable Long animalId, @AuthenticationPrincipal Usuario usuarioLogado) {
 
         List<AnaliseIAResponseDTO> analises = analiseIAService.getHistoricoByAnimal(animalId, usuarioLogado)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(analises);
+    }
+
+    @Operation(summary = "Gera uma análise do lote com IA a partir de dados agregados dos animais")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Análise gerada com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao lote"),
+        @ApiResponse(responseCode = "404", description = "Lote não encontrado"),
+        @ApiResponse(responseCode = "422", description = "Lote com poucos animais pesados para análise"),
+        @ApiResponse(responseCode = "503", description = "Serviço de IA indisponível")
+    })
+    @PostMapping("/lote/{loteId}")
+    public ResponseEntity<AnaliseIAResponseDTO> gerarLote(@PathVariable Long loteId, @AuthenticationPrincipal Usuario usuarioLogado) {
+        AnaliseIA analise = analiseIAService.gerarLote(loteId, usuarioLogado);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(analise));
+    }
+
+    @Operation(summary = "Consulta o histórico de análises do lote")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Histórico encontrado"),
+        @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao lote"),
+        @ApiResponse(responseCode = "404", description = "Lote não encontrado")
+    })
+    @GetMapping("/lote/{loteId}")
+    public ResponseEntity<List<AnaliseIAResponseDTO>> getHistoricoByLote(@PathVariable Long loteId, @AuthenticationPrincipal Usuario usuarioLogado) {
+        List<AnaliseIAResponseDTO> analises = analiseIAService.getHistoricoByLote(loteId, usuarioLogado)
                 .stream()
                 .map(this::toResponse)
                 .toList();

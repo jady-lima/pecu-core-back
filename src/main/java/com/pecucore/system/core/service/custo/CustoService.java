@@ -9,16 +9,14 @@ import com.pecucore.system.core.model.OrigemCusto;
 import com.pecucore.system.core.model.Propriedade;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.repository.CustoRepository;
-import com.pecucore.system.core.service.AcessoPropriedadeService;
-import com.pecucore.system.core.service.AnimalService;
-import com.pecucore.system.core.service.LoteService;
-import com.pecucore.system.core.service.PropriedadeService;
-import com.pecucore.system.core.service.alerta.AlertaService;
+import com.pecucore.system.core.service.propriedade.AcessoPropriedadeService;
+import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.lote.LoteService;
+import com.pecucore.system.core.service.propriedade.PropriedadeService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -40,7 +38,7 @@ public class CustoService {
     private AcessoPropriedadeService acessoPropriedadeService;
 
     @Autowired
-    private AlertaService alertaService;
+    private CustoEventoPublisher custoEventoPublisher;
 
     @Transactional
     public Custo createCusto(CustoRequestDTO dados, Usuario usuarioLogado) {
@@ -50,9 +48,7 @@ public class CustoService {
         preencherDados(custo, dados, usuarioLogado);
 
         Custo custoSalvo = custoRepository.save(custo);
-        if(custoSalvo.getAnimal() !=null){
-            alertaService.verificarCustoAcima(custoSalvo.getAnimal());
-        }
+        custoEventoPublisher.publicarCustoRegistrado(custoSalvo);
         return custoSalvo;
     }
 
@@ -63,11 +59,8 @@ public class CustoService {
         preencherDados(custo, dados, usuarioLogado);
 
         Custo custoSalvo = custoRepository.save(custo);
-        if(custoSalvo.getAnimal() !=null){
-            alertaService.verificarCustoAcima(custoSalvo.getAnimal());
-        }
+        custoEventoPublisher.publicarCustoRegistrado(custoSalvo);
         return custoSalvo;
-
     }
 
     @Transactional
@@ -165,13 +158,5 @@ public class CustoService {
 
     public List<Custo> getAllCustos(Usuario usuarioLogado) {
         return custoRepository.findByProdutor(usuarioLogado.getId());
-    }
-
-    public List<Custo> getCustosByAnimalId(Long animalId) {
-        return custoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
-    }
-
-    public List<Custo> getCustosByAnimalIds(Collection<Long> animalIds) {
-        return custoRepository.findByAnimalIdIn(animalIds);
     }
 }

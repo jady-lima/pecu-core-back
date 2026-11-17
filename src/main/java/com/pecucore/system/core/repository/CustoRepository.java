@@ -13,6 +13,10 @@ public interface CustoRepository extends JpaRepository<Custo, Long> {
 
     List<Custo> findByAnimalIdIn(Collection<Long> animalIds);
 
+    List<Custo> findByLoteId(Long loteId);
+
+    List<Custo> findByPropriedadeId(Long propriedadeId);
+
     @Query("""
             SELECT c FROM Custo c
             LEFT JOIN c.animal a

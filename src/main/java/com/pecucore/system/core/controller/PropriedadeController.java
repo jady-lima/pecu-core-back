@@ -1,11 +1,13 @@
 package com.pecucore.system.core.controller;
 
+import com.pecucore.system.core.dto.lote.SugestaoReagrupamentoResponseDTO;
 import com.pecucore.system.core.dto.propriedade.PropriedadeRequestDTO;
 import com.pecucore.system.core.dto.propriedade.PropriedadeResponseDTO;
 import com.pecucore.system.core.dto.usuario.UsuarioResponseDTO;
 import com.pecucore.system.core.model.Propriedade;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.PropriedadeService;
+import com.pecucore.system.core.service.lote.ReagrupamentoService;
+import com.pecucore.system.core.service.propriedade.PropriedadeService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,64 +34,58 @@ public class PropriedadeController {
     @Autowired
     private PropriedadeService propriedadeService;
 
+    @Autowired
+    private ReagrupamentoService reagrupamentoService;
+
     @PostMapping
     @Operation(summary = "Cadastrar propriedade")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Propriedade cadastrada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos ou dono da propriedade inválido")
+        @ApiResponse(responseCode = "201", description = "Propriedade cadastrada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos ou dono da propriedade inválido")
     })
     public ResponseEntity<PropriedadeResponseDTO> createPropriedade(
-            @RequestBody @Valid PropriedadeRequestDTO dados,
-            @AuthenticationPrincipal Usuario usuarioLogado
+        @RequestBody @Valid PropriedadeRequestDTO dados,
+        @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
-        Propriedade propriedadeCriada =
-                propriedadeService.createPropriedade(dados, usuarioLogado);
+        Propriedade propriedadeCriada = propriedadeService.createPropriedade(dados, usuarioLogado);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new PropriedadeResponseDTO(propriedadeCriada));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar propriedade")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Propriedade atualizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
+        @ApiResponse(responseCode = "200", description = "Propriedade atualizada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
     })
     public ResponseEntity<PropriedadeResponseDTO> updatePropriedade(
-            @PathVariable Long id,
-            @RequestBody @Valid PropriedadeRequestDTO dados,
-            @AuthenticationPrincipal Usuario usuarioLogado
+        @PathVariable Long id,
+        @RequestBody @Valid PropriedadeRequestDTO dados,
+        @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
-        Propriedade propriedadeAtualizada =
-                propriedadeService.updatePropriedade(
-                        id,
-                        dados,
-                        usuarioLogado
-                );
-
-        return ResponseEntity.ok(
-                new PropriedadeResponseDTO(propriedadeAtualizada)
+        Propriedade propriedadeAtualizada = propriedadeService.updatePropriedade(
+                id,
+                dados,
+                usuarioLogado
         );
+
+        return ResponseEntity.ok(new PropriedadeResponseDTO(propriedadeAtualizada));
     }
 
     @GetMapping
     @Operation(summary = "Listar propriedades")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Propriedades listadas com sucesso")
+        @ApiResponse(responseCode = "200", description = "Propriedades listadas com sucesso")
     })
-    public ResponseEntity<List<PropriedadeResponseDTO>> getAllPropriedades(
-            @AuthenticationPrincipal Usuario usuarioLogado
-    ) {
+    public ResponseEntity<List<PropriedadeResponseDTO>> getAllPropriedades(@AuthenticationPrincipal Usuario usuarioLogado) {
 
-        List<Propriedade> propriedades =
-                propriedadeService.getAllPropriedades(usuarioLogado);
+        List<Propriedade> propriedades = propriedadeService.getAllPropriedades(usuarioLogado);
 
-        List<PropriedadeResponseDTO> dtos =
-                propriedades.stream()
+        List<PropriedadeResponseDTO> dtos = propriedades.stream()
                         .map(PropriedadeResponseDTO::new)
                         .collect(Collectors.toList());
 
@@ -99,12 +95,12 @@ public class PropriedadeController {
     @GetMapping("/{id}")
     @Operation(summary = "Buscar propriedade por ID")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Propriedade encontrada com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
+        @ApiResponse(responseCode = "200", description = "Propriedade encontrada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
     })
     public ResponseEntity<PropriedadeResponseDTO> getPropriedadeById(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Usuario usuarioLogado
+        @PathVariable Long id,
+        @AuthenticationPrincipal Usuario usuarioLogado
     ) {
 
         Propriedade propriedade =
@@ -121,9 +117,9 @@ public class PropriedadeController {
     @PostMapping("/{id}/veterinarios/{veterinarioId}")
     @Operation(summary = "Vincular veterinário à propriedade")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Veterinário vinculado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "O usuário informado não tem perfil de veterinário"),
-            @ApiResponse(responseCode = "404", description = "Propriedade ou usuário não encontrado")
+        @ApiResponse(responseCode = "200", description = "Veterinário vinculado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "O usuário informado não tem perfil de veterinário"),
+        @ApiResponse(responseCode = "404", description = "Propriedade ou usuário não encontrado")
     })
     public ResponseEntity<PropriedadeResponseDTO> vincularVeterinario(@PathVariable Long id, @PathVariable Long veterinarioId, @AuthenticationPrincipal Usuario usuarioLogado) {
         
@@ -135,8 +131,8 @@ public class PropriedadeController {
     @DeleteMapping("/{id}/veterinarios/{veterinarioId}")
     @Operation(summary = "Desvincular veterinário da propriedade")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Veterinário desvinculado com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Propriedade não encontrada ou veterinário não vinculado")
+        @ApiResponse(responseCode = "204", description = "Veterinário desvinculado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Propriedade não encontrada ou veterinário não vinculado")
     })
     public ResponseEntity<Void> desvincularVeterinario(@PathVariable Long id, @PathVariable Long veterinarioId, @AuthenticationPrincipal Usuario usuarioLogado) {
         
@@ -148,8 +144,8 @@ public class PropriedadeController {
     @GetMapping("/{id}/veterinarios")
     @Operation(summary = "Listar veterinários da propriedade")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Veterinários listados com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
+        @ApiResponse(responseCode = "200", description = "Veterinários listados com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
     })
     public ResponseEntity<List<UsuarioResponseDTO>> getVeterinarios(@PathVariable Long id,@AuthenticationPrincipal Usuario usuarioLogado) {
 
@@ -161,16 +157,30 @@ public class PropriedadeController {
         return ResponseEntity.ok(veterinarios);
     }
 
+    @GetMapping("/{id}/sugestoes-reagrupamento")
+    @Operation(summary = "Sugerir a mudança de lote dos animais cuja fase não combina mais com o lote atual")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Sugestões calculadas com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Sem acesso à propriedade"),
+        @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
+    })
+    public ResponseEntity<List<SugestaoReagrupamentoResponseDTO>> getSugestoesReagrupamento(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        List<SugestaoReagrupamentoResponseDTO> sugestoes = reagrupamentoService.getSugestoesReagrupamento(id, usuarioLogado)
+                .stream()
+                .map(SugestaoReagrupamentoResponseDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(sugestoes);
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir propriedade")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Propriedade excluída com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
+        @ApiResponse(responseCode = "204", description = "Propriedade excluída com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Propriedade não encontrada")
     })
-    public ResponseEntity<Void> deletePropriedade(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Usuario usuarioLogado
-    ) {
+    public ResponseEntity<Void> deletePropriedade(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
 
         propriedadeService.deletePropriedade(
                 id,

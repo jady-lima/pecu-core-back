@@ -3,6 +3,9 @@ package com.pecucore.system.core.model;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 @Entity
 @Table(name="animal")
@@ -25,10 +28,20 @@ public class Animal {
     @Enumerated(EnumType.STRING)
     private StatusAnimal status;
 
+    @Enumerated(EnumType.STRING)
+    private SituacaoGeralAnimal situacaoGeral;
+
+    private LocalDateTime dataUltimaAvaliacao;
+
     public Long getId(){return id;}
 
     public int getBrinco() {
         return brinco;
+    }
+
+    public Optional<Long> getIdadeMeses(LocalDate dataReferencia) {
+        return Optional.ofNullable(dataNascimento)
+            .map(nascimento -> ChronoUnit.MONTHS.between(nascimento, dataReferencia));
     }
 
     public String getSexo() {
@@ -65,6 +78,22 @@ public class Animal {
 
     public void setSexo(String sexo) {
         this.sexo = sexo;
+    }
+
+    public SituacaoGeralAnimal getSituacaoGeral() {
+        return situacaoGeral;
+    }
+
+    public void setSituacaoGeral(SituacaoGeralAnimal situacaoGeral) {
+        this.situacaoGeral = situacaoGeral;
+    }
+
+    public LocalDateTime getDataUltimaAvaliacao() {
+        return dataUltimaAvaliacao;
+    }
+
+    public void setDataUltimaAvaliacao(LocalDateTime dataUltimaAvaliacao) {
+        this.dataUltimaAvaliacao = dataUltimaAvaliacao;
     }
 }
 

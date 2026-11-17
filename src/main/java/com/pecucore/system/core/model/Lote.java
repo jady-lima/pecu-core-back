@@ -2,7 +2,6 @@ package com.pecucore.system.core.model;
 
 import java.time.LocalDate;
 
-import com.pecucore.system.bovinos.agrupamento.FinalidadeLote;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,30 +12,31 @@ public class Lote {
     private Long id;
 
     private int numero;
-    @Enumerated(EnumType.STRING)
-    private FinalidadeLote finalidade;
+    private String finalidade;
     private int capacidade;
     private LocalDate dataCriacao;
-    private Double gmdMeta;
+
+    @Column(name = "gmd_meta")
+    private Double metaDesempenho;
 
     @ManyToOne
     @JoinColumn(name = "propriedade_id")
     private Propriedade propriedade;
 
     public int getNumero(){return numero;}
-    public FinalidadeLote getFinalidade(){return finalidade;}
+    public String getFinalidade(){return finalidade;}
     public LocalDate getDataCriacao(){return dataCriacao;}
     public int getCapacidade(){return capacidade;}
     public Long getId(){return id;}
     public Propriedade getPropriedade() {return propriedade;}
-    public Double getGmdMeta(){return gmdMeta;}
+    public Double getMetaDesempenho(){return metaDesempenho;}
 
 
     public void setNumero(Integer numero) {
         this.numero = numero;
     }
 
-    public void setFinalidade(FinalidadeLote finalidade) {
+    public void setFinalidade(String finalidade) {
         this.finalidade = finalidade;
     }
 
@@ -51,7 +51,7 @@ public class Lote {
         this.propriedade = propriedade;
     }
 
-    public void setGmdMeta(Double gmdMeta) {
-        this.gmdMeta = gmdMeta;
+    public void setMetaDesempenho(Double metaDesempenho) {
+        this.metaDesempenho = metaDesempenho;
     }
 }

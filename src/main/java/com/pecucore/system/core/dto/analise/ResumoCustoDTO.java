@@ -1,28 +1,25 @@
 package com.pecucore.system.core.dto.analise;
 
-import com.pecucore.system.core.model.Custo;
 import com.pecucore.system.core.model.TipoCusto;
+import com.pecucore.system.core.service.custo.RateioCustoAnimal;
 
-import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 
-public record ResumoCustoDTO(double total, Map<TipoCusto, Double> totalPorTipo) {
+public record ResumoCustoDTO(
+        double total,
+        double custoDireto,
+        double custoRateadoLote,
+        double custoRateadoPropriedade,
+        Map<TipoCusto, Double> totalPorTipo
+) {
 
-    public ResumoCustoDTO(List<Custo> custos) {
+    public ResumoCustoDTO(RateioCustoAnimal rateio) {
         this(
-                custos.stream().mapToDouble(Custo::getValor).sum(),
-                totalizarPorTipo(custos)
+                rateio.total(),
+                rateio.custoDireto(),
+                rateio.custoRateadoLote(),
+                rateio.custoRateadoPropriedade(),
+                rateio.totalPorTipo()
         );
-    }
-
-    private static Map<TipoCusto, Double> totalizarPorTipo(List<Custo> custos) {
-        Map<TipoCusto, Double> totais = new EnumMap<>(TipoCusto.class);
-
-        for (Custo custo : custos) {
-            totais.merge(custo.getTipo(), custo.getValor(), Double::sum);
-        }
-        
-        return totais;
     }
 }

@@ -3,6 +3,8 @@ package com.pecucore.system.core.repository;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.StatusAnimal;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,9 +32,19 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
             StatusAnimal status
     );
 
+    long countByLotePropriedadeIdAndStatus(
+            Long propriedadeId,
+            StatusAnimal status
+    );
+
     List<Animal> findByLotePropriedadeUsuarioId(
             Long usuarioId
     );
 
     List<Animal> findByLotePropriedadeVeterinariosId(Long veterinarioId);
+
+    List<Animal> findByLotePropriedadeIdAndStatusOrderByBrinco(Long propriedadeId, StatusAnimal status);
+
+    @Query("select a.id from Animal a where a.status = :status and a.lote is not null")
+    List<Long> findIdsByStatusComLote(@Param("status") StatusAnimal status);
 }

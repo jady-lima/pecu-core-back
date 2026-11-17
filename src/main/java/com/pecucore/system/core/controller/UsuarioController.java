@@ -4,7 +4,7 @@ import com.pecucore.system.core.dto.usuario.UsuarioRequestDTO;
 import com.pecucore.system.core.dto.usuario.UsuarioResponseDTO;
 import com.pecucore.system.core.dto.usuario.UsuarioUpdateRequestDTO;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.UsuarioService;
+import com.pecucore.system.core.service.usuario.UsuarioService;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 

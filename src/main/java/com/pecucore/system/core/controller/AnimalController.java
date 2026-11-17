@@ -8,7 +8,7 @@ import com.pecucore.system.core.dto.animal.AnimalStatusRequestDTO;
 import com.pecucore.system.core.dto.animal.FichaAnimalResponseDTO;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.AnimalService;
+import com.pecucore.system.core.service.animal.AnimalService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

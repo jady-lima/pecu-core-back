@@ -15,6 +15,7 @@ public class Propriedade {
 
     private String nome;
     private String localizacao;
+    private Integer frequenciaPesagemDias;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id")
@@ -30,11 +31,13 @@ public class Propriedade {
 
     public String getNome(){return nome;}
     public String getLocalizacao(){return localizacao;}
+    public Integer getFrequenciaPesagemDias(){return frequenciaPesagemDias;}
     public Long getId(){return id;}
     public Usuario getUsuario(){return usuario;}
     public Set<Usuario> getVeterinarios(){return veterinarios;}
 
     public void setNome(String nome){this.nome = nome;}
     public void setLocalizacao(String localizacao){this.localizacao = localizacao;}
+    public void setFrequenciaPesagemDias(Integer frequenciaPesagemDias){this.frequenciaPesagemDias = frequenciaPesagemDias;}
     public void setUsuario(Usuario usuario){this.usuario = usuario;}
 }

@@ -17,7 +17,9 @@ public record PesagemRequestDTO(
 
         @NotNull(message = "A data da pesagem precisa ser informada!!")
         @PastOrPresent(message = "A data da pesagem não pode ser uma data futura")
-        LocalDate dataPesagem
+        LocalDate dataPesagem,
+
+        Double escoreCorporal
 
 ) {
 }

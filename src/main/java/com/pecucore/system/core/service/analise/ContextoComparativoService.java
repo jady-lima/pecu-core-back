@@ -4,22 +4,25 @@ import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseComparativaDTO;
 import com.pecucore.system.core.dto.analise.EstatisticasLoteDTO;
 import com.pecucore.system.core.dto.analise.ParLoteDTO;
+import com.pecucore.system.core.dto.analise.PesagemContextoDTO;
 import com.pecucore.system.core.dto.analise.PosicaoAnimalLoteDTO;
 import com.pecucore.system.core.exception.DadosInsuficientesException;
 import com.pecucore.system.core.model.Animal;
-import com.pecucore.system.core.model.Custo;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
-import com.pecucore.system.core.service.AnimalService;
-import com.pecucore.system.core.service.custo.CustoService;
+import com.pecucore.system.core.service.animal.AnimalConsultaService;
+import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.custo.RateioCustoService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;
-import com.pecucore.system.bovinos.desempenho.GmdService;
+import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
 import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,20 +34,33 @@ import java.util.stream.Collectors;
 @Service
 public class ContextoComparativoService {
 
-    private static final int MINIMO_PESAGENS = 2;
     private static final int MINIMO_ANIMAIS_COMPARACAO = 3;
+    private static final double COBERTURA_MINIMA_JANELA = 0.5;
 
-    private record AnimalComparado(Animal animal, Double gmd) {
+    private record AnimalComparado(Animal animal, Double indice) {
+    }
+
+    private record JanelaComparacao(LocalDate inicio, LocalDate fim) {
+        long dias() {
+            return ChronoUnit.DAYS.between(inicio, fim);
+        }
+
+        boolean contem(LocalDate data) {
+            return !data.isBefore(inicio) && !data.isAfter(fim);
+        }
     }
 
     @Autowired
     private AnimalService animalService;
 
     @Autowired
+    private AnimalConsultaService animalConsultaService;
+
+    @Autowired
     private ContextoAnaliseService contextoAnaliseService;
 
     @Autowired
-    private GmdService gmdService;
+    private IndicadorDesempenho indicadorDesempenho;
 
     @Autowired
     private CalculadoraEstatisticasLote calculadoraEstatisticasLote;
@@ -56,7 +72,7 @@ public class ContextoComparativoService {
     private PesagemService pesagemService;
 
     @Autowired
-    private CustoService custoService;
+    private RateioCustoService rateioCustoService;
 
     @Transactional(readOnly = true)
     public ContextoAnaliseComparativaDTO montarComparativo(Long animalId, Usuario usuarioLogado) {
@@ -71,33 +87,40 @@ public class ContextoComparativoService {
         ContextoAnaliseAnimalDTO contextoAnimal =
                 contextoAnaliseService.montarIndividual(animalId, usuarioLogado);
 
-        Double gmdAnimal = contextoAnimal.desempenho().gmdPeriodoKgDia();
+        Double indiceAnimal = contextoAnimal.desempenho().indicePeriodo();
 
-        if (gmdAnimal == null) {
+        if (indiceAnimal == null) {
             throw new DadosInsuficientesException(
-                    "Não foi possível calcular o GMD do animal. As pesagens precisam ter datas diferentes."
+                    "Não foi possível calcular o " + indicadorDesempenho.getNome()
+                            + " do animal. As pesagens precisam ter datas diferentes."
             );
         }
 
+        JanelaComparacao janela = montarJanela(contextoAnimal);
+
         Long loteId = animal.getLote().getId();
-        List<AnimalComparado> demaisAnimais = montarDemaisAnimais(animalId, loteId);
+        List<AnimalComparado> demaisAnimais = montarDemaisAnimais(animalId, loteId, janela);
 
         if (demaisAnimais.size() + 1 < MINIMO_ANIMAIS_COMPARACAO) {
             throw new DadosInsuficientesException(
                     "O lote precisa possuir pelo menos "
                             + MINIMO_ANIMAIS_COMPARACAO
                             + " animais ativos com "
-                            + MINIMO_PESAGENS
-                            + " pesagens ou mais para gerar a análise comparativa."
+                            + RequisitosAnalise.MINIMO_PESAGENS
+                            + " pesagens ou mais entre "
+                            + janela.inicio()
+                            + " e "
+                            + janela.fim()
+                            + " para gerar a análise comparativa."
             );
         }
 
         List<AnimalComparado> comparados = new ArrayList<>(demaisAnimais);
-        comparados.add(new AnimalComparado(animal, gmdAnimal));
+        comparados.add(new AnimalComparado(animal, indiceAnimal));
 
         EstatisticasLoteDTO estatisticas = montarEstatisticasLote(
                 loteId,
-                contextoAnimal.desempenho().gmdMetaKgDia(),
+                contextoAnimal.desempenho().indiceMeta(),
                 comparados,
                 usuarioLogado
         );
@@ -105,24 +128,34 @@ public class ContextoComparativoService {
         return new ContextoAnaliseComparativaDTO(
                 contextoAnimal.dataReferencia(),
                 contextoAnimal,
-                montarPosicao(animal, gmdAnimal, demaisAnimais, estatisticas),
+                montarPosicao(animal, indiceAnimal, demaisAnimais, estatisticas),
                 estatisticas,
                 demaisAnimais.stream()
                         .map(comparado -> new ParLoteDTO(
                                 comparado.animal(),
-                                comparado.gmd(),
+                                comparado.indice(),
                                 contextoAnimal.dataReferencia()
                         ))
                         .toList()
         );
     }
 
-    private List<AnimalComparado> montarDemaisAnimais(Long animalId, Long loteId) {
+    private JanelaComparacao montarJanela(ContextoAnaliseAnimalDTO contextoAnimal) {
+        List<PesagemContextoDTO> pesagens = contextoAnimal.pesagens();
+
+        return new JanelaComparacao(
+                pesagens.get(0).data(),
+                pesagens.get(pesagens.size() - 1).data()
+        );
+    }
+
+    private List<AnimalComparado> montarDemaisAnimais(Long animalId, Long loteId, JanelaComparacao janela) {
         Map<Long, List<Pesagem>> pesagensPorAnimal =
                 pesagemService
                         .getPesagensAnimaisAtivosByLoteId(loteId)
                         .stream()
                         .filter(pesagem -> !pesagem.getAnimal().getId().equals(animalId))
+                        .filter(pesagem -> janela.contem(pesagem.getData()))
                         .collect(Collectors.groupingBy(
                                 pesagem -> pesagem.getAnimal().getId(),
                                 LinkedHashMap::new,
@@ -131,27 +164,37 @@ public class ContextoComparativoService {
 
         return pesagensPorAnimal.values()
                 .stream()
-                .filter(pesagens -> pesagens.size() >= MINIMO_PESAGENS)
+                .filter(pesagens -> pesagens.size() >= RequisitosAnalise.MINIMO_PESAGENS)
+                .filter(pesagens -> cobreJanela(pesagens, janela))
                 .map(pesagens -> new AnimalComparado(
                         pesagens.get(0).getAnimal(),
-                        gmdService.calcularGmdHistorico(
+                        indicadorDesempenho.calcularHistorico(
                                 pesagens.get(0),
                                 pesagens.get(pesagens.size() - 1)
                         )
                 ))
-                .filter(comparado -> comparado.gmd() != null)
-                .sorted(Comparator.comparing(AnimalComparado::gmd).reversed())
+                .filter(comparado -> comparado.indice() != null)
+                .sorted(Comparator.comparing(AnimalComparado::indice).reversed())
                 .toList();
+    }
+
+    private boolean cobreJanela(List<Pesagem> pesagens, JanelaComparacao janela) {
+        long diasCobertos = ChronoUnit.DAYS.between(
+                pesagens.get(0).getData(),
+                pesagens.get(pesagens.size() - 1).getData()
+        );
+
+        return diasCobertos >= janela.dias() * COBERTURA_MINIMA_JANELA;
     }
 
     private EstatisticasLoteDTO montarEstatisticasLote(
             Long loteId,
-            Double gmdMeta,
+            Double indiceMeta,
             List<AnimalComparado> comparados,
             Usuario usuarioLogado) {
 
-        List<Double> gmds = comparados.stream()
-                .map(AnimalComparado::gmd)
+        List<Double> indices = comparados.stream()
+                .map(AnimalComparado::indice)
                 .toList();
 
         List<Double> pesos = comparados.stream()
@@ -159,13 +202,13 @@ public class ContextoComparativoService {
                 .toList();
 
         return new EstatisticasLoteDTO(
-                (int) animalService.countAnimaisAtivosByLoteId(loteId),
+                (int) animalConsultaService.countAnimaisAtivosByLoteId(loteId),
                 comparados.size(),
-                calculadoraEstatisticasLote.calcularMedia(gmds),
-                calculadoraEstatisticasLote.calcularMediana(gmds),
-                Collections.min(gmds),
-                Collections.max(gmds),
-                gmdMeta,
+                calculadoraEstatisticasLote.calcularMedia(indices),
+                calculadoraEstatisticasLote.calcularMediana(indices),
+                Collections.min(indices),
+                Collections.max(indices),
+                indiceMeta,
                 calculadoraEstatisticasLote.calcularMedia(pesos),
                 calcularCustoMedio(comparados, usuarioLogado)
         );
@@ -173,30 +216,30 @@ public class ContextoComparativoService {
 
     private PosicaoAnimalLoteDTO montarPosicao(
             Animal animal,
-            Double gmdAnimal,
+            Double indiceAnimal,
             List<AnimalComparado> demaisAnimais,
             EstatisticasLoteDTO estatisticas) {
 
-        List<Double> gmdsDemaisAnimais = demaisAnimais.stream()
-                .map(AnimalComparado::gmd)
+        List<Double> indicesDemaisAnimais = demaisAnimais.stream()
+                .map(AnimalComparado::indice)
                 .toList();
 
-        Double gmdMedio = estatisticas.gmdMedioKgDia();
+        Double indiceMedio = estatisticas.indiceMedio();
 
         return new PosicaoAnimalLoteDTO(
                 calculadoraEstatisticasLote.calcularPosicao(
-                        gmdAnimal,
-                        gmdsDemaisAnimais
+                        indiceAnimal,
+                        indicesDemaisAnimais
                 ),
                 estatisticas.animaisComparados(),
                 calculadoraEstatisticasLote.calcularPercentil(
-                        gmdAnimal,
-                        gmdsDemaisAnimais
+                        indiceAnimal,
+                        indicesDemaisAnimais
                 ),
-                gmdAnimal - gmdMedio,
+                indiceAnimal - indiceMedio,
                 calculadoraEstatisticasLote.calcularPercentualDaReferencia(
-                        gmdAnimal,
-                        gmdMedio
+                        indiceAnimal,
+                        indiceMedio
                 ),
                 animal.getPesoAtual() - estatisticas.pesoMedioKg()
         );
@@ -210,15 +253,10 @@ public class ContextoComparativoService {
             return null;
         }
 
-        List<Long> animalIds = comparados.stream()
-                .map(comparado -> comparado.animal().getId())
+        List<Animal> animais = comparados.stream()
+                .map(AnimalComparado::animal)
                 .toList();
 
-        double total = custoService.getCustosByAnimalIds(animalIds)
-                .stream()
-                .mapToDouble(Custo::getValor)
-                .sum();
-
-        return total / animalIds.size();
+        return rateioCustoService.calcularCustoMedio(animais);
     }
 }

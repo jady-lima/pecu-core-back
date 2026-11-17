@@ -1,7 +1,6 @@
 package com.pecucore.system.core.dto.animal;
 
 import com.pecucore.system.core.model.Animal;
-import com.pecucore.system.bovinos.agrupamento.FinalidadeLote;
 import com.pecucore.system.core.model.StatusAnimal;
 
 import java.time.LocalDate;
@@ -16,7 +15,7 @@ public record FichaAnimalResponseDTO(
 
         Long loteId,
         int numeroLote,
-        FinalidadeLote finalidadeLote,
+        String finalidadeLote,
         int capacidadeLote,
         LocalDate dataCriacaoLote,
 
@@ -27,22 +26,22 @@ public record FichaAnimalResponseDTO(
 
     public FichaAnimalResponseDTO(Animal animal) {
         this(
-                animal.getId(),
-                animal.getBrinco(),
-                animal.getDataNascimento(),
-                animal.getPesoAtual(),
-                animal.getSexo(),
-                animal.getStatus(),
+            animal.getId(),
+            animal.getBrinco(),
+            animal.getDataNascimento(),
+            animal.getPesoAtual(),
+            animal.getSexo(),
+            animal.getStatus(),
 
-                animal.getLote().getId(),
-                animal.getLote().getNumero(),
-                animal.getLote().getFinalidade(),
-                animal.getLote().getCapacidade(),
-                animal.getLote().getDataCriacao(),
+            animal.getLote().getId(),
+            animal.getLote().getNumero(),
+            animal.getLote().getFinalidade(),
+            animal.getLote().getCapacidade(),
+            animal.getLote().getDataCriacao(),
 
-                animal.getLote().getPropriedade().getId(),
-                animal.getLote().getPropriedade().getNome(),
-                animal.getLote().getPropriedade().getLocalizacao()
+            animal.getLote().getPropriedade().getId(),
+            animal.getLote().getPropriedade().getNome(),
+            animal.getLote().getPropriedade().getLocalizacao()
         );
     }
 }

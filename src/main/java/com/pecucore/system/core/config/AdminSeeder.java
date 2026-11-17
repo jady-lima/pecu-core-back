@@ -2,7 +2,7 @@ package com.pecucore.system.core.config;
 
 import com.pecucore.system.core.dto.usuario.UsuarioRequestDTO;
 import com.pecucore.system.core.model.Perfil;
-import com.pecucore.system.core.service.UsuarioService;
+import com.pecucore.system.core.service.usuario.UsuarioService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

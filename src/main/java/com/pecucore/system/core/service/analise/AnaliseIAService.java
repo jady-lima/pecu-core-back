@@ -2,6 +2,7 @@ package com.pecucore.system.core.service.analise;
 
 import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseComparativaDTO;
+import com.pecucore.system.core.dto.analise.ContextoAnaliseLoteDTO;
 import com.pecucore.system.core.dto.analise.RelatorioAnaliseDTO;
 import com.pecucore.system.core.exception.AcessoNegadoException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
@@ -9,10 +10,12 @@ import com.pecucore.system.core.ia.AnaliseAnimalIAFacade;
 import com.pecucore.system.core.ia.ResultadoAnaliseIA;
 import com.pecucore.system.core.model.AnaliseIA;
 import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.Lote;
 import com.pecucore.system.core.model.TipoAnalise;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.repository.AnaliseIARepository;
 import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.lote.LoteService;
 import com.pecucore.system.core.service.usuario.UsuarioService;
 import com.pecucore.system.core.service.politica.PoliticaVisibilidadeFinanceira;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,11 +47,17 @@ public class AnaliseIAService {
     @Autowired
     private ContextoComparativoService contextoComparativoService;
 
+    @Autowired
+    private ContextoAnaliseLoteService contextoAnaliseLoteService;
+
+    @Autowired
+    private LoteService loteService;
+
     public AnaliseIA gerarIndividual(Long animalId, Usuario usuarioLogado) {
         ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montarIndividual(animalId, usuarioLogado);
         ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarIndividual(contexto);
 
-        AnaliseIA analise = salvar(TipoAnalise.INDIVIDUAL, animalId, resultado, contexto.custos() != null, usuarioLogado);
+        AnaliseIA analise = salvarAnaliseAnimal(TipoAnalise.INDIVIDUAL, animalId, resultado, contexto.custos() != null, usuarioLogado);
         registrarAvaliacao(analise.getAnimal(), resultado);
 
         return analise;
@@ -60,7 +69,19 @@ public class AnaliseIAService {
 
         boolean incluiDadosFinanceiros = contexto.animalAnalisado().custos() != null || contexto.estatisticasLote().custoMedioPorAnimal() != null;
 
-        return salvar(TipoAnalise.COMPARATIVA, animalId, resultado, incluiDadosFinanceiros, usuarioLogado);
+        return salvarAnaliseAnimal(TipoAnalise.COMPARATIVA, animalId, resultado, incluiDadosFinanceiros, usuarioLogado);
+    }
+
+    public AnaliseIA gerarLote(Long loteId, Usuario usuarioLogado) {
+        Lote lote = loteService.getLoteById(loteId, usuarioLogado);
+
+        ContextoAnaliseLoteDTO contexto = contextoAnaliseLoteService.montarLote(lote, usuarioLogado);
+        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarLote(contexto);
+
+        AnaliseIA analise = novaAnalise(TipoAnalise.LOTE, resultado, contexto.custoMedioPorAnimal() != null, usuarioLogado);
+        analise.setLote(lote);
+
+        return analiseIARepository.save(analise);
     }
 
     public List<AnaliseIA> getHistoricoByAnimal(Long animalId, Usuario usuarioLogado) {
@@ -71,10 +92,18 @@ public class AnaliseIAService {
                                   .toList();
     }
 
+    public List<AnaliseIA> getHistoricoByLote(Long loteId, Usuario usuarioLogado) {
+        loteService.getLoteById(loteId, usuarioLogado);
+
+        return analiseIARepository.findByLoteIdOrderByDataGeracaoDesc(loteId).stream()
+                                  .filter(analise -> podeVisualizar(analise, usuarioLogado))
+                                  .toList();
+    }
+
     public AnaliseIA getAnaliseById(Long id, Usuario usuarioLogado) {
         AnaliseIA analise = analiseIARepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Análise não encontrada"));
 
-        animalService.getAnimalById(analise.getAnimal().getId(), usuarioLogado);
+        validarAcessoAoAlvo(analise, usuarioLogado);
 
         if (!podeVisualizar(analise, usuarioLogado)) {
             throw new AcessoNegadoException( "Você não tem acesso a esta análise");
@@ -87,19 +116,31 @@ public class AnaliseIAService {
         return analiseAnimalIAFacade.lerRelatorio(analise.getConteudo());
     }
 
-    private AnaliseIA salvar(TipoAnalise tipo, Long animalId, ResultadoAnaliseIA resultado, boolean incluiDadosFinanceiros, Usuario usuarioLogado) {
-        Animal animal = animalService.getAnimalById(animalId, usuarioLogado);
-        Usuario solicitante = usuarioService.getUsuarioById(usuarioLogado.getId());
+    private AnaliseIA salvarAnaliseAnimal(TipoAnalise tipo, Long animalId, ResultadoAnaliseIA resultado, boolean incluiDadosFinanceiros, Usuario usuarioLogado) {
+        AnaliseIA analise = novaAnalise(tipo, resultado, incluiDadosFinanceiros, usuarioLogado);
+        analise.setAnimal(animalService.getAnimalById(animalId, usuarioLogado));
 
+        return analiseIARepository.save(analise);
+    }
+
+    private AnaliseIA novaAnalise(TipoAnalise tipo, ResultadoAnaliseIA resultado, boolean incluiDadosFinanceiros, Usuario usuarioLogado) {
         AnaliseIA analise = new AnaliseIA();
         analise.setTipo(tipo);
-        analise.setAnimal(animal);
-        analise.setSolicitante(solicitante);
+        analise.setSolicitante(usuarioService.getUsuarioById(usuarioLogado.getId()));
         analise.setConteudo(resultado.conteudoBruto());
         analise.setModeloUtilizado(resultado.modelo());
         analise.setIncluiDadosFinanceiros(incluiDadosFinanceiros);
 
-        return analiseIARepository.save(analise);
+        return analise;
+    }
+
+    private void validarAcessoAoAlvo(AnaliseIA analise, Usuario usuarioLogado) {
+        if (analise.getLote() != null) {
+            loteService.getLoteById(analise.getLote().getId(), usuarioLogado);
+            return;
+        }
+
+        animalService.getAnimalById(analise.getAnimal().getId(), usuarioLogado);
     }
 
     private void registrarAvaliacao(Animal animal, ResultadoAnaliseIA resultado) {

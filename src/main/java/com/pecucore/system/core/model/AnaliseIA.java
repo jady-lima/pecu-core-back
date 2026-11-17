@@ -16,9 +16,13 @@ public class AnaliseIA {
     @Column(nullable = false, length = 20)
     private TipoAnalise tipo;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "animal_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "animal_id")
     private Animal animal;
+
+    @ManyToOne
+    @JoinColumn(name = "lote_id")
+    private Lote lote;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_solicitante_id", nullable = false)
@@ -59,6 +63,14 @@ public class AnaliseIA {
 
     public void setAnimal(Animal animal) {
         this.animal = animal;
+    }
+
+    public Lote getLote() {
+        return lote;
+    }
+
+    public void setLote(Lote lote) {
+        this.lote = lote;
     }
 
     public Usuario getSolicitante() {

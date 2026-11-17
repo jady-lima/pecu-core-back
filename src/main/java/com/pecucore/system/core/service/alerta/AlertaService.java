@@ -62,6 +62,12 @@ public class AlertaService {
                 .toList();
     }
 
+    public List<Alerta> getAlertasAtivosByLoteId(Long loteId, Usuario usuarioLogado) {
+        return alertaRepository.findByAnimalLoteIdAndAnimalStatusAndStatusIn(loteId, StatusAnimal.ATIVO, StatusAlerta.ativos()).stream()
+                .filter(alerta -> podeVer(alerta, usuarioLogado))
+                .toList();
+    }
+
     @Transactional
     public Alerta updateStatusAlerta(Long id, AlertaStatusRequestDTO dados, Usuario usuarioLogado) {
         Alerta alerta = alertaRepository.findById(id)

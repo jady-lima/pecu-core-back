@@ -2,12 +2,15 @@ package com.pecucore.system.core.ia;
 
 import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseComparativaDTO;
+import com.pecucore.system.core.dto.analise.ContextoAnaliseLoteDTO;
 import com.pecucore.system.core.dto.analise.RelatorioAnaliseDTO;
 
 public interface AnaliseAnimalIAFacade {
     ResultadoAnaliseIA analisarIndividual(ContextoAnaliseAnimalDTO contexto);
 
     ResultadoAnaliseIA analisarComparativo(ContextoAnaliseComparativaDTO contexto);
+
+    ResultadoAnaliseIA analisarLote(ContextoAnaliseLoteDTO contexto);
 
     RelatorioAnaliseDTO lerRelatorio(String conteudo);
 }

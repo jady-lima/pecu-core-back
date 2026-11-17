@@ -1,6 +1,7 @@
 package com.pecucore.system.core.dto.animal;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 
@@ -20,6 +21,7 @@ public record AnimalRequestDTO(
         Double pesoAtual,
 
         @NotNull(message = "O sexo precisa ser informado!!")
+        @Pattern(regexp = "(?i)\s*[MF]\s*", message = "O sexo deve ser M (macho) ou F (fêmea)")
         String sexo,
 
         @NotNull(message = "O lote precisa ser informado!!")

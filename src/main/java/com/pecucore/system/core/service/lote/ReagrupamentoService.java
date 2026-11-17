@@ -43,14 +43,25 @@ public class ReagrupamentoService {
             .toList();
     }
 
+    public long countAnimaisForaDaFase(List<Animal> animais) {
+        return animais.stream()
+            .map(this::getFaseSugeridaDiferente)
+            .filter(Optional::isPresent)
+            .count();
+    }
+
     private Optional<SugestaoReagrupamento> montarSugestao(Animal animal, List<Lote> lotes, Map<Long, Long> vagasPorLote) {
-        return politicaAgrupamento.sugerirFase(animal)
-            .filter(faseSugerida -> !faseSugerida.equals(animal.getLote().getFinalidade()))
+        return getFaseSugeridaDiferente(animal)
             .map(faseSugerida -> new SugestaoReagrupamento(
                     animal,
                     faseSugerida,
                     montarLotesDestino(faseSugerida, lotes, vagasPorLote)
             ));
+    }
+
+    private Optional<String> getFaseSugeridaDiferente(Animal animal) {
+        return politicaAgrupamento.sugerirFase(animal)
+            .filter(faseSugerida -> !faseSugerida.equals(animal.getLote().getFinalidade()));
     }
 
     private List<LoteDestino> montarLotesDestino(String fase, List<Lote> lotes, Map<Long, Long> vagasPorLote) {

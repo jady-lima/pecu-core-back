@@ -63,7 +63,7 @@ public class AnimalService {
 
         animal.setBrinco(dados.brinco());
         animal.setDataNascimento(dados.dataNascimento());
-        animal.setSexo(dados.sexo());
+        animal.setSexo(formatarSexo(dados.sexo()));
         animal.setLote(lote);
         animal.setStatus(StatusAnimal.ATIVO);
 
@@ -123,7 +123,7 @@ public class AnimalService {
         }
 
         animalExistente.setBrinco(dados.brinco());
-        animalExistente.setSexo(dados.sexo());
+        animalExistente.setSexo(formatarSexo(dados.sexo()));
         animalExistente.setLote(lote);
 
         Animal animalAtualizado =
@@ -327,5 +327,9 @@ public class AnimalService {
                 usuarioLogado,
                 "Você não tem acesso a este lote"
         );
+    }
+
+    private String formatarSexo(String sexo) {
+        return sexo.trim().toUpperCase();
     }
 }

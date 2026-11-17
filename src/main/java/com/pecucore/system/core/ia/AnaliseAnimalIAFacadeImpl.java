@@ -2,6 +2,7 @@ package com.pecucore.system.core.ia;
 
 import com.pecucore.system.core.dto.analise.ContextoAnaliseAnimalDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseComparativaDTO;
+import com.pecucore.system.core.dto.analise.ContextoAnaliseLoteDTO;
 import com.pecucore.system.core.dto.analise.RelatorioAnaliseDTO;
 import com.pecucore.system.core.ia.parser.RelatorioAnaliseParser;
 import com.pecucore.system.core.ia.prompt.PromptAnaliseBuilder;
@@ -31,6 +32,11 @@ public class AnaliseAnimalIAFacadeImpl implements AnaliseAnimalIAFacade {
     @Override
     public ResultadoAnaliseIA analisarComparativo(ContextoAnaliseComparativaDTO contexto) {
         return analisar(promptAnaliseBuilder.montarComparativo(contexto));
+    }
+
+    @Override
+    public ResultadoAnaliseIA analisarLote(ContextoAnaliseLoteDTO contexto) {
+        return analisar(promptAnaliseBuilder.montarLote(contexto));
     }
 
     @Override

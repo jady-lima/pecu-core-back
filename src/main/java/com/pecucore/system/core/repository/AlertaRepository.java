@@ -2,6 +2,7 @@ package com.pecucore.system.core.repository;
 
 import com.pecucore.system.core.model.Alerta;
 import com.pecucore.system.core.model.StatusAlerta;
+import com.pecucore.system.core.model.StatusAnimal;
 import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +29,5 @@ public interface AlertaRepository extends JpaRepository<Alerta, Long> {
     List<Alerta> findAllByOrderByDataCriacaoDesc();
     List<Alerta> findByAnimalLotePropriedadeUsuarioIdOrderByDataCriacaoDesc(Long usuarioId);
     List<Alerta> findByAnimalLotePropriedadeVeterinariosIdOrderByDataCriacaoDesc(Long veterinarioId);
+    List<Alerta> findByAnimalLoteIdAndAnimalStatusAndStatusIn(Long loteId, StatusAnimal statusAnimal, List<StatusAlerta> status);
 }

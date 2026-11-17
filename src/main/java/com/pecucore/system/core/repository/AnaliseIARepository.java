@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface AnaliseIARepository extends JpaRepository<AnaliseIA, Long> {
     List<AnaliseIA> findByAnimalIdOrderByDataGeracaoDesc(Long animalId);
+
+    List<AnaliseIA> findByLoteIdOrderByDataGeracaoDesc(Long loteId);
 }

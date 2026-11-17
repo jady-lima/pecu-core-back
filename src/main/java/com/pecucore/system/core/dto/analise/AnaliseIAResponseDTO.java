@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 public record AnaliseIAResponseDTO(
         Long id,
         Long animalId,
-        int brinco,
+        Integer brinco,
+        Long loteId,
+        Integer numeroLote,
         TipoAnalise tipo,
         LocalDateTime dataGeracao,
         String modelo,
@@ -18,8 +20,10 @@ public record AnaliseIAResponseDTO(
     public AnaliseIAResponseDTO(AnaliseIA analise, RelatorioAnaliseDTO relatorio) {
         this(
                 analise.getId(),
-                analise.getAnimal().getId(),
-                analise.getAnimal().getBrinco(),
+                analise.getAnimal() != null ? analise.getAnimal().getId() : null,
+                analise.getAnimal() != null ? analise.getAnimal().getBrinco() : null,
+                analise.getLote() != null ? analise.getLote().getId() : null,
+                analise.getLote() != null ? analise.getLote().getNumero() : null,
                 analise.getTipo(),
                 analise.getDataGeracao(),
                 analise.getModeloUtilizado(),

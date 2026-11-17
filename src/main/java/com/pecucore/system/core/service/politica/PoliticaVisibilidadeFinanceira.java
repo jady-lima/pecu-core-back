@@ -1,7 +1,7 @@
 package com.pecucore.system.core.service.politica;
 
 import com.pecucore.system.core.model.Perfil;
-import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import com.pecucore.system.core.model.Usuario;
 import org.springframework.stereotype.Service;
 

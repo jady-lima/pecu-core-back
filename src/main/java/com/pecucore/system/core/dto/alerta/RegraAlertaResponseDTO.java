@@ -1,11 +1,10 @@
 package com.pecucore.system.core.dto.alerta;
 
 import com.pecucore.system.core.model.RegraAlerta;
-import com.pecucore.system.core.model.TipoAlerta;
 
 public record RegraAlertaResponseDTO(
         Long id,
-        TipoAlerta tipo,
+        String tipo,
         double parametro,
         boolean ativa,
         Long propriedadeId
@@ -14,7 +13,7 @@ public record RegraAlertaResponseDTO(
     public RegraAlertaResponseDTO(RegraAlerta regra) {
         this(
                 regra.getId(),
-                regra.getTipo(),
+                regra.getTipo().getCodigo(),
                 regra.getParametro(),
                 regra.isAtiva(),
                 regra.getPropriedade() != null ? regra.getPropriedade().getId() : null

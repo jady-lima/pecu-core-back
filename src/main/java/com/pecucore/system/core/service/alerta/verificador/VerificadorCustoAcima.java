@@ -1,10 +1,11 @@
 package com.pecucore.system.core.service.alerta.verificador;
 
+import com.pecucore.system.core.model.TipoAlertaNucleo;
 import com.pecucore.system.core.extensao.alerta.VerificadorAlerta;
 import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import com.pecucore.system.core.extensao.alerta.OcorrenciaAlerta;
 import com.pecucore.system.core.model.Animal;
-import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
 import com.pecucore.system.core.service.custo.CustoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ public class VerificadorCustoAcima implements VerificadorAlerta {
 
     @Override
     public TipoAlerta getTipo() {
-        return TipoAlerta.CUSTO_ACIMA;
+        return TipoAlertaNucleo.CUSTO_ACIMA;
     }
 
     @Override

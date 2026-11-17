@@ -1,5 +1,7 @@
 package com.pecucore.system.core.model;
 
+import com.pecucore.system.core.extensao.alerta.TipoAlerta;
+import com.pecucore.system.core.model.conversor.TipoAlertaConverter;
 import com.pecucore.system.core.exception.RegraNegocioException;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -15,7 +17,7 @@ public class Alerta {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = TipoAlertaConverter.class)
     @Column(nullable = false)
     private TipoAlerta tipo;
 

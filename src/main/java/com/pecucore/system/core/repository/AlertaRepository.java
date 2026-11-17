@@ -2,7 +2,7 @@ package com.pecucore.system.core.repository;
 
 import com.pecucore.system.core.model.Alerta;
 import com.pecucore.system.core.model.StatusAlerta;
-import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

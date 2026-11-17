@@ -8,7 +8,8 @@ import com.pecucore.system.core.exception.RegraNegocioException;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Propriedade;
 import com.pecucore.system.core.model.RegraAlerta;
-import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.extensao.alerta.CatalogoTiposAlerta;
+import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.repository.RegraAlertaRepository;
 import com.pecucore.system.core.service.propriedade.AcessoPropriedadeService;
@@ -36,18 +37,22 @@ public class RegraAlertaService {
     @Autowired
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
+    @Autowired
+    private CatalogoTiposAlerta catalogoTiposAlerta;
+
     @Transactional
     public RegraAlerta createRegraAlerta(RegraAlertaRequestDTO dados, Usuario usuarioLogado) {
         Propriedade propriedade = propriedadeService.getPropriedadeById(dados.propriedadeId(), usuarioLogado);
+        TipoAlerta tipo = getTipoAlerta(dados.tipo());
 
-        validarPermissaoFinanceira(dados.tipo(), usuarioLogado);
+        validarPermissaoFinanceira(tipo, usuarioLogado);
 
-        if (regraAlertaRepository.existsByPropriedadeIdAndTipo(propriedade.getId(), dados.tipo())) {
-            throw new RegraNegocioException("Já existe uma regra de " + dados.tipo()
+        if (regraAlertaRepository.existsByPropriedadeIdAndTipo(propriedade.getId(), tipo)) {
+            throw new RegraNegocioException("Já existe uma regra de " + tipo.getCodigo()
                     + " para esta propriedade. Atualize a regra existente.");
         }
 
-        return regraAlertaRepository.save(RegraAlerta.criar(propriedade, dados.tipo(), dados.parametro()));
+        return regraAlertaRepository.save(RegraAlerta.criar(propriedade, tipo, dados.parametro()));
     }
 
     @Transactional
@@ -99,6 +104,13 @@ public class RegraAlertaService {
         }
 
         return regraAlertaRepository.findByPropriedadeIdAndTipo(animal.getLote().getPropriedade().getId(), tipo);
+    }
+
+    private TipoAlerta getTipoAlerta(String codigo) {
+        return catalogoTiposAlerta.getTipoAlertaByCodigo(codigo)
+                .orElseThrow(() -> new RegraNegocioException(
+                        "Tipo de alerta inválido: " + codigo + ". Consulte os tipos aceitos em GET /alertas/tipos."
+                ));
     }
 
     private void validarPermissaoFinanceira(TipoAlerta tipo, Usuario usuarioLogado) {

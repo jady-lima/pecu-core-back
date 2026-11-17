@@ -1,10 +1,11 @@
 package com.pecucore.system.core.service.alerta.verificador;
 
+import com.pecucore.system.core.model.TipoAlertaNucleo;
 import com.pecucore.system.core.extensao.alerta.VerificadorAlerta;
 import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import com.pecucore.system.core.extensao.alerta.OcorrenciaAlerta;
 import com.pecucore.system.core.model.Animal;
-import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import com.pecucore.system.core.service.vacinacao.VacinacaoService;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ public class VerificadorVacinaProximaVencimento implements VerificadorAlerta {
 
     @Override
     public TipoAlerta getTipo() {
-        return TipoAlerta.VACINA_PROX_VENC;
+        return TipoAlertaNucleo.VACINA_PROX_VENC;
     }
 
     @Override

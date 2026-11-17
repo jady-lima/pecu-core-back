@@ -1,11 +1,12 @@
 package com.pecucore.system.core.service.alerta.verificador;
 
+import com.pecucore.system.core.model.TipoAlertaNucleo;
 import com.pecucore.system.core.extensao.alerta.VerificadorAlerta;
 import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import com.pecucore.system.core.extensao.alerta.OcorrenciaAlerta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
-import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,7 +23,7 @@ public class VerificadorQuedaPeso implements VerificadorAlerta {
 
     @Override
     public TipoAlerta getTipo() {
-        return TipoAlerta.QUEDA_PESO;
+        return TipoAlertaNucleo.QUEDA_PESO;
     }
 
     @Override

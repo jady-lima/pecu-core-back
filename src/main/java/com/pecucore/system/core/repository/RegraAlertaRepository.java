@@ -1,7 +1,7 @@
 package com.pecucore.system.core.repository;
 
 import com.pecucore.system.core.model.RegraAlerta;
-import com.pecucore.system.core.model.TipoAlerta;
+import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

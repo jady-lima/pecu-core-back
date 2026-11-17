@@ -2,6 +2,7 @@ package com.pecucore.system.core.controller;
 
 import com.pecucore.system.core.dto.alerta.AlertaResponseDTO;
 import com.pecucore.system.core.dto.alerta.AlertaStatusRequestDTO;
+import com.pecucore.system.core.dto.alerta.TipoAlertaResponseDTO;
 import com.pecucore.system.core.model.StatusAlerta;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.service.alerta.AlertaService;
@@ -44,6 +45,21 @@ public class AlertaController {
                 .toList();
 
         return ResponseEntity.ok(alertas);
+    }
+
+    @GetMapping("/tipos")
+    @Operation(summary = "Listar os tipos de alerta da aplicação ativa")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Tipos listados com sucesso")
+    })
+    public ResponseEntity<List<TipoAlertaResponseDTO>> getAllTiposAlerta(
+        @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+        List<TipoAlertaResponseDTO> tipos = alertaService.getAllTiposAlerta(usuarioLogado).stream()
+                .map(TipoAlertaResponseDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(tipos);
     }
 
     @PutMapping("/{id}/status")

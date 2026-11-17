@@ -1,5 +1,7 @@
 package com.pecucore.system.core.service.alerta;
 
+import com.pecucore.system.core.extensao.alerta.CatalogoTiposAlerta;
+import com.pecucore.system.core.extensao.alerta.TipoAlerta;
 import com.pecucore.system.core.dto.alerta.AlertaStatusRequestDTO;
 import com.pecucore.system.core.exception.AcessoNegadoException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
@@ -27,7 +29,16 @@ public class AlertaService {
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
 
     @Autowired
+    private CatalogoTiposAlerta catalogoTiposAlerta;
+
+    @Autowired
     private AnimalService animalService;
+
+    public List<TipoAlerta> getAllTiposAlerta(Usuario usuarioLogado) {
+        return catalogoTiposAlerta.getAllTiposAlerta().stream()
+                .filter(tipo -> politicaVisibilidadeFinanceira.podeVerAlerta(tipo, usuarioLogado))
+                .toList();
+    }
 
     public List<Alerta> getAllAlertas(Usuario usuarioLogado, Long animalId, StatusAlerta status) {
         List<Alerta> alertas = animalId != null

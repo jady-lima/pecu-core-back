@@ -4,13 +4,12 @@ import com.pecucore.system.core.model.Alerta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.SeveridadeAlerta;
 import com.pecucore.system.core.model.StatusAlerta;
-import com.pecucore.system.core.model.TipoAlerta;
 
 import java.time.LocalDateTime;
 
 public record AlertaResponseDTO(
     Long id,
-    TipoAlerta tipo,
+    String tipo,
     SeveridadeAlerta severidade,
     String mensagem,
     StatusAlerta status,
@@ -26,7 +25,7 @@ public record AlertaResponseDTO(
     public AlertaResponseDTO(Alerta alerta) {
         this(
             alerta.getId(),
-            alerta.getTipo(),
+            alerta.getTipo().getCodigo(),
             alerta.getSeveridade(),
             alerta.getMensagem(),
             alerta.getStatus(),

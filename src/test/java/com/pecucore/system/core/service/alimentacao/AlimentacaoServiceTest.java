@@ -1,5 +1,6 @@
 package com.pecucore.system.core.service.alimentacao;
 
+import com.pecucore.system.core.service.animal.AnimalConsultaService;
 import com.pecucore.system.core.service.animal.AnimalService;
 import com.pecucore.system.core.service.lote.LoteService;
 import com.pecucore.system.core.dto.alimentacao.AlimentacaoLoteRequestDTO;
@@ -41,6 +42,9 @@ class AlimentacaoServiceTest {
 
     @Mock
     private AnimalService animalService;
+
+    @Mock
+    private AnimalConsultaService animalConsultaService;
 
     @Mock
     private LoteService loteService;
@@ -97,7 +101,7 @@ class AlimentacaoServiceTest {
     @Test
     void alimentacaoPorLoteGeraUmRegistroEUmCustoPorAnimal() {
         Animal outroAnimal = mock(Animal.class);
-        when(animalService.getAnimaisAtivosByLoteId(LOTE_ID))
+        when(animalConsultaService.getAnimaisAtivosByLoteId(LOTE_ID))
                 .thenReturn(List.of(animal, outroAnimal));
 
         List<Alimentacao> registros = alimentacaoService.createAlimentacaoEmLote(
@@ -114,7 +118,7 @@ class AlimentacaoServiceTest {
 
     @Test
     void naoDeveRegistrarAlimentacaoEmLoteSemAnimaisAtivos() {
-        when(animalService.getAnimaisAtivosByLoteId(LOTE_ID)).thenReturn(List.of());
+        when(animalConsultaService.getAnimaisAtivosByLoteId(LOTE_ID)).thenReturn(List.of());
 
         assertThrows(ConflitoNegocioException.class,
                 () -> alimentacaoService.createAlimentacaoEmLote(

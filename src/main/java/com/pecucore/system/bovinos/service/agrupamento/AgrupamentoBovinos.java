@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -41,13 +40,12 @@ public class AgrupamentoBovinos implements PoliticaAgrupamento {
 
     @Override
     public Optional<String> sugerirFase(Animal animal) {
-        if (animal.getDataNascimento() == null || !estaEmFasePorIdade(animal)){
+        if (!estaEmFasePorIdade(animal)) {
             return Optional.empty();
         }
 
-        long idadeMeses = ChronoUnit.MONTHS.between(animal.getDataNascimento(), LocalDate.now());
-
-        return Optional.of(definirFasePorIdade(idadeMeses).name());
+        return animal.getIdadeMeses(LocalDate.now())
+                .map(idadeMeses -> definirFasePorIdade(idadeMeses).name());
     }
 
     private boolean estaEmFasePorIdade(Animal animal) {

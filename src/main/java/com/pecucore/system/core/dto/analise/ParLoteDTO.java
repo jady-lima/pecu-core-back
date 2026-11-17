@@ -3,7 +3,6 @@ package com.pecucore.system.core.dto.analise;
 import com.pecucore.system.core.model.Animal;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
 public record ParLoteDTO(
         int brinco,
@@ -17,7 +16,7 @@ public record ParLoteDTO(
         this(
             animal.getBrinco(),
             animal.getSexo(),
-            animal.getDataNascimento() != null ? ChronoUnit.MONTHS.between(animal.getDataNascimento(), dataReferencia) : null,
+            animal.getIdadeMeses(dataReferencia).orElse(null),
             animal.getPesoAtual(),
             indicePeriodo
         );

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 @Entity
 @Table(name="animal")
@@ -35,6 +37,11 @@ public class Animal {
 
     public int getBrinco() {
         return brinco;
+    }
+
+    public Optional<Long> getIdadeMeses(LocalDate dataReferencia) {
+        return Optional.ofNullable(dataNascimento)
+            .map(nascimento -> ChronoUnit.MONTHS.between(nascimento, dataReferencia));
     }
 
     public String getSexo() {

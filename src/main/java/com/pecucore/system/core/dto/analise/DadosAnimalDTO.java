@@ -4,7 +4,6 @@ import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.StatusAnimal;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
 public record DadosAnimalDTO(
         String sexo,
@@ -20,7 +19,7 @@ public record DadosAnimalDTO(
         this(
             animal.getSexo(),
             animal.getDataNascimento(),
-            animal.getDataNascimento() != null ? ChronoUnit.MONTHS.between(animal.getDataNascimento(), dataReferencia) : null,
+            animal.getIdadeMeses(dataReferencia).orElse(null),
             animal.getPesoAtual(),
             animal.getStatus(),
             animal.getLote() != null ? animal.getLote().getFinalidade() : null,

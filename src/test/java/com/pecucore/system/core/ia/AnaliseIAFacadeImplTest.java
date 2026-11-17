@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AnaliseAnimalIAFacadeImplTest {
+class AnaliseIAFacadeImplTest {
 
     private static final String RESPOSTA_JSON = "{\"situacaoGeral\":\"ESTAVEL\"}";
     private static final String MODELO = "gemini-simulado";
@@ -39,7 +39,7 @@ class AnaliseAnimalIAFacadeImplTest {
     private RelatorioAnaliseParser relatorioAnaliseParser;
 
     @InjectMocks
-    private AnaliseAnimalIAFacadeImpl facade;
+    private AnaliseIAFacadeImpl facade;
 
     private final PromptIA prompt = new PromptIA("instrucoes", "dados", "{}");
 

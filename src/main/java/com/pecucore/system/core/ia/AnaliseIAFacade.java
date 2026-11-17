@@ -5,7 +5,7 @@ import com.pecucore.system.core.dto.analise.ContextoAnaliseComparativaDTO;
 import com.pecucore.system.core.dto.analise.ContextoAnaliseLoteDTO;
 import com.pecucore.system.core.dto.analise.RelatorioAnaliseDTO;
 
-public interface AnaliseAnimalIAFacade {
+public interface AnaliseIAFacade {
     ResultadoAnaliseIA analisarIndividual(ContextoAnaliseAnimalDTO contexto);
 
     ResultadoAnaliseIA analisarComparativo(ContextoAnaliseComparativaDTO contexto);

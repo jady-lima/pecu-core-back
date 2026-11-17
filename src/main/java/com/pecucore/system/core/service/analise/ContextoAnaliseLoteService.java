@@ -11,7 +11,7 @@ import com.pecucore.system.core.model.Lote;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.service.alerta.AlertaService;
-import com.pecucore.system.core.service.animal.AnimalService;
+import com.pecucore.system.core.service.animal.AnimalConsultaService;
 import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;
 import com.pecucore.system.core.service.custo.RateioCustoService;
 import com.pecucore.system.core.service.lote.LoteService;
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -37,14 +36,13 @@ import java.util.stream.Collectors;
 @Service
 public class ContextoAnaliseLoteService {
 
-    private static final int MINIMO_PESAGENS = 2;
     private static final int MINIMO_ANIMAIS_AVALIADOS = 2;
 
     private record DesempenhoAnimal(Double indice, Double escoreCorporal) {
     }
 
     @Autowired
-    private AnimalService animalService;
+    private AnimalConsultaService animalConsultaService;
 
     @Autowired
     private PesagemService pesagemService;
@@ -76,13 +74,13 @@ public class ContextoAnaliseLoteService {
     @Transactional(readOnly = true)
     public ContextoAnaliseLoteDTO montarLote(Lote lote, Usuario usuarioLogado) {
         LocalDate hoje = LocalDate.now();
-        List<Animal> animais = animalService.getAnimaisAtivosByLoteId(lote.getId());
+        List<Animal> animais = animalConsultaService.getAnimaisAtivosByLoteId(lote.getId());
         List<DesempenhoAnimal> desempenhos = montarDesempenhosAnimais(lote.getId());
 
         if (desempenhos.size() < MINIMO_ANIMAIS_AVALIADOS) {
             throw new DadosInsuficientesException(
                     "O lote precisa possuir pelo menos " + MINIMO_ANIMAIS_AVALIADOS
-                            + " animais ativos com " + MINIMO_PESAGENS
+                            + " animais ativos com " + RequisitosAnalise.MINIMO_PESAGENS
                             + " pesagens ou mais para gerar a análise do lote."
             );
         }
@@ -102,7 +100,7 @@ public class ContextoAnaliseLoteService {
                 .values();
 
         return pesagensPorAnimal.stream()
-                .filter(pesagens -> pesagens.size() >= MINIMO_PESAGENS)
+                .filter(pesagens -> pesagens.size() >= RequisitosAnalise.MINIMO_PESAGENS)
                 .map(pesagens -> new DesempenhoAnimal(
                         indicadorDesempenho.calcularHistorico(pesagens.get(0), pesagens.get(pesagens.size() - 1)),
                         getUltimoEscoreCorporal(pesagens).orElse(null)
@@ -120,9 +118,9 @@ public class ContextoAnaliseLoteService {
 
     private DadosLoteDTO montarDadosLote(Lote lote, List<Animal> animais, LocalDate hoje) {
         List<Double> idadesMeses = animais.stream()
-                .map(Animal::getDataNascimento)
-                .filter(Objects::nonNull)
-                .map(dataNascimento -> (double) ChronoUnit.MONTHS.between(dataNascimento, hoje))
+                .map(animal -> animal.getIdadeMeses(hoje))
+                .flatMap(Optional::stream)
+                .map(Long::doubleValue)
                 .toList();
 
         Map<String, Long> animaisPorSexo = animais.stream()

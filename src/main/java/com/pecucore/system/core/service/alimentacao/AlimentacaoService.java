@@ -1,5 +1,6 @@
 package com.pecucore.system.core.service.alimentacao;
 
+import com.pecucore.system.core.service.animal.AnimalConsultaService;
 import com.pecucore.system.core.service.animal.AnimalService;
 import com.pecucore.system.core.service.lote.LoteService;
 import com.pecucore.system.core.exception.ConflitoNegocioException;
@@ -33,6 +34,9 @@ public class AlimentacaoService {
     private AnimalService animalService;
 
     @Autowired
+    private AnimalConsultaService animalConsultaService;
+
+    @Autowired
     private LoteService loteService;
 
     @Autowired
@@ -55,7 +59,7 @@ public class AlimentacaoService {
     public List<Alimentacao> createAlimentacaoEmLote(AlimentacaoLoteRequestDTO dados, Usuario usuarioLogado) {
         loteService.getLoteById(dados.loteId(), usuarioLogado);
 
-        List<Animal> animais = animalService.getAnimaisAtivosByLoteId(dados.loteId());
+        List<Animal> animais = animalConsultaService.getAnimaisAtivosByLoteId(dados.loteId());
 
         if (animais.isEmpty()) {
             throw new ConflitoNegocioException(

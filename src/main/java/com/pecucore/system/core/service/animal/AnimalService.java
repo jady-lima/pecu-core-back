@@ -269,13 +269,6 @@ public class AnimalService {
         return validarAtivo(getAnimalByBrinco(brinco, usuarioLogado));
     }
 
-    public List<Animal> getAnimaisAtivosByLoteId(Long loteId) {
-        return animalRepository.findByLoteIdAndStatus(
-                loteId,
-                StatusAnimal.ATIVO
-        );
-    }
-
     public void validarDataRegistro(
             Animal animal,
             LocalDate data

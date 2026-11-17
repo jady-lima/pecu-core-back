@@ -6,7 +6,7 @@ import com.pecucore.system.core.dto.analise.ContextoAnaliseLoteDTO;
 import com.pecucore.system.core.dto.analise.RelatorioAnaliseDTO;
 import com.pecucore.system.core.exception.AcessoNegadoException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
-import com.pecucore.system.core.ia.AnaliseAnimalIAFacade;
+import com.pecucore.system.core.ia.AnaliseIAFacade;
 import com.pecucore.system.core.ia.ResultadoAnaliseIA;
 import com.pecucore.system.core.model.AnaliseIA;
 import com.pecucore.system.core.model.Animal;
@@ -39,7 +39,7 @@ public class AnaliseIAService {
     private ContextoAnaliseService contextoAnaliseService;
 
     @Autowired
-    private AnaliseAnimalIAFacade analiseAnimalIAFacade;
+    private AnaliseIAFacade analiseIAFacade;
 
     @Autowired
     private PoliticaVisibilidadeFinanceira politicaVisibilidadeFinanceira;
@@ -55,7 +55,7 @@ public class AnaliseIAService {
 
     public AnaliseIA gerarIndividual(Long animalId, Usuario usuarioLogado) {
         ContextoAnaliseAnimalDTO contexto = contextoAnaliseService.montarIndividual(animalId, usuarioLogado);
-        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarIndividual(contexto);
+        ResultadoAnaliseIA resultado = analiseIAFacade.analisarIndividual(contexto);
 
         AnaliseIA analise = salvarAnaliseAnimal(TipoAnalise.INDIVIDUAL, animalId, resultado, contexto.custos() != null, usuarioLogado);
         registrarAvaliacao(analise.getAnimal(), resultado);
@@ -65,7 +65,7 @@ public class AnaliseIAService {
 
     public AnaliseIA gerarComparativa(Long animalId, Usuario usuarioLogado) {
         ContextoAnaliseComparativaDTO contexto = contextoComparativoService.montarComparativo(animalId, usuarioLogado);
-        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarComparativo(contexto);
+        ResultadoAnaliseIA resultado = analiseIAFacade.analisarComparativo(contexto);
 
         boolean incluiDadosFinanceiros = contexto.animalAnalisado().custos() != null || contexto.estatisticasLote().custoMedioPorAnimal() != null;
 
@@ -76,7 +76,7 @@ public class AnaliseIAService {
         Lote lote = loteService.getLoteById(loteId, usuarioLogado);
 
         ContextoAnaliseLoteDTO contexto = contextoAnaliseLoteService.montarLote(lote, usuarioLogado);
-        ResultadoAnaliseIA resultado = analiseAnimalIAFacade.analisarLote(contexto);
+        ResultadoAnaliseIA resultado = analiseIAFacade.analisarLote(contexto);
 
         AnaliseIA analise = novaAnalise(TipoAnalise.LOTE, resultado, contexto.custoMedioPorAnimal() != null, usuarioLogado);
         analise.setLote(lote);
@@ -113,7 +113,7 @@ public class AnaliseIAService {
     }
 
     public RelatorioAnaliseDTO getRelatorio(AnaliseIA analise) {
-        return analiseAnimalIAFacade.lerRelatorio(analise.getConteudo());
+        return analiseIAFacade.lerRelatorio(analise.getConteudo());
     }
 
     private AnaliseIA salvarAnaliseAnimal(TipoAnalise tipo, Long animalId, ResultadoAnaliseIA resultado, boolean incluiDadosFinanceiros, Usuario usuarioLogado) {

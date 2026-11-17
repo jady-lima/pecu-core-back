@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 @Service
 public class ContextoComparativoService {
 
-    private static final int MINIMO_PESAGENS = 2;
     private static final int MINIMO_ANIMAIS_COMPARACAO = 3;
     private static final double COBERTURA_MINIMA_JANELA = 0.5;
 
@@ -107,7 +106,7 @@ public class ContextoComparativoService {
                     "O lote precisa possuir pelo menos "
                             + MINIMO_ANIMAIS_COMPARACAO
                             + " animais ativos com "
-                            + MINIMO_PESAGENS
+                            + RequisitosAnalise.MINIMO_PESAGENS
                             + " pesagens ou mais entre "
                             + janela.inicio()
                             + " e "
@@ -165,7 +164,7 @@ public class ContextoComparativoService {
 
         return pesagensPorAnimal.values()
                 .stream()
-                .filter(pesagens -> pesagens.size() >= MINIMO_PESAGENS)
+                .filter(pesagens -> pesagens.size() >= RequisitosAnalise.MINIMO_PESAGENS)
                 .filter(pesagens -> cobreJanela(pesagens, janela))
                 .map(pesagens -> new AnimalComparado(
                         pesagens.get(0).getAnimal(),

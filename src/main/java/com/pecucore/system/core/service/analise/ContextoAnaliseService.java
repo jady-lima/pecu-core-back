@@ -38,7 +38,6 @@ import java.util.List;
 @Service
 public class ContextoAnaliseService {
 
-    private static final int MINIMO_PESAGENS = 2;
 
     @Autowired
     private AnimalService animalService;
@@ -90,9 +89,9 @@ public class ContextoAnaliseService {
 
         List<Pesagem> pesagens = pesagemService.getHistoricoByAnimalId(animalId);
 
-        if (pesagens.size() < MINIMO_PESAGENS) {
+        if (pesagens.size() < RequisitosAnalise.MINIMO_PESAGENS) {
             throw new DadosInsuficientesException(
-                "O animal precisa possuir pelo menos " + MINIMO_PESAGENS + " pesagens para gerar a análise."
+                "O animal precisa possuir pelo menos " + RequisitosAnalise.MINIMO_PESAGENS + " pesagens para gerar a análise."
             );
         }
 

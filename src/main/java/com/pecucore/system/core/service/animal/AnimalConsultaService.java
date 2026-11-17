@@ -26,6 +26,10 @@ public class AnimalConsultaService {
         return animalRepository.findByLotePropriedadeIdAndStatusOrderByBrinco(propriedadeId, StatusAnimal.ATIVO);
     }
 
+    public List<Animal> getAnimaisAtivosByLoteId(Long loteId) {
+        return animalRepository.findByLoteIdAndStatus(loteId, StatusAnimal.ATIVO);
+    }
+
     public boolean existsAnimalAtivoByLoteId(Long loteId) {
         return animalRepository.existsByLoteIdAndStatus(loteId, StatusAnimal.ATIVO);
     }

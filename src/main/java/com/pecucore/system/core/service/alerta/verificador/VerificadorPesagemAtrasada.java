@@ -38,16 +38,22 @@ public class VerificadorPesagemAtrasada implements VerificadorAlerta {
 
     @Override
     public Optional<OcorrenciaAlerta> avaliar(Animal animal) {
-        Optional<Double> prazo = regraAlertaService.getParametroAtivo(animal, getTipo());
-        Optional<Pesagem> ultima = pesagemService.getUltimaPesagem(animal.getId());
-
-        if (prazo.isEmpty() || ultima.isEmpty()) {
+        if (regraAlertaService.isAlertaDesativado(animal, getTipo())) {
             return Optional.empty();
         }
 
+        Optional<Pesagem> ultima = pesagemService.getUltimaPesagem(animal.getId());
+
+        if (ultima.isEmpty()) {
+            return Optional.empty();
+        }
+
+        double prazo = regraAlertaService.getParametroAtivo(animal, getTipo())
+                .orElseGet(() -> (double) pesagemService.getIntervaloRecomendadoDias(animal));
+
         long diasSemPesagem = ChronoUnit.DAYS.between(ultima.get().getData(), LocalDate.now());
 
-        if (diasSemPesagem <= prazo.get()) {
+        if (diasSemPesagem <= prazo) {
             return Optional.empty();
         }
 

@@ -55,6 +55,18 @@ public class PesagemService {
         return registrar(animal, dados.pesoAtual(), dados.dataPesagem());
     }
 
+    public int getIntervaloRecomendadoDias(Animal animal) {
+        return getFrequenciaPesagemDaPropriedade(animal).orElse(intervaloRecomendadoDias);
+    }
+
+    private Optional<Integer> getFrequenciaPesagemDaPropriedade(Animal animal) {
+        if (animal.getLote() == null || animal.getLote().getPropriedade() == null) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(animal.getLote().getPropriedade().getFrequenciaPesagemDias());
+    }
+
     private ResultadoPesagem registrar(Animal animal, double pesoKg, LocalDate dataPesagem) {
 
         animalService.validarDataRegistro(animal, dataPesagem);
@@ -73,10 +85,11 @@ public class PesagemService {
                     ultimaPesagem.getData(),
                     dataPesagem
             );
+            int intervaloRecomendado = getIntervaloRecomendadoDias(animal);
 
-            if(diasEntrePesagens > intervaloRecomendadoDias){
+            if(diasEntrePesagens > intervaloRecomendado){
                 aviso = "O intervalo desde a última pesagem (" + diasEntrePesagens
-                        + " dias) ultrapassa o recomendado (" + intervaloRecomendadoDias + " dias)";
+                        + " dias) ultrapassa o recomendado (" + intervaloRecomendado + " dias)";
             }
         }
 

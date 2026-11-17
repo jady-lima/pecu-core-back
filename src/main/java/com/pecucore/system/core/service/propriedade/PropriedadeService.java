@@ -35,6 +35,7 @@ public class PropriedadeService {
 
         propriedade.setNome(dados.nome());
         propriedade.setLocalizacao(dados.localizacao());
+        propriedade.setFrequenciaPesagemDias(dados.frequenciaPesagemDias());
         propriedade.setUsuario(dono);
 
         return propriedadeRepository.save(propriedade);
@@ -86,6 +87,7 @@ public class PropriedadeService {
 
         propriedadeExistente.setNome(dados.nome());
         propriedadeExistente.setLocalizacao(dados.localizacao());
+        propriedadeExistente.setFrequenciaPesagemDias(dados.frequenciaPesagemDias());
 
         return propriedadeRepository.save(propriedadeExistente);
     }

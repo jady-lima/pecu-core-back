@@ -25,10 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ConvencaoNomesTest {
 
-    private static final String[] PACOTES = {
-            "com.pecucore.system.core",
-            "com.pecucore.system.bovinos"
-    };
+    private static final String[] PACOTES = ModulosAgroCore.pacotesParaVarredura();
 
     private static final Pattern CRUD_SEM_DOMINIO = Pattern.compile(
             "^(create|update|delete|getAll|get)(By[A-Z]\\w*)?$");

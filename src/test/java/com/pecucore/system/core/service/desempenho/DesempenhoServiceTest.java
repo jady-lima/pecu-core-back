@@ -3,6 +3,8 @@ package com.pecucore.system.core.service.desempenho;
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.extensao.desempenho.Meta;
+import com.pecucore.system.core.extensao.desempenho.ResultadoMeta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Lote;
 import com.pecucore.system.core.model.Pesagem;
@@ -12,7 +14,6 @@ import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;
 import com.pecucore.system.core.service.lote.LoteService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -100,8 +101,12 @@ class DesempenhoServiceTest {
         when(indicadorDesempenho.calcularHistorico(primeiraPesagem, ultimaPesagem)).thenReturn(indice);
     }
 
-    private void dadaMetaDoLote(Double meta) {
-        when(loteService.getMetaDesempenho(lote)).thenReturn(Optional.ofNullable(meta));
+    private void dadaMetaDoLote(Double minimo) {
+        when(loteService.getMetaDesempenho(lote)).thenReturn(Optional.ofNullable(minimo).map(Meta::minima));
+    }
+
+    private void dadaFaixaDoLote(Meta meta) {
+        when(loteService.getMetaDesempenho(lote)).thenReturn(Optional.of(meta));
     }
 
     @Nested
@@ -209,20 +214,81 @@ class DesempenhoServiceTest {
     }
 
     @Nested
-    @DisplayName("Bug conhecido (será corrigido no Passo 5)")
-    class BugConhecido {
+    @DisplayName("Requisito: meta em faixa e meta não positiva (correção do bug do erro 500)")
+    class MetaEmFaixa {
 
         @Test
-        @Disabled("DesempenhoService:68 guarda em double o retorno de calcularPercentualDaReferencia, "
-                + "que é null quando a meta é zero ou negativa: NullPointerException (erro 500). "
-                + "Nos bovinos a meta é sempre positiva; em outras espécies pode não ser.")
-        @DisplayName("Meta zero ou negativa não pode derrubar a comparação")
+        @DisplayName("Meta zero ou negativa não derruba a comparação: os percentuais ficam nulos")
         void metaNaoPositivaNaoCausaErro500() {
             dadoHistorico(primeiraPesagem, ultimaPesagem);
             dadoIndiceDoAnimal(0.05);
             dadaMetaDoLote(0.0);
 
-            assertDoesNotThrow(() -> desempenhoService.comparar(BRINCO, usuario));
+            ResultadoComparacaoDesempenho resultado =
+                    assertDoesNotThrow(() -> desempenhoService.comparar(BRINCO, usuario));
+
+            assertNull(resultado.percentualDaMeta());
+            assertNull(resultado.percentualAbaixoDaMeta());
+            assertEquals(0.05, resultado.diferenca(), DELTA);
+            assertFalse(resultado.abaixoDaMeta());
+            assertEquals(ResultadoMeta.DENTRO, resultado.resultadoMeta());
+        }
+
+        @Test
+        @DisplayName("Valor dentro da faixa: DENTRO, e os dois limites aparecem no resultado")
+        void dentroDaFaixa() {
+            dadoHistorico(primeiraPesagem, ultimaPesagem);
+            dadoIndiceDoAnimal(0.0);
+            dadaFaixaDoLote(Meta.faixa(-0.1, 0.1));
+
+            ResultadoComparacaoDesempenho resultado = desempenhoService.comparar(BRINCO, usuario);
+
+            assertEquals(ResultadoMeta.DENTRO, resultado.resultadoMeta());
+            assertFalse(resultado.abaixoDaMeta());
+            assertEquals(-0.1, resultado.indiceEsperado(), DELTA);
+            assertEquals(0.1, resultado.indiceEsperadoMaximo(), DELTA);
+            assertNull(resultado.percentualDaMeta());
+        }
+
+        @Test
+        @DisplayName("Valor acima do máximo da faixa: ACIMA, sem marcar abaixoDaMeta")
+        void acimaDaFaixa() {
+            dadoHistorico(primeiraPesagem, ultimaPesagem);
+            dadoIndiceDoAnimal(0.3);
+            dadaFaixaDoLote(Meta.faixa(-0.1, 0.1));
+
+            ResultadoComparacaoDesempenho resultado = desempenhoService.comparar(BRINCO, usuario);
+
+            assertEquals(ResultadoMeta.ACIMA, resultado.resultadoMeta());
+            assertFalse(resultado.abaixoDaMeta());
+        }
+
+        @Test
+        @DisplayName("Valor abaixo do mínimo da faixa: ABAIXO e abaixoDaMeta")
+        void abaixoDaFaixa() {
+            dadoHistorico(primeiraPesagem, ultimaPesagem);
+            dadoIndiceDoAnimal(-0.3);
+            dadaFaixaDoLote(Meta.faixa(-0.1, 0.1));
+
+            ResultadoComparacaoDesempenho resultado = desempenhoService.comparar(BRINCO, usuario);
+
+            assertEquals(ResultadoMeta.ABAIXO, resultado.resultadoMeta());
+            assertTrue(resultado.abaixoDaMeta());
+        }
+
+        @Test
+        @DisplayName("Meta só com máximo: sem mínimo, a diferença e os percentuais ficam nulos")
+        void metaSoComMaximo() {
+            dadoHistorico(primeiraPesagem, ultimaPesagem);
+            dadoIndiceDoAnimal(0.5);
+            dadaFaixaDoLote(new Meta(null, 1.0));
+
+            ResultadoComparacaoDesempenho resultado = desempenhoService.comparar(BRINCO, usuario);
+
+            assertEquals(ResultadoMeta.DENTRO, resultado.resultadoMeta());
+            assertNull(resultado.indiceEsperado());
+            assertNull(resultado.diferenca());
+            assertNull(resultado.percentualDaMeta());
         }
     }
 }

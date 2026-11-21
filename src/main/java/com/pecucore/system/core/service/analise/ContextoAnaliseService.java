@@ -23,6 +23,10 @@ import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.model.Vacinacao;
 import com.pecucore.system.core.service.alerta.AlertaService;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.extensao.desempenho.Meta;
+import com.pecucore.system.core.extensao.desempenho.ResultadoMeta;
+
+
 import com.pecucore.system.core.service.calculo.CalculadoraEstatisticasLote;
 import com.pecucore.system.core.service.custo.RateioCustoService;
 import com.pecucore.system.core.service.pesagem.PesagemService;
@@ -34,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ContextoAnaliseService {
@@ -119,9 +124,12 @@ public class ContextoAnaliseService {
         Double indicePeriodo = indicadorDesempenho.calcularHistorico(primeiraPesagem, ultimaPesagem);
         long diasAvaliados = ChronoUnit.DAYS.between(primeiraPesagem.getData(), ultimaPesagem.getData());
 
-        Double indiceMeta = loteService.getMetaDesempenho(animal.getLote()).orElse(null);
+        Optional<Meta> meta = loteService.getMetaDesempenho(animal.getLote());
+        Double indiceMeta = meta.map(Meta::minimo).orElse(null);
 
         Double percentualDaMeta = calculadoraEstatisticasLote.calcularPercentualDaReferencia(indicePeriodo, indiceMeta);
+        ResultadoMeta resultadoMeta =
+                meta.isPresent() && indicePeriodo != null ? meta.get().avaliar(indicePeriodo) : null;
 
         return new DesempenhoContextoDTO(
                 indicadorDesempenho.getNome(),
@@ -129,7 +137,9 @@ public class ContextoAnaliseService {
                 indicePeriodo,
                 diasAvaliados,
                 indiceMeta,
-                percentualDaMeta
+                meta.map(Meta::maximo).orElse(null),
+                percentualDaMeta,
+                resultadoMeta
         );
     }
 

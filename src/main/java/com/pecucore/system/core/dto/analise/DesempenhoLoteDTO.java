@@ -9,8 +9,10 @@ public record DesempenhoLoteDTO(
         double indiceMinimo,
         double indiceMaximo,
         Double indiceMeta,
+        Double indiceMetaMaxima,
         Double percentualMediaDaMeta,
         Long animaisAbaixoDaMeta,
+        Long animaisAcimaDaMeta,
         double pesoMedioKg,
         Double escoreCorporalMedio,
         int animaisComEscoreCorporal

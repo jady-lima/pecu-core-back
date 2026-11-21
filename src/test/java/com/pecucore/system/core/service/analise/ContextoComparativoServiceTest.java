@@ -126,7 +126,7 @@ class ContextoComparativoServiceTest {
 
     private void dadoAnimalAnalisadoComIndice(Double indice) {
         DesempenhoContextoDTO desempenho =
-                new DesempenhoContextoDTO("Índice de teste", "un/dia", indice, 30L, 0.9, null);
+                new DesempenhoContextoDTO("Índice de teste", "un/dia", indice, 30L, 0.9, null, null, null);
 
         List<PesagemContextoDTO> pesagens = List.of(
                 new PesagemContextoDTO(INICIO, 300.0, null, null),

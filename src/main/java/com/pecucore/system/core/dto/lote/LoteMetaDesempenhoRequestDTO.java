@@ -1,11 +1,12 @@
 package com.pecucore.system.core.dto.lote;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-
+/**
+ * Meta própria do lote como faixa: mínimo (metaDesempenho), máximo (metaDesempenhoMaxima) ou os dois.
+ * A validação (pelo menos um limite; mínimo <= máximo) é feita pela Meta do núcleo, no LoteService.
+ * Sem @Positive: em algumas aplicações a meta pode ser negativa (ex.: faixa de manutenção de peso).
+ */
 public record LoteMetaDesempenhoRequestDTO(
-        @NotNull(message = "A meta de desempenho precisa ser informada.")
-        @Positive(message = "A meta de desempenho deve ser maior que zero.")
-        Double metaDesempenho
+        Double metaDesempenho,
+        Double metaDesempenhoMaxima
 ) {
 }

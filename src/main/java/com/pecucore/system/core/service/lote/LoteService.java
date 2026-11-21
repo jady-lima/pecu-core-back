@@ -12,6 +12,7 @@ import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.exception.RegraNegocioException;
 import com.pecucore.system.core.extensao.agrupamento.FaseLote;
 import com.pecucore.system.core.extensao.agrupamento.PoliticaAgrupamento;
+import com.pecucore.system.core.extensao.desempenho.Meta;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -142,7 +143,10 @@ public class LoteService {
                 usuarioLogado
         );
 
-        lote.setMetaDesempenho(dados.metaDesempenho());
+        Meta meta = montarMeta(dados.metaDesempenho(), dados.metaDesempenhoMaxima());
+
+        lote.setMetaDesempenho(meta.minimo());
+        lote.setMetaDesempenhoMaxima(meta.maximo());
 
         return loteRepository.save(lote);
     }
@@ -154,6 +158,7 @@ public class LoteService {
         );
 
         lote.setMetaDesempenho(null);
+        lote.setMetaDesempenhoMaxima(null);
 
         loteRepository.save(lote);
     }
@@ -178,13 +183,13 @@ public class LoteService {
         return politicaAgrupamento.getFases();
     }
 
-    public Optional<Double> getMetaDesempenho(Lote lote) {
+    public Optional<Meta> getMetaDesempenho(Lote lote) {
         if (lote == null) {
             return Optional.empty();
         }
 
-        if (lote.getMetaDesempenho() != null) {
-            return Optional.of(lote.getMetaDesempenho());
+        if (lote.getMetaDesempenho() != null || lote.getMetaDesempenhoMaxima() != null) {
+            return Optional.of(new Meta(lote.getMetaDesempenho(), lote.getMetaDesempenhoMaxima()));
         }
 
         if (lote.getFinalidade() == null) {
@@ -192,6 +197,14 @@ public class LoteService {
         }
 
         return politicaAgrupamento.getMetaDaFase(lote.getFinalidade());
+    }
+
+    private Meta montarMeta(Double minimo, Double maximo) {
+        try {
+            return new Meta(minimo, maximo);
+        } catch (IllegalArgumentException e) {
+            throw new RegraNegocioException(e.getMessage());
+        }
     }
 
     private void validarNumeroLote(int numero, Long propriedadeId, Long loteIdAtual

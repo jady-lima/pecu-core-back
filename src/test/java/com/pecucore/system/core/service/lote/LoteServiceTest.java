@@ -6,6 +6,7 @@ import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RegraNegocioException;
 import com.pecucore.system.core.extensao.agrupamento.FaseLote;
 import com.pecucore.system.core.extensao.agrupamento.PoliticaAgrupamento;
+import com.pecucore.system.core.extensao.desempenho.Meta;
 import com.pecucore.system.core.model.Lote;
 import com.pecucore.system.core.model.Propriedade;
 import com.pecucore.system.core.model.Usuario;
@@ -110,16 +111,25 @@ class LoteServiceTest {
         @Test
         @DisplayName("Meta definida no lote tem prioridade sobre a meta da fase")
         void metaPropriaTemPrioridade() {
-            assertEquals(Optional.of(1.1), loteService.getMetaDesempenho(lote("FASE_A", 1.1)));
+            assertEquals(Optional.of(Meta.minima(1.1)), loteService.getMetaDesempenho(lote("FASE_A", 1.1)));
             verify(politicaAgrupamento, never()).getMetaDaFase(anyString());
+        }
+
+        @Test
+        @DisplayName("Meta própria do lote pode ser uma faixa (mínimo e máximo)")
+        void metaPropriaEmFaixa() {
+            Lote lote = lote("FASE_A", -0.1);
+            lote.setMetaDesempenhoMaxima(0.1);
+
+            assertEquals(Optional.of(Meta.faixa(-0.1, 0.1)), loteService.getMetaDesempenho(lote));
         }
 
         @Test
         @DisplayName("Sem meta própria, usa a meta da fase informada pela política da instância")
         void usaMetaDaFase() {
-            when(politicaAgrupamento.getMetaDaFase("FASE_A")).thenReturn(Optional.of(0.9));
+            when(politicaAgrupamento.getMetaDaFase("FASE_A")).thenReturn(Optional.of(Meta.minima(0.9)));
 
-            assertEquals(Optional.of(0.9), loteService.getMetaDesempenho(lote("FASE_A", null)));
+            assertEquals(Optional.of(Meta.minima(0.9)), loteService.getMetaDesempenho(lote("FASE_A", null)));
         }
 
         @Test
@@ -136,28 +146,54 @@ class LoteServiceTest {
         }
 
         @Test
-        @DisplayName("Definir meta própria no lote")
+        @DisplayName("Definir meta própria (só mínimo) no lote")
         void definirMeta() {
             loteCadastrado("FASE_A", null);
 
             Lote lote = loteService.updateMetaDesempenho(
-                    LOTE_ID, new LoteMetaDesempenhoRequestDTO(1.2), usuario);
+                    LOTE_ID, new LoteMetaDesempenhoRequestDTO(1.2, null), usuario);
 
             assertEquals(1.2, lote.getMetaDesempenho());
-            assertEquals(Optional.of(1.2), loteService.getMetaDesempenho(lote));
+            assertNull(lote.getMetaDesempenhoMaxima());
+            assertEquals(Optional.of(Meta.minima(1.2)), loteService.getMetaDesempenho(lote));
+        }
+
+        @Test
+        @DisplayName("Definir meta em faixa no lote, inclusive com mínimo negativo")
+        void definirMetaEmFaixa() {
+            loteCadastrado("FASE_A", null);
+
+            Lote lote = loteService.updateMetaDesempenho(
+                    LOTE_ID, new LoteMetaDesempenhoRequestDTO(-0.1, 0.2), usuario);
+
+            assertEquals(Optional.of(Meta.faixa(-0.1, 0.2)), loteService.getMetaDesempenho(lote));
+        }
+
+        @Test
+        @DisplayName("Meta inválida (sem limites ou mínimo maior que máximo) é recusada sem salvar")
+        void metaInvalida() {
+            loteCadastrado("FASE_A", null);
+
+            assertThrows(RegraNegocioException.class, () -> loteService.updateMetaDesempenho(
+                    LOTE_ID, new LoteMetaDesempenhoRequestDTO(null, null), usuario));
+            assertThrows(RegraNegocioException.class, () -> loteService.updateMetaDesempenho(
+                    LOTE_ID, new LoteMetaDesempenhoRequestDTO(0.5, 0.2), usuario));
+            verify(loteRepository, never()).save(any());
         }
 
         @Test
         @DisplayName("Remover a meta própria faz o lote voltar a usar a meta da fase")
         void removerMeta() {
             Lote lote = loteCadastrado("FASE_A", 1.2);
-            when(politicaAgrupamento.getMetaDaFase("FASE_A")).thenReturn(Optional.of(0.9));
+            lote.setMetaDesempenhoMaxima(1.5);
+            when(politicaAgrupamento.getMetaDaFase("FASE_A")).thenReturn(Optional.of(Meta.minima(0.9)));
 
             loteService.deleteMetaDesempenho(LOTE_ID, usuario);
 
             assertNull(lote.getMetaDesempenho());
+            assertNull(lote.getMetaDesempenhoMaxima());
             verify(loteRepository).save(lote);
-            assertEquals(Optional.of(0.9), loteService.getMetaDesempenho(lote));
+            assertEquals(Optional.of(Meta.minima(0.9)), loteService.getMetaDesempenho(lote));
         }
     }
 

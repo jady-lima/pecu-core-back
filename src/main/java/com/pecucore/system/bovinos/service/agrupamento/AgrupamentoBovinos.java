@@ -3,6 +3,7 @@ package com.pecucore.system.bovinos.service.agrupamento;
 import com.pecucore.system.bovinos.model.FinalidadeLote;
 import com.pecucore.system.core.extensao.agrupamento.FaseLote;
 import com.pecucore.system.core.extensao.agrupamento.PoliticaAgrupamento;
+import com.pecucore.system.core.extensao.desempenho.Meta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.StatusAnimal;
 
@@ -38,9 +39,10 @@ public class AgrupamentoBovinos implements PoliticaAgrupamento {
     }
 
     @Override
-    public Optional<Double> getMetaDaFase(String codigoFase) {
+    public Optional<Meta> getMetaDaFase(String codigoFase) {
         return FinalidadeLote.deCodigo(codigoFase)
-                .flatMap(metaDesempenhoService::getGmdEsperadoByFase);
+                .flatMap(metaDesempenhoService::getGmdEsperadoByFase)
+                .map(Meta::minima);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.pecucore.system.core.extensao.agrupamento;
 
 import com.pecucore.system.core.extensao.PontoFlexivel;
+import com.pecucore.system.core.extensao.desempenho.Meta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.StatusAnimal;
 
@@ -13,7 +14,7 @@ public interface PoliticaAgrupamento {
 
     List<FaseLote> getFases();
 
-    Optional<Double> getMetaDaFase(String codigoFase);
+    Optional<Meta> getMetaDaFase(String codigoFase);
 
     Optional<String> sugerirFase(Animal animal);
 

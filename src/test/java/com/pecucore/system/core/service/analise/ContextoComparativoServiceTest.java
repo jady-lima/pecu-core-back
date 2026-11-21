@@ -9,6 +9,8 @@ import com.pecucore.system.core.dto.analise.PesagemContextoDTO;
 import com.pecucore.system.core.dto.analise.PosicaoAnimalLoteDTO;
 import com.pecucore.system.core.exception.DadosInsuficientesException;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.extensao.desempenho.Meta;
+
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Lote;
 import com.pecucore.system.core.model.Pesagem;
@@ -36,6 +38,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
@@ -104,6 +108,11 @@ class ContextoComparativoServiceTest {
                     long dias = ChronoUnit.DAYS.between(primeira.getData(), ultima.getData());
                     return dias <= 0 ? null : (ultima.getPesoKg() - primeira.getPesoKg()) / dias;
                 });
+
+
+        // Critério de ranking do indicador falso: maior índice = melhor (o mesmo dos bovinos).
+        lenient().when(indicadorDesempenho.calcularPontuacaoRanking(anyDouble(), any()))
+                .thenAnswer(invocacao -> invocacao.getArgument(0));
 
         lenient().when(pesagemService.getPesagensAnimaisAtivosByLoteId(LOTE_ID)).thenReturn(pesagensDoLote);
         lenient().when(animalConsultaService.countAnimaisAtivosByLoteId(LOTE_ID)).thenReturn(4L);
@@ -177,7 +186,7 @@ class ContextoComparativoServiceTest {
         }
 
         @Test
-        @DisplayName("Posição no ranking: hoje, maior índice = melhor posição (muda no Passo 5)")
+        @DisplayName("Posição no ranking segue o critério da aplicação (aqui: maior índice = melhor)")
         void posicaoNoRanking() {
             dadoAnimalAnalisadoComIndice(1.0);
 
@@ -242,6 +251,37 @@ class ContextoComparativoServiceTest {
                     contextoComparativoService.montarComparativo(ANIMAL_ID, usuario).estatisticasLote();
 
             assertEquals(120.0, estatisticas.custoMedioPorAnimal(), DELTA);
+        }
+
+
+        @Test
+        @DisplayName("Com outro critério de ranking da aplicação, a posição e a ordem mudam")
+        void rankingSegueCriterioDaAplicacao() {
+            // Indicador de manutenção simulado: melhor = mais perto de 1,1.
+            when(indicadorDesempenho.calcularPontuacaoRanking(anyDouble(), any()))
+                    .thenAnswer(invocacao -> {
+                        Double indice = invocacao.getArgument(0);
+                        return -Math.abs(indice - 1.1);
+                    });
+            dadoAnimalAnalisadoComIndice(1.0);
+
+            ContextoAnaliseComparativaDTO comparativo =
+                    contextoComparativoService.montarComparativo(ANIMAL_ID, usuario);
+
+            assertEquals(1, comparativo.posicaoNoLote().posicaoIndice());
+            assertEquals(100.0, comparativo.posicaoNoLote().percentilIndice(), DELTA);
+            assertEquals(List.of(0.8, 1.5, 0.5),
+                    comparativo.demaisAnimais().stream().map(ParLoteDTO::indicePeriodo).toList());
+        }
+
+        @Test
+        @DisplayName("A meta do lote é passada ao critério de ranking da aplicação")
+        void metaPassadaAoRanking() {
+            dadoAnimalAnalisadoComIndice(1.0);
+
+            contextoComparativoService.montarComparativo(ANIMAL_ID, usuario);
+
+            verify(indicadorDesempenho, times(4)).calcularPontuacaoRanking(anyDouble(), eq(Meta.minima(0.9)));
         }
     }
 

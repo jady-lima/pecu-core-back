@@ -99,4 +99,39 @@ public abstract class IndicadorDesempenhoContrato {
         assertNotNull(doPeriodo);
         assertEquals(doPeriodo, daPesagem, DELTA);
     }
+
+    @Test
+    @DisplayName("Pontuação do ranking existe para qualquer valor, com ou sem meta")
+    public void pontuacaoSempreDefinida() {
+        for (Meta meta : new Meta[] {null, Meta.minima(0.5), Meta.faixa(0.2, 0.6)}) {
+            for (double valor : new double[] {-1.0, 0.0, 0.3, 0.5, 2.0}) {
+                double pontuacao = indicador.calcularPontuacaoRanking(valor, meta);
+
+                assertTrue(Double.isFinite(pontuacao), "Valor " + valor + " com meta " + meta);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("No ranking, um valor abaixo da meta fica sempre atrás de um valor dentro da meta")
+    public void abaixoDaMetaFicaAtras() {
+        verificarAbaixoAtrasDeDentro(Meta.minima(0.5),
+                new double[] {-1.0, 0.0, 0.49}, new double[] {0.5, 0.8, 2.0});
+        verificarAbaixoAtrasDeDentro(Meta.faixa(0.2, 0.6),
+                new double[] {-1.0, 0.0, 0.19}, new double[] {0.2, 0.4, 0.6});
+    }
+
+    private void verificarAbaixoAtrasDeDentro(Meta meta, double[] valoresAbaixo, double[] valoresDentro) {
+        for (double abaixo : valoresAbaixo) {
+            assertEquals(ResultadoMeta.ABAIXO, meta.avaliar(abaixo));
+
+            for (double dentro : valoresDentro) {
+                assertEquals(ResultadoMeta.DENTRO, meta.avaliar(dentro));
+                assertTrue(
+                        indicador.calcularPontuacaoRanking(abaixo, meta) < indicador.calcularPontuacaoRanking(dentro, meta),
+                        "Abaixo (" + abaixo + ") não ficou atrás de dentro (" + dentro + ") com meta " + meta);
+            }
+        }
+    }
+
 }

@@ -2,6 +2,7 @@ package com.pecucore.system.bovinos.service.desempenho;
 
 import com.pecucore.system.core.extensao.desempenho.EscalaCondicaoCorporal;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.extensao.desempenho.Meta;
 import com.pecucore.system.core.model.Pesagem;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +52,12 @@ public class GmdService implements IndicadorDesempenho {
             primeiraPesagem.getData(),
             ultimaPesagem.getData()
         );
+    }
+
+    /** Bovinos de corte: quanto maior o ganho de peso, melhor a posição, com ou sem meta. */
+    @Override
+    public double calcularPontuacaoRanking(double valor, Meta meta) {
+        return valor;
     }
 
     private Double calcularPorDia(double pesoInicialKg, double pesoFinalKg, LocalDate dataInicial, LocalDate dataFinal) {

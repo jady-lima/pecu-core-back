@@ -3,8 +3,10 @@ package com.pecucore.system.core.service.sanidade;
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.extensao.sanitario.PoliticaRestricaoSanitaria;
 import com.pecucore.system.core.model.StatusAnimal;
+import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.service.medicamento.MedicamentoConsultaService;
 import com.pecucore.system.core.service.vacinacao.VacinacaoConsultaService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -100,6 +103,14 @@ class CarenciaServiceTest {
     @DisplayName("Requisito: bloquear mudanças de status durante a carência (ponto flexível)")
     class BloqueioDeStatus {
 
+        private Animal animal;
+
+        @BeforeEach
+        void animalDoTeste() {
+            animal = mock(Animal.class);
+            lenient().when(animal.getId()).thenReturn(ANIMAL_ID);
+        }
+
         @Test
         @DisplayName("Status bloqueado pela política durante a carência: erro com a data de fim")
         void bloqueadoDuranteCarencia() {
@@ -108,7 +119,7 @@ class CarenciaServiceTest {
             dadaCarenciaDeMedicamento(null);
 
             ConflitoNegocioException erro = assertThrows(ConflitoNegocioException.class,
-                    () -> carenciaService.validarMudancaStatus(ANIMAL_ID, StatusAnimal.VENDIDO));
+                    () -> carenciaService.validarMudancaStatus(animal, StatusAnimal.VENDIDO));
 
             assertTrue(erro.getMessage().contains(HOJE.plusDays(10).format(DATA)));
             assertTrue(erro.getMessage().contains("VENDIDO"));
@@ -121,7 +132,7 @@ class CarenciaServiceTest {
             dadaCarenciaDeVacina(null);
             dadaCarenciaDeMedicamento(null);
 
-            assertDoesNotThrow(() -> carenciaService.validarMudancaStatus(ANIMAL_ID, StatusAnimal.VENDIDO));
+            assertDoesNotThrow(() -> carenciaService.validarMudancaStatus(animal, StatusAnimal.VENDIDO));
         }
 
         @Test
@@ -129,7 +140,7 @@ class CarenciaServiceTest {
         void statusNaoBloqueado() {
             dadosStatusBloqueados(StatusAnimal.VENDIDO, StatusAnimal.ABATIDO);
 
-            assertDoesNotThrow(() -> carenciaService.validarMudancaStatus(ANIMAL_ID, StatusAnimal.OBITO));
+            assertDoesNotThrow(() -> carenciaService.validarMudancaStatus(animal, StatusAnimal.OBITO));
             verifyNoInteractions(vacinacaoConsultaService, medicamentoConsultaService);
         }
 
@@ -141,8 +152,74 @@ class CarenciaServiceTest {
             dadaCarenciaDeMedicamento(null);
 
             assertThrows(ConflitoNegocioException.class,
-                    () -> carenciaService.validarMudancaStatus(ANIMAL_ID, StatusAnimal.OBITO));
-            assertDoesNotThrow(() -> carenciaService.validarMudancaStatus(ANIMAL_ID, StatusAnimal.VENDIDO));
+                    () -> carenciaService.validarMudancaStatus(animal, StatusAnimal.OBITO));
+            assertDoesNotThrow(() -> carenciaService.validarMudancaStatus(animal, StatusAnimal.VENDIDO));
+        }
+    }
+
+    @Nested
+    @DisplayName("Requisito: restrições sanitárias próprias da aplicação (ponto flexível)")
+    class RestricoesDaAplicacao {
+
+        private Animal animal;
+
+        @BeforeEach
+        void animalDoTeste() {
+            animal = mock(Animal.class);
+            lenient().when(animal.getId()).thenReturn(ANIMAL_ID);
+        }
+
+        private void dadasRestricoes(StatusAnimal status, String... mensagens) {
+            when(politicaRestricaoSanitaria.getRestricoesAdicionais(eq(animal), eq(status), any(LocalDate.class)))
+                    .thenReturn(List.of(mensagens));
+        }
+
+        @Test
+        @DisplayName("Restrição informada pela aplicação impede a mudança e aparece na mensagem")
+        void restricaoImpedeMudanca() {
+            dadosStatusBloqueados(StatusAnimal.ABATIDO);
+            dadasRestricoes(StatusAnimal.VENDIDO, "exame obrigatório vencido");
+
+            ConflitoNegocioException erro = assertThrows(ConflitoNegocioException.class,
+                    () -> carenciaService.validarMudancaStatus(animal, StatusAnimal.VENDIDO));
+
+            assertTrue(erro.getMessage().contains("VENDIDO"));
+            assertTrue(erro.getMessage().contains("exame obrigatório vencido"));
+        }
+
+        @Test
+        @DisplayName("Várias restrições aparecem todas na mensagem")
+        void variasRestricoes() {
+            dadosStatusBloqueados(StatusAnimal.ABATIDO);
+            dadasRestricoes(StatusAnimal.VENDIDO, "exame A vencido", "exame B ausente");
+
+            ConflitoNegocioException erro = assertThrows(ConflitoNegocioException.class,
+                    () -> carenciaService.validarMudancaStatus(animal, StatusAnimal.VENDIDO));
+
+            assertTrue(erro.getMessage().contains("exame A vencido; exame B ausente"));
+        }
+
+        @Test
+        @DisplayName("Sem restrições da aplicação e fora da carência: mudança permitida")
+        void semRestricoes() {
+            dadosStatusBloqueados(StatusAnimal.ABATIDO);
+            dadasRestricoes(StatusAnimal.VENDIDO);
+
+            assertDoesNotThrow(() -> carenciaService.validarMudancaStatus(animal, StatusAnimal.VENDIDO));
+        }
+
+        @Test
+        @DisplayName("A carência é verificada antes das restrições da aplicação")
+        void carenciaVemPrimeiro() {
+            dadosStatusBloqueados(StatusAnimal.VENDIDO);
+            dadaCarenciaDeVacina(HOJE.plusDays(10));
+            dadaCarenciaDeMedicamento(null);
+
+            ConflitoNegocioException erro = assertThrows(ConflitoNegocioException.class,
+                    () -> carenciaService.validarMudancaStatus(animal, StatusAnimal.VENDIDO));
+
+            assertTrue(erro.getMessage().contains(HOJE.plusDays(10).format(DATA)));
+            verify(politicaRestricaoSanitaria, never()).getRestricoesAdicionais(any(), any(), any());
         }
     }
 }

@@ -6,7 +6,7 @@ import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import com.pecucore.system.core.extensao.alerta.OcorrenciaAlerta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.extensao.alerta.TipoAlerta;
-import com.pecucore.system.core.service.vacinacao.VacinacaoService;
+import com.pecucore.system.core.service.vacinacao.VacinacaoConsultaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ import java.util.Set;
 public class VerificadorVacinaVencida implements VerificadorAlerta {
 
     @Autowired
-    private VacinacaoService vacinacaoService;
+    private VacinacaoConsultaService vacinacaoConsultaService;
 
     @Override
     public TipoAlerta getTipo() {
@@ -34,7 +34,7 @@ public class VerificadorVacinaVencida implements VerificadorAlerta {
     public Optional<OcorrenciaAlerta> avaliar(Animal animal) {
         LocalDate hoje = LocalDate.now();
 
-        return vacinacaoService.getUltimasVacinacoesByAnimalId(animal.getId()).stream()
+        return vacinacaoConsultaService.getUltimasVacinacoesByAnimalId(animal.getId()).stream()
                 .filter(vacinacao -> vacinacao.getDataProximaDose() != null)
                 .filter(vacinacao -> vacinacao.getDataProximaDose().isBefore(hoje))
                 .findFirst()

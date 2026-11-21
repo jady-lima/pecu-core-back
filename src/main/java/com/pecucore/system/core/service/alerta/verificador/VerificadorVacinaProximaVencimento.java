@@ -6,7 +6,7 @@ import com.pecucore.system.core.extensao.alerta.GatilhoAlerta;
 import com.pecucore.system.core.extensao.alerta.OcorrenciaAlerta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.extensao.alerta.TipoAlerta;
-import com.pecucore.system.core.service.vacinacao.VacinacaoService;
+import com.pecucore.system.core.service.vacinacao.VacinacaoConsultaService;
 import com.pecucore.system.core.service.alerta.RegraAlertaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ import java.util.Set;
 public class VerificadorVacinaProximaVencimento implements VerificadorAlerta {
 
     @Autowired
-    private VacinacaoService vacinacaoService;
+    private VacinacaoConsultaService vacinacaoConsultaService;
 
     @Autowired
     private RegraAlertaService regraAlertaService;
@@ -45,7 +45,7 @@ public class VerificadorVacinaProximaVencimento implements VerificadorAlerta {
 
         LocalDate hoje = LocalDate.now();
 
-        return vacinacaoService.getUltimasVacinacoesByAnimalId(animal.getId()).stream()
+        return vacinacaoConsultaService.getUltimasVacinacoesByAnimalId(animal.getId()).stream()
                 .filter(vacinacao -> vacinacao.getDataProximaDose() != null)
                 .filter(vacinacao -> {
                     long dias = ChronoUnit.DAYS.between(hoje, vacinacao.getDataProximaDose());

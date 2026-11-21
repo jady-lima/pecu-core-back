@@ -182,7 +182,7 @@ public class AnimalService {
 
         validarSaidaPossivel(dados.status());
 
-        carenciaService.validarMudancaStatus(id, dados.status());
+        carenciaService.validarMudancaStatus(animal, dados.status());
 
         animal.setStatus(dados.status());
 

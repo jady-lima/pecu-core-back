@@ -1,5 +1,6 @@
 package com.pecucore.system.core.extensao.sanitario;
 
+import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.StatusAnimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -76,5 +77,21 @@ public abstract class PoliticaRestricaoSanitariaContrato {
 
         assertNotNull(bloqueados);
         assertFalse(bloqueados.contains(StatusAnimal.ATIVO));
+    }
+
+
+    @Test
+    @DisplayName("Restrições adicionais: lista definida (vazia = sem restrição) e sem erro para qualquer saída")
+    public void restricoesAdicionaisDefinidas() {
+        Animal animal = new Animal();
+        animal.setStatus(StatusAnimal.ATIVO);
+
+        for (StatusAnimal status : StatusAnimal.values()) {
+            if (status == StatusAnimal.ATIVO) {
+                continue;
+            }
+            assertDoesNotThrow(() -> assertNotNull(politica.getRestricoesAdicionais(animal, status, APLICACAO)),
+                    "Status " + status);
+        }
     }
 }

@@ -16,9 +16,7 @@ import com.pecucore.system.core.dto.vacinacao.VacinacaoUpdateRequestDTO;
 import com.pecucore.system.core.repository.VacinacaoRepository;
 import com.pecucore.system.core.extensao.sanitario.PoliticaRestricaoSanitaria;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class VacinacaoService {
@@ -104,18 +102,6 @@ public class VacinacaoService {
 
     public List<Vacinacao> getHistoricoByAnimalId(Long animalId) {
         return vacinacaoRepository.findByAnimalIdOrderByDataAscIdAsc(animalId);
-    }
-
-    /**
-     * Última vacinação de cada vacina aplicada no animal: é ela que define a próxima dose em vigor.
-     */
-    public List<Vacinacao> getUltimasVacinacoesByAnimalId(Long animalId) {
-        Map<Long, Vacinacao> ultimaPorVacina = new LinkedHashMap<>();
-
-        getHistoricoByAnimalId(animalId)
-                .forEach(vacinacao -> ultimaPorVacina.put(vacinacao.getVacina().getId(), vacinacao));
-
-        return List.copyOf(ultimaPorVacina.values());
     }
 
     private void preencherDados(Vacinacao vacinacao, Vacina vacina, Usuario aplicador, LocalDate data, String loteVacina, Double doseAplicada, String observacoes, Double valor) {

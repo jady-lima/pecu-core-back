@@ -152,13 +152,13 @@ class AnimalServiceTest {
         @Test
         @DisplayName("Animal ATIVO pode sair do rebanho, depois da verificação de carência")
         void ativoParaVendido() {
-            animalCadastrado(StatusAnimal.ATIVO);
+            Animal animal = animalCadastrado(StatusAnimal.ATIVO);
 
-            Animal animal = animalService.updateStatusAnimal(
+            Animal atualizado = animalService.updateStatusAnimal(
                     ANIMAL_ID, new AnimalStatusRequestDTO(StatusAnimal.VENDIDO), usuario);
 
-            assertEquals(StatusAnimal.VENDIDO, animal.getStatus());
-            verify(carenciaService).validarMudancaStatus(ANIMAL_ID, StatusAnimal.VENDIDO);
+            assertEquals(StatusAnimal.VENDIDO, atualizado.getStatus());
+            verify(carenciaService).validarMudancaStatus(animal, StatusAnimal.VENDIDO);
         }
 
         @Test
@@ -187,7 +187,7 @@ class AnimalServiceTest {
         void carenciaBloqueia() {
             Animal animal = animalCadastrado(StatusAnimal.ATIVO);
             doThrow(new ConflitoNegocioException("Animal em carência"))
-                    .when(carenciaService).validarMudancaStatus(ANIMAL_ID, StatusAnimal.ABATIDO);
+                    .when(carenciaService).validarMudancaStatus(animal, StatusAnimal.ABATIDO);
 
             assertThrows(ConflitoNegocioException.class, () -> animalService.updateStatusAnimal(
                     ANIMAL_ID, new AnimalStatusRequestDTO(StatusAnimal.ABATIDO), usuario));

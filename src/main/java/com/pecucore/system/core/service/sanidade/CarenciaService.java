@@ -2,6 +2,7 @@ package com.pecucore.system.core.service.sanidade;
 
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.extensao.sanitario.PoliticaRestricaoSanitaria;
+import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.StatusAnimal;
 import com.pecucore.system.core.service.medicamento.MedicamentoConsultaService;
 import com.pecucore.system.core.service.vacinacao.VacinacaoConsultaService;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -42,16 +44,28 @@ public class CarenciaService {
                 .max(LocalDate::compareTo);
     }
 
-    public void validarMudancaStatus(Long animalId, StatusAnimal novoStatus) {
-        if (!politicaRestricaoSanitaria.getStatusBloqueadosNaCarencia().contains(novoStatus)) {
-            return;
+    /**
+     * Impede a mudança de status quando há restrição sanitária:
+     * 1) carência vigente, para os status que a aplicação bloqueia na carência;
+     * 2) restrições próprias da aplicação (PoliticaRestricaoSanitaria.getRestricoesAdicionais).
+     */
+    public void validarMudancaStatus(Animal animal, StatusAnimal novoStatus) {
+        if (politicaRestricaoSanitaria.getStatusBloqueadosNaCarencia().contains(novoStatus)) {
+            getDataFimCarencia(animal.getId()).ifPresent(dataFim -> {
+                throw new ConflitoNegocioException(
+                        "O animal está em período de carência até " + dataFim.format(DATA)
+                                + " e não pode ter o status " + novoStatus + "."
+                );
+            });
         }
 
-        getDataFimCarencia(animalId).ifPresent(dataFim -> {
+        List<String> restricoes =
+                politicaRestricaoSanitaria.getRestricoesAdicionais(animal, novoStatus, LocalDate.now());
+
+        if (!restricoes.isEmpty()) {
             throw new ConflitoNegocioException(
-                    "O animal está em período de carência até " + dataFim.format(DATA)
-                            + " e não pode ter o status " + novoStatus + "."
+                    "O animal não pode ter o status " + novoStatus + ": " + String.join("; ", restricoes) + "."
             );
-        });
+        }
     }
 }

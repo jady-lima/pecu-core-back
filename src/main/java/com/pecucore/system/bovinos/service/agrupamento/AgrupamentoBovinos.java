@@ -4,6 +4,8 @@ import com.pecucore.system.bovinos.model.FinalidadeLote;
 import com.pecucore.system.core.extensao.agrupamento.FaseLote;
 import com.pecucore.system.core.extensao.agrupamento.PoliticaAgrupamento;
 import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.StatusAnimal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,9 @@ public class AgrupamentoBovinos implements PoliticaAgrupamento {
 
     private static final int IDADE_MAXIMA_CRIA_MESES = 8;
     private static final int IDADE_MAXIMA_RECRIA_MESES = 18;
+
+    private static final Set<StatusAnimal> SAIDAS =
+            EnumSet.of(StatusAnimal.VENDIDO, StatusAnimal.OBITO, StatusAnimal.ABATIDO);
 
     @Autowired
     private MetaDesempenhoService metaDesempenhoService;
@@ -46,6 +51,12 @@ public class AgrupamentoBovinos implements PoliticaAgrupamento {
 
         return animal.getIdadeMeses(LocalDate.now())
                 .map(idadeMeses -> definirFasePorIdade(idadeMeses).name());
+    }
+
+
+    @Override
+    public Set<StatusAnimal> getSaidasPossiveis() {
+        return SAIDAS;
     }
 
     private boolean estaEmFasePorIdade(Animal animal) {

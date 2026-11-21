@@ -2,6 +2,8 @@ package com.pecucore.system.core.extensao.agrupamento;
 
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Lote;
+import com.pecucore.system.core.model.StatusAnimal;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Optional;
 
@@ -114,5 +117,15 @@ public abstract class PoliticaAgrupamentoContrato {
         for (Animal animal : animais) {
             assertDoesNotThrow(() -> assertNotNull(politica.sugerirFase(animal)));
         }
+    }
+
+
+    @Test
+    @DisplayName("Saídas do rebanho: a aplicação prevê pelo menos uma, e nunca ATIVO")
+    public void saidasPossiveisValidas() {
+        Set<StatusAnimal> saidas = politica.getSaidasPossiveis();
+
+        assertFalse(saidas == null || saidas.isEmpty(), "A aplicação não prevê nenhuma saída do rebanho");
+        assertFalse(saidas.contains(StatusAnimal.ATIVO), "ATIVO não é uma saída do rebanho");
     }
 }

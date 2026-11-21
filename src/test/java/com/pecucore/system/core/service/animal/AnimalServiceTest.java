@@ -4,6 +4,9 @@ import com.pecucore.system.core.dto.animal.AnimalRequestDTO;
 import com.pecucore.system.core.dto.animal.AnimalStatusRequestDTO;
 import com.pecucore.system.core.evento.PesoAnimalAlteradoEvento;
 import com.pecucore.system.core.exception.ConflitoNegocioException;
+import com.pecucore.system.core.exception.RegraNegocioException;
+import com.pecucore.system.core.extensao.agrupamento.PoliticaAgrupamento;
+
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Lote;
 import com.pecucore.system.core.model.StatusAnimal;
@@ -23,6 +26,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -57,6 +62,9 @@ class AnimalServiceTest {
     @Mock
     private AcessoPropriedadeService acessoPropriedadeService;
 
+    @Mock
+    private PoliticaAgrupamento politicaAgrupamento;
+
     @InjectMocks
     private AnimalService animalService;
 
@@ -73,6 +81,11 @@ class AnimalServiceTest {
 
         lenient().when(animalRepository.save(any(Animal.class)))
                 .thenAnswer(invocacao -> invocacao.getArgument(0));
+
+
+        // Saídas da aplicação simulada (as mesmas dos bovinos, para os testes existentes não mudarem).
+        lenient().when(politicaAgrupamento.getSaidasPossiveis())
+                .thenReturn(EnumSet.of(StatusAnimal.VENDIDO, StatusAnimal.OBITO, StatusAnimal.ABATIDO));
     }
 
     private AnimalRequestDTO dadosAnimal(String sexo) {
@@ -180,6 +193,29 @@ class AnimalServiceTest {
                     ANIMAL_ID, new AnimalStatusRequestDTO(StatusAnimal.ABATIDO), usuario));
             assertEquals(StatusAnimal.ATIVO, animal.getStatus());
             verify(animalRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Saída que a aplicação não prevê é recusada, sem consultar a carência")
+        void saidaNaoPrevistaPelaAplicacao() {
+            animalCadastrado(StatusAnimal.ATIVO);
+            when(politicaAgrupamento.getSaidasPossiveis())
+                    .thenReturn(EnumSet.of(StatusAnimal.VENDIDO, StatusAnimal.OBITO));
+
+            RegraNegocioException erro = assertThrows(RegraNegocioException.class,
+                    () -> animalService.updateStatusAnimal(
+                            ANIMAL_ID, new AnimalStatusRequestDTO(StatusAnimal.ABATIDO), usuario));
+
+            assertTrue(erro.getMessage().contains("VENDIDO, OBITO"));
+            verifyNoInteractions(carenciaService);
+            verify(animalRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("A lista de saídas vem da política da aplicação, em ordem fixa")
+        void listaDeSaidasVemDaPolitica() {
+            assertEquals(List.of(StatusAnimal.VENDIDO, StatusAnimal.OBITO, StatusAnimal.ABATIDO),
+                    animalService.getAllSaidasAnimal());
         }
     }
 

@@ -10,6 +10,9 @@ import java.util.Objects;
 import com.pecucore.system.core.service.sanidade.CarenciaService;
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
+import com.pecucore.system.core.exception.RegraNegocioException;
+import com.pecucore.system.core.extensao.agrupamento.PoliticaAgrupamento;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -42,6 +45,10 @@ public class AnimalService {
 
     @Autowired
     private AcessoPropriedadeService acessoPropriedadeService;
+
+
+    @Autowired
+    private PoliticaAgrupamento politicaAgrupamento;
 
     @Transactional
     public Animal createAnimal(
@@ -173,6 +180,8 @@ public class AnimalService {
             );
         }
 
+        validarSaidaPossivel(dados.status());
+
         carenciaService.validarMudancaStatus(id, dados.status());
 
         animal.setStatus(dados.status());
@@ -216,6 +225,13 @@ public class AnimalService {
 
     public List<Long> getIdsAtivosComLote() {
         return animalRepository.findIdsByStatusComLote(StatusAnimal.ATIVO);
+    }
+
+
+    public List<StatusAnimal> getAllSaidasAnimal() {
+        return politicaAgrupamento.getSaidasPossiveis().stream()
+                .sorted()
+                .toList();
     }
 
     public Animal getAnimalById(Long id) {
@@ -292,6 +308,18 @@ public class AnimalService {
         }
 
         return animal;
+    }
+
+    private void validarSaidaPossivel(StatusAnimal novoStatus) {
+        List<StatusAnimal> saidas = getAllSaidasAnimal();
+
+        if (!saidas.contains(novoStatus)) {
+            throw new RegraNegocioException(
+                    "Status inválido para esta aplicação: " + novoStatus
+                            + ". Valores aceitos: "
+                            + String.join(", ", saidas.stream().map(Enum::name).toList()) + "."
+            );
+        }
     }
 
     private void validarCapacidadeLote(Lote lote) {

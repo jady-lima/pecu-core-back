@@ -7,16 +7,18 @@ public record VacinaResponseDTO(
         String nome,
         String fabricante,
         int carenciaDias,
-        Integer intervaloDoseDias
+        Integer intervaloDoseDias,
+        boolean exigidaParaTransito
 ) {
 
     public VacinaResponseDTO(Vacina vacina) {
         this(
-            vacina.getId(),
-            vacina.getNome(),
-            vacina.getFabricante(),
-            vacina.getCarenciaDias(),
-            vacina.getIntervaloDoseDias()
+                vacina.getId(),
+                vacina.getNome(),
+                vacina.getFabricante(),
+                vacina.getCarenciaDias(),
+                vacina.getIntervaloDoseDias(),
+                vacina.isExigidaParaTransito()
         );
     }
 }

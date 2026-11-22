@@ -7,6 +7,7 @@ import com.pecucore.system.core.dto.animal.AnimalResponseDTO;
 import com.pecucore.system.core.dto.animal.AnimalStatusRequestDTO;
 import com.pecucore.system.core.dto.animal.FichaAnimalResponseDTO;
 import com.pecucore.system.core.model.Animal;
+import com.pecucore.system.core.model.StatusAnimal;
 import com.pecucore.system.core.model.Usuario;
 import com.pecucore.system.core.service.animal.AnimalService;
 
@@ -79,7 +80,7 @@ public class AnimalController {
     }
 
     @PutMapping("/{id}/status")
-    @Operation(summary = "Alterar o status do animal (venda, abate, óbito)")
+    @Operation(summary = "Alterar o status do animal (saída do rebanho)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Status alterado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
@@ -120,6 +121,16 @@ public class AnimalController {
                         .collect(Collectors.toList());
 
         return ResponseEntity.ok(dtos);
+    }
+
+
+    @GetMapping("/saidas")
+    @Operation(summary = "Listar os status de saída do rebanho aceitos pela aplicação")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Status de saída listados com sucesso")
+    })
+    public ResponseEntity<List<StatusAnimal>> getAllSaidasAnimal() {
+        return ResponseEntity.ok(animalService.getAllSaidasAnimal());
     }
 
     @GetMapping("/{id}/ficha")

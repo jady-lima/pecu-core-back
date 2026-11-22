@@ -3,8 +3,8 @@ package com.pecucore.system.core.dto.lote;
 import com.pecucore.system.core.model.Lote;
 import java.time.LocalDate;
 
-public record LoteResponseDTO(Long id, int numero, String finalidade, int capacidade, LocalDate dataCriacao, Long propriedadeId, Double metaDesempenho){
- public LoteResponseDTO(Lote lote){
-     this( lote.getId(), lote.getNumero(), lote.getFinalidade(), lote.getCapacidade(),lote.getDataCriacao(), lote.getPropriedade().getId(), lote.getMetaDesempenho());
- }
+public record LoteResponseDTO(Long id, int numero, String finalidade, int capacidade, LocalDate dataCriacao, Long propriedadeId, Double metaDesempenho, Double metaDesempenhoMaxima){
+    public LoteResponseDTO(Lote lote){
+        this( lote.getId(), lote.getNumero(), lote.getFinalidade(), lote.getCapacidade(),lote.getDataCriacao(), lote.getPropriedade().getId(), lote.getMetaDesempenho(), lote.getMetaDesempenhoMaxima());
+    }
 }

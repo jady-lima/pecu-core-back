@@ -3,6 +3,8 @@ package com.pecucore.system.core.service.desempenho;
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.extensao.desempenho.Meta;
+import com.pecucore.system.core.extensao.desempenho.ResultadoMeta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.model.Usuario;
@@ -60,24 +62,31 @@ public class DesempenhoService {
             );
         }
 
-        double indiceEsperado = loteService.getMetaDesempenho(animal.getLote())
+        Meta meta = loteService.getMetaDesempenho(animal.getLote())
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Meta de desempenho não encontrada para o lote nem para a fase."
                 ));
 
-        double percentualDaMeta =
-                calculadoraEstatisticasLote.calcularPercentualDaReferencia(indiceAtual, indiceEsperado);
+        ResultadoMeta resultadoMeta = meta.avaliar(indiceAtual);
+        Double minimo = meta.minimo();
+
+        // Percentual só faz sentido sobre um mínimo positivo; senão fica nulo (antes: NullPointerException).
+        Double percentualDaMeta =
+                calculadoraEstatisticasLote.calcularPercentualDaReferencia(indiceAtual, minimo);
 
         return new ResultadoComparacaoDesempenho(
                 animal,
                 indicadorDesempenho.getNome(),
                 indicadorDesempenho.getUnidade(),
                 indiceAtual,
-                indiceEsperado,
-                indiceAtual - indiceEsperado,
+                minimo,
+                meta.maximo(),
+                minimo != null ? indiceAtual - minimo : null,
                 percentualDaMeta,
-                100 - percentualDaMeta,
-                indiceAtual < indiceEsperado
+                percentualDaMeta != null ? 100 - percentualDaMeta : null,
+                resultadoMeta == ResultadoMeta.ABAIXO,
+                resultadoMeta
         );
     }
+
 }

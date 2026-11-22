@@ -21,10 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ContratoApiTest {
 
-    private static final String[] PACOTES = {
-            "com.pecucore.system.core",
-            "com.pecucore.system.bovinos"
-    };
+    private static final String[] PACOTES = ModulosAgroCore.pacotesParaVarredura();
 
     private static final Set<String> ENDPOINTS_PUBLICOS = Set.of(
             "AutenticacaoController.login"

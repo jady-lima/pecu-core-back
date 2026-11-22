@@ -2,6 +2,8 @@ package com.pecucore.system.bovinos.service.alerta.verificador;
 
 import com.pecucore.system.bovinos.model.TipoAlertaBovinos;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.extensao.desempenho.Meta;
+import com.pecucore.system.core.extensao.desempenho.ResultadoMeta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Pesagem;
 import com.pecucore.system.core.extensao.alerta.TipoAlerta;
@@ -49,8 +51,9 @@ public class VerificadorGmdAbaixoMeta implements VerificadorAlerta {
             return Optional.empty();
         }
 
-        Optional<Double> meta = loteService.getMetaDesempenho(animal.getLote()).or(() -> regraAlertaService.getParametroAtivo(animal, getTipo()));
-        
+        Optional<Meta> meta = loteService.getMetaDesempenho(animal.getLote())
+                .or(() -> regraAlertaService.getParametroAtivo(animal, getTipo()).map(Meta::minima));
+
         Optional<Pesagem> ultima = pesagemService.getUltimaPesagem(animal.getId());
 
         if (meta.isEmpty() || ultima.isEmpty()) {
@@ -59,11 +62,11 @@ public class VerificadorGmdAbaixoMeta implements VerificadorAlerta {
 
         Double gmd = ultima.get().getIndiceDesempenho();
 
-        if (gmd == null || gmd >= meta.get()) {
+        if (gmd == null || meta.get().avaliar(gmd) != ResultadoMeta.ABAIXO) {
             return Optional.empty();
         }
 
-        return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.get().getId(), "GMD abaixo da meta: o animal ganhou " + formatar(gmd) + ", abaixo da meta de " + formatar(meta.get()) + "."));
+        return Optional.of(new OcorrenciaAlerta("pesagem:" + ultima.get().getId(), "GMD abaixo da meta: o animal ganhou " + formatar(gmd) + ", abaixo da meta de " + formatar(meta.get().minimo()) + "."));
     }
 
     private String formatar(double valor) {

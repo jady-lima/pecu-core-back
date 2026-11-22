@@ -6,6 +6,9 @@ import com.pecucore.system.core.dto.analise.DesempenhoLoteDTO;
 import com.pecucore.system.core.dto.analise.SanidadeLoteDTO;
 import com.pecucore.system.core.exception.DadosInsuficientesException;
 import com.pecucore.system.core.extensao.desempenho.IndicadorDesempenho;
+import com.pecucore.system.core.extensao.desempenho.Meta;
+import com.pecucore.system.core.extensao.desempenho.ResultadoMeta;
+
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.Lote;
 import com.pecucore.system.core.model.Pesagem;
@@ -144,7 +147,8 @@ public class ContextoAnaliseLoteService {
         List<Double> pesos = animais.stream().map(Animal::getPesoAtual).toList();
 
         double indiceMedio = calculadoraEstatisticasLote.calcularMedia(indices);
-        Double indiceMeta = loteService.getMetaDesempenho(lote).orElse(null);
+        Optional<Meta> meta = loteService.getMetaDesempenho(lote);
+        Double indiceMeta = meta.map(Meta::minimo).orElse(null);
 
         return new DesempenhoLoteDTO(
                 indicadorDesempenho.getNome(),
@@ -155,12 +159,20 @@ public class ContextoAnaliseLoteService {
                 Collections.min(indices),
                 Collections.max(indices),
                 indiceMeta,
+                meta.map(Meta::maximo).orElse(null),
                 calculadoraEstatisticasLote.calcularPercentualDaReferencia(indiceMedio, indiceMeta),
-                indiceMeta != null ? indices.stream().filter(indice -> indice < indiceMeta).count() : null,
+                meta.map(m -> contarPorResultado(indices, m, ResultadoMeta.ABAIXO)).orElse(null),
+                meta.map(m -> contarPorResultado(indices, m, ResultadoMeta.ACIMA)).orElse(null),
                 calculadoraEstatisticasLote.calcularMedia(pesos),
                 escores.isEmpty() ? null : calculadoraEstatisticasLote.calcularMedia(escores),
                 escores.size()
         );
+    }
+
+    private static long contarPorResultado(List<Double> indices, Meta meta, ResultadoMeta resultado) {
+        return indices.stream()
+                .filter(indice -> meta.avaliar(indice) == resultado)
+                .count();
     }
 
     private SanidadeLoteDTO montarSanidade(Long loteId, List<Animal> animais, Usuario usuarioLogado) {

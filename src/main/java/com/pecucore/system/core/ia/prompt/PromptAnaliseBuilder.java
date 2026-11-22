@@ -60,19 +60,19 @@ public class PromptAnaliseBuilder {
     private static final String SIGNIFICADO_CAMPOS_COMPARACAO = """
             Significado dos campos da comparação:
             - animalAnalisado: dados completos do animal analisado; seus campos seguem o "Significado dos campos" descrito mais abaixo.
-            - posicaoNoLote.posicaoIndice: posição do animal no ranking do indicador de desempenho do lote (1 = maior índice). Animais empatados ocupam a mesma posição.
+            - posicaoNoLote.posicaoIndice: posição do animal no ranking de desempenho do lote (1 = melhor desempenho segundo o critério da aplicação: em ganho de peso, por exemplo, maior índice; em manutenção, ficar dentro da faixa da meta). Animais empatados ocupam a mesma posição.
             - posicaoNoLote.totalComparados: quantidade de animais no ranking, incluindo o animal analisado.
-            - posicaoNoLote.percentilIndice: percentual dos demais animais com índice menor que o do animal analisado (100 = superou todos, 0 = ficou abaixo de todos).
+            - posicaoNoLote.percentilIndice: percentual dos demais animais que ficaram atrás do animal analisado no ranking (100 = à frente de todos, 0 = atrás de todos).
             - posicaoNoLote.diferencaIndiceMedia: índice do animal menos o índice médio do lote (negativo = abaixo da média).
             - posicaoNoLote.percentualDaMediaIndice: índice do animal em relação à média do lote (100 = exatamente na média; nulo quando a média do lote não é positiva).
             - posicaoNoLote.diferencaPesoMedioKg: peso atual do animal menos o peso médio dos animais comparados.
             - estatisticasLote.totalAnimaisAtivos: animais ativos no lote, incluindo os que ficaram fora da comparação.
             - estatisticasLote.animaisComparados: animais com pelo menos 2 pesagens considerados nas estatísticas, incluindo o animal analisado.
             - estatisticasLote.indiceMedio, indiceMediano, indiceMinimo e indiceMaximo: estatísticas do indicador de desempenho no período dos animais comparados.
-            - estatisticasLote.indiceMeta: meta do indicador de desempenho do lote (mesma regra de desempenho.indiceMeta).
+            - estatisticasLote.indiceMeta e estatisticasLote.indiceMetaMaxima: limites mínimo e máximo da meta do lote (mesma regra de desempenho.indiceMeta e desempenho.indiceMetaMaxima).
             - estatisticasLote.pesoMedioKg: peso atual médio dos animais comparados.
             - estatisticasLote.custoMedioPorAnimal: média do custo total dos animais comparados, somando os custos lançados em cada animal e a parte rateada dos custos do lote e da propriedade.
-            - demaisAnimais: resumo dos outros animais comparados, do maior para o menor indicePeriodo.
+            - demaisAnimais: resumo dos outros animais comparados, do melhor para o pior no ranking de desempenho.
             """;
 
     private static final String PREENCHIMENTO_COMPARACAO = """
@@ -109,9 +109,9 @@ public class PromptAnaliseBuilder {
             - desempenho.indicador e desempenho.unidade: nome e unidade do indicador de desempenho usado pela aplicação. Use esse nome e essa unidade no relatório.
             - desempenho.animaisAvaliados: animais com pelo menos 2 pesagens considerados nas estatísticas; o índice de cada um vai da primeira à última pesagem dele.
             - desempenho.indiceMedio, indiceMediano, indiceMinimo e indiceMaximo: estatísticas do indicador de desempenho dos animais avaliados. Uma grande distância entre mínimo e máximo indica lote pouco uniforme.
-            - desempenho.indiceMeta: meta do indicador do lote; sem meta própria do lote, é a meta da finalidade (nulo quando não há nenhuma meta cadastrada).
-            - desempenho.percentualMediaDaMeta: quanto da meta o índice médio do lote atingiu (100 = exatamente na meta).
-            - desempenho.animaisAbaixoDaMeta: animais avaliados com índice abaixo da meta (nulo quando não há meta).
+            - desempenho.indiceMeta e desempenho.indiceMetaMaxima: limites mínimo e máximo da meta do indicador do lote; sem meta própria do lote, valem os da finalidade. A meta pode ter só mínimo, só máximo ou os dois (ambos nulos quando não há meta cadastrada).
+            - desempenho.percentualMediaDaMeta: quanto do mínimo da meta o índice médio do lote atingiu (100 = exatamente no mínimo; nulo quando não há mínimo positivo).
+            - desempenho.animaisAbaixoDaMeta e desempenho.animaisAcimaDaMeta: animais avaliados com índice abaixo do mínimo e acima do máximo da meta (nulos quando não há meta).
             - desempenho.pesoMedioKg: peso atual médio dos animais ativos.
             - desempenho.escoreCorporalMedio: média do último escore de condição corporal (ECC) de cada animal avaliado, na escala {ESCALA_ECC}; valores baixos indicam animais magros e altos, animais gordos (nulo quando não foi avaliado).
             - desempenho.animaisComEscoreCorporal: animais avaliados que possuem ECC registrado.
@@ -132,8 +132,9 @@ public class PromptAnaliseBuilder {
             Significado dos campos:
             - desempenho.indicador e desempenho.unidade: nome e unidade do indicador de desempenho usado pela aplicação. Use esse nome e essa unidade no relatório.
             - desempenho.indicePeriodo: valor do indicador entre a primeira e a última pesagem.
-            - desempenho.indiceMeta: meta do indicador definida pelo produtor para o lote; sem meta própria do lote, é a meta da finalidade (nulo quando não há nenhuma meta cadastrada).
-            - desempenho.percentualDaMeta: quanto da meta o animal atingiu (100 = exatamente na meta).
+            - desempenho.indiceMeta e desempenho.indiceMetaMaxima: limites mínimo e máximo da meta do indicador definida pelo produtor para o lote; sem meta própria do lote, valem os da finalidade. A meta pode ter só mínimo, só máximo ou os dois (ambos nulos quando não há meta cadastrada).
+            - desempenho.percentualDaMeta: quanto do mínimo da meta o animal atingiu (100 = exatamente no mínimo; nulo quando não há mínimo positivo).
+            - desempenho.resultadoMeta: ABAIXO (abaixo do mínimo), DENTRO (dentro da faixa) ou ACIMA (acima do máximo) da meta; nulo quando não há meta. Use este campo para dizer se o animal atingiu a meta.
             - pesagens[].indiceDesempenho: indicador calculado em cada pesagem em relação à pesagem anterior (nulo na primeira).
             - pesagens[].escoreCorporal: escore de condição corporal (ECC) avaliado na pesagem, na escala {ESCALA_ECC}; valores baixos indicam animal magro e altos, animal gordo (nulo quando não foi avaliado).
             - animal.emCarencia: verdadeiro quando o animal está em carência de vacina ou medicamento; nesse período ele não pode mudar para os status {STATUS_BLOQUEADOS}.

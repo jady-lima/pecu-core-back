@@ -17,4 +17,11 @@ public interface IndicadorDesempenho {
     Double calcularHistorico(Pesagem primeiraPesagem, Pesagem ultimaPesagem);
 
     EscalaCondicaoCorporal getEscalaCondicaoCorporal();
+
+    /**
+     * Pontuação para ordenar os animais no ranking do lote: maior pontuação = melhor posição.
+     * Cada aplicação decide o que é "melhor" (ex.: corte = maior ganho; manutenção = ficar na faixa).
+     * A meta pode ser null quando o lote não tem meta.
+     */
+    double calcularPontuacaoRanking(double valor, Meta meta);
 }

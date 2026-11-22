@@ -3,8 +3,10 @@ package com.pecucore.system.bovinos.service.agrupamento;
 import com.pecucore.system.bovinos.model.FinalidadeLote;
 import com.pecucore.system.core.extensao.agrupamento.FaseLote;
 import com.pecucore.system.core.extensao.agrupamento.PoliticaAgrupamento;
+import com.pecucore.system.core.extensao.desempenho.Meta;
 import com.pecucore.system.core.model.Animal;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.pecucore.system.core.model.StatusAnimal;
+
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -24,18 +26,19 @@ public class AgrupamentoBovinos implements PoliticaAgrupamento {
     private static final int IDADE_MAXIMA_CRIA_MESES = 8;
     private static final int IDADE_MAXIMA_RECRIA_MESES = 18;
 
-    @Autowired
-    private MetaDesempenhoService metaDesempenhoService;
+    private static final Set<StatusAnimal> SAIDAS =
+            EnumSet.of(StatusAnimal.VENDIDO, StatusAnimal.OBITO, StatusAnimal.ABATIDO);
+
 
     @Override
     public List<FaseLote> getFases() {
         return FASES;
     }
 
+    /** Bovinos não têm meta padrão no código: as metas por fase são cadastradas pelo administrador. */
     @Override
-    public Optional<Double> getMetaDaFase(String codigoFase) {
-        return FinalidadeLote.deCodigo(codigoFase)
-                .flatMap(metaDesempenhoService::getGmdEsperadoByFase);
+    public Optional<Meta> getMetaDaFase(String codigoFase) {
+        return Optional.empty();
     }
 
     @Override
@@ -46,6 +49,12 @@ public class AgrupamentoBovinos implements PoliticaAgrupamento {
 
         return animal.getIdadeMeses(LocalDate.now())
                 .map(idadeMeses -> definirFasePorIdade(idadeMeses).name());
+    }
+
+
+    @Override
+    public Set<StatusAnimal> getSaidasPossiveis() {
+        return SAIDAS;
     }
 
     private boolean estaEmFasePorIdade(Animal animal) {

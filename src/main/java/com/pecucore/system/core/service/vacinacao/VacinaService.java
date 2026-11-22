@@ -2,6 +2,8 @@ package com.pecucore.system.core.service.vacinacao;
 
 import com.pecucore.system.core.exception.ConflitoNegocioException;
 import com.pecucore.system.core.exception.RecursoNaoEncontradoException;
+import com.pecucore.system.core.exception.RegraNegocioException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.pecucore.system.core.dto.vacinacao.VacinaRequestDTO;
@@ -30,6 +32,7 @@ public class VacinaService {
         vacina.setFabricante(dados.fabricante().trim());
         vacina.setCarenciaDias(dados.carenciaDias());
         vacina.setIntervaloDoseDias(dados.intervaloDoseDias());
+        vacina.setExigidaParaTransito(definirExigidaParaTransito(dados));
 
         return vacinaRepository.save(vacina);
     }
@@ -46,6 +49,7 @@ public class VacinaService {
         vacinaExistente.setFabricante(dados.fabricante().trim());
         vacinaExistente.setCarenciaDias(dados.carenciaDias());
         vacinaExistente.setIntervaloDoseDias(dados.intervaloDoseDias());
+        vacinaExistente.setExigidaParaTransito(definirExigidaParaTransito(dados));
 
         return vacinaRepository.save(vacinaExistente);
     }
@@ -66,6 +70,24 @@ public class VacinaService {
 
     public Vacina getVacinaById(Long id) {
         return vacinaRepository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException( "Vacina não encontrada"));
+    }
+
+    public List<Vacina> getAllVacinasExigidasParaTransito() {
+        return vacinaRepository.findByExigidaParaTransitoTrue();
+    }
+
+
+    private boolean definirExigidaParaTransito(VacinaRequestDTO dados) {
+        boolean exigida = Boolean.TRUE.equals(dados.exigidaParaTransito());
+
+        if (exigida && dados.intervaloDoseDias() == null) {
+            throw new RegraNegocioException(
+                    "Uma vacina ou exame exigido para trânsito precisa ter validade: "
+                            + "informe o intervalo entre doses (em dias)."
+            );
+        }
+
+        return exigida;
     }
 
     private String normalizarNome(String nome) {

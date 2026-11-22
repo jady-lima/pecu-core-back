@@ -20,6 +20,9 @@ public record VacinaRequestDTO(
         Integer carenciaDias,
 
         @Positive(message = "O intervalo entre doses deve ser maior que zero.")
-        Integer intervaloDoseDias
+        Integer intervaloDoseDias,
+
+        /* Exigida em dia para o trânsito (ex.: exame de AIE). Opcional, padrão false; exige intervaloDoseDias. */
+        Boolean exigidaParaTransito
 ) {
 }

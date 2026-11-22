@@ -8,6 +8,7 @@ public record EstatisticasLoteDTO(
         Double indiceMinimo,
         Double indiceMaximo,
         Double indiceMeta,
+        Double indiceMetaMaxima,
         double pesoMedioKg,
         Double custoMedioPorAnimal
 ) {

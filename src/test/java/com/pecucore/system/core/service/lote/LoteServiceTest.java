@@ -64,6 +64,10 @@ class LoteServiceTest {
     @Mock
     private PoliticaAgrupamento politicaAgrupamento;
 
+
+    @Mock
+    private MetaFaseService metaFaseService;
+
     @InjectMocks
     private LoteService loteService;
 
@@ -125,11 +129,21 @@ class LoteServiceTest {
         }
 
         @Test
-        @DisplayName("Sem meta própria, usa a meta da fase informada pela política da instância")
+        @DisplayName("Sem meta própria nem meta cadastrada para a fase, usa a meta padrão da aplicação")
         void usaMetaDaFase() {
             when(politicaAgrupamento.getMetaDaFase("FASE_A")).thenReturn(Optional.of(Meta.minima(0.9)));
 
             assertEquals(Optional.of(Meta.minima(0.9)), loteService.getMetaDesempenho(lote("FASE_A", null)));
+        }
+
+
+        @Test
+        @DisplayName("Meta cadastrada para a fase tem prioridade sobre a meta padrão da aplicação")
+        void metaCadastradaTemPrioridadeSobrePadrao() {
+            when(metaFaseService.getMetaByFase("FASE_A")).thenReturn(Optional.of(Meta.faixa(0.3, 0.6)));
+
+            assertEquals(Optional.of(Meta.faixa(0.3, 0.6)), loteService.getMetaDesempenho(lote("FASE_A", null)));
+            verify(politicaAgrupamento, never()).getMetaDaFase(anyString());
         }
 
         @Test

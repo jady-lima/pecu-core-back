@@ -41,6 +41,10 @@ public class LoteService {
     @Autowired
     private PoliticaAgrupamento politicaAgrupamento;
 
+
+    @Autowired
+    private MetaFaseService metaFaseService;
+
     public Lote createLote(
             LoteRequestDTO dados,
             Usuario usuarioLogado
@@ -196,7 +200,8 @@ public class LoteService {
             return Optional.empty();
         }
 
-        return politicaAgrupamento.getMetaDaFase(lote.getFinalidade());
+        return metaFaseService.getMetaByFase(lote.getFinalidade())
+                .or(() -> politicaAgrupamento.getMetaDaFase(lote.getFinalidade()));
     }
 
     private Meta montarMeta(Double minimo, Double maximo) {

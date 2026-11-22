@@ -14,7 +14,12 @@ public interface PoliticaAgrupamento {
 
     List<FaseLote> getFases();
 
+    /**
+     * Meta padrão da aplicação para a fase (valor de referência, com fonte citada na implementação).
+     * Só é usada quando o lote não tem meta própria e não há meta cadastrada para a fase (MetaFaseService).
+     */
     Optional<Meta> getMetaDaFase(String codigoFase);
+
 
     Optional<String> sugerirFase(Animal animal);
 

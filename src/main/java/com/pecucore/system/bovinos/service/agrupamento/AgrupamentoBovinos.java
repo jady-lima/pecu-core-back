@@ -7,7 +7,6 @@ import com.pecucore.system.core.extensao.desempenho.Meta;
 import com.pecucore.system.core.model.Animal;
 import com.pecucore.system.core.model.StatusAnimal;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -30,19 +29,16 @@ public class AgrupamentoBovinos implements PoliticaAgrupamento {
     private static final Set<StatusAnimal> SAIDAS =
             EnumSet.of(StatusAnimal.VENDIDO, StatusAnimal.OBITO, StatusAnimal.ABATIDO);
 
-    @Autowired
-    private MetaDesempenhoService metaDesempenhoService;
 
     @Override
     public List<FaseLote> getFases() {
         return FASES;
     }
 
+    /** Bovinos não têm meta padrão no código: as metas por fase são cadastradas pelo administrador. */
     @Override
     public Optional<Meta> getMetaDaFase(String codigoFase) {
-        return FinalidadeLote.deCodigo(codigoFase)
-                .flatMap(metaDesempenhoService::getGmdEsperadoByFase)
-                .map(Meta::minima);
+        return Optional.empty();
     }
 
     @Override

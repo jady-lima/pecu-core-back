@@ -1,7 +1,6 @@
 package com.pecucore.system.bovinos;
 
 import com.pecucore.system.bovinos.service.agrupamento.AgrupamentoBovinos;
-import com.pecucore.system.bovinos.service.agrupamento.MetaDesempenhoService;
 import com.pecucore.system.bovinos.service.aplicacao.DescricaoAplicacaoBovinos;
 import com.pecucore.system.bovinos.service.desempenho.GmdService;
 import com.pecucore.system.bovinos.service.sanidade.RestricaoSanitariaBovinos;
@@ -15,9 +14,6 @@ import com.pecucore.system.core.extensao.sanitario.PoliticaRestricaoSanitaria;
 import com.pecucore.system.core.extensao.sanitario.PoliticaRestricaoSanitariaContrato;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import static org.mockito.Mockito.mock;
 
 /**
  * A aplicação bovinos cumpre o contrato de cada ponto flexível do núcleo.
@@ -42,10 +38,7 @@ class PontosFlexiveisBovinosTest {
 
         @Override
         protected PoliticaAgrupamento criarPolitica() {
-            AgrupamentoBovinos agrupamento = new AgrupamentoBovinos();
-            // A meta de cada fase vem do banco (MetaDesempenhoService); no contrato, o serviço é simulado.
-            ReflectionTestUtils.setField(agrupamento, "metaDesempenhoService", mock(MetaDesempenhoService.class));
-            return agrupamento;
+            return new AgrupamentoBovinos();
         }
     }
 
